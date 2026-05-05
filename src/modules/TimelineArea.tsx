@@ -1,53 +1,96 @@
 import TimelineCursor from "./TimelineCursor";
 import "./TimelineArea.less";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import TimelineRuler, { type TimelineConfig } from "../components/TimelineRuler";
+import { convertPixelsToSeconds, convertSecondsToPixels } from "../utils/convert";
 
-const TimelineArea = () => {
 
-    // 光标位置
-    const [cursorX, setCursorX] = useState(100);
-    const [isDragging, setIsDragging] = useState<boolean>(false);
+interface TimelineAreaProps {
+    currentTime?: number;
+    setCurrentTime?: (currentTime: number) => void;
+}
+
+const TimelineArea: React.FC<TimelineAreaProps> = ({ currentTime = 0, setCurrentTime }) => {
+
+    /** 拖动中的像素位置；非拖动时为 null，光标由 currentTime 推导 */
+    const [dragX, setDragX] = useState<number | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
     const areaRef = useRef<HTMLDivElement>(null);
 
+    const [config] = useState<TimelineConfig>({
+        totalDuration: 135,
+        pixelsPerSecond: 25,
+        height: 40,
+        tickConfig: {
+          majorTickInterval: 10,
+          minorTickInterval: 1,
+          majorTickHeight: 20,
+          minorTickHeight: 10,
+        },
+      });
 
-    // 鼠标按下：开始拖动
-    const handleMouseDown = (e: React.MouseEvent) => {
-        setIsDragging(true);
-        // 点击时立即定位
-        if (areaRef.current) {
-            const rect = areaRef.current.getBoundingClientRect();
-            setCursorX(e.clientX - rect.left);
-        }
-    };
+    const contentWidth = config.totalDuration * config.pixelsPerSecond;
 
-    // 鼠标移动：仅拖动时更新位置
-    const handleMouseMove = (e: React.MouseEvent) => {
-        if (!isDragging) return;
-        if (!areaRef.current) return;
-
-        const rect = areaRef.current.getBoundingClientRect();
-        let x = e.clientX - rect.left;
-
-        // 限制在容器内
+    const applyPointerClientX = useCallback((clientX: number) => {
+        const el = areaRef.current;
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        let x = clientX - rect.left + el.scrollLeft;
         if (x < 0) x = 0;
-        if (x > rect.width) x = rect.width;
+        if (x > contentWidth) x = contentWidth;
+        setDragX(x);
+        const seconds = Math.max(
+            0,
+            Math.min(config.totalDuration, convertPixelsToSeconds(x, config.pixelsPerSecond)),
+        );
+        setCurrentTime?.(seconds);
+    }, [contentWidth, config.totalDuration, config.pixelsPerSecond, setCurrentTime]);
+
+    // 拖出区域时仍跟随鼠标；在 document 上结束拖动
+    useEffect(() => {
+        if (!isDragging) return;
+
+        const handleMove = (e: MouseEvent) => {
+            applyPointerClientX(e.clientX);
+        };
+
+        const handleUp = () => {
+            setIsDragging(false);
+            setDragX(null);
+        };
+
+        document.addEventListener("mousemove", handleMove);
+        document.addEventListener("mouseup", handleUp);
+        return () => {
+            document.removeEventListener("mousemove", handleMove);
+            document.removeEventListener("mouseup", handleUp);
+        };
+    }, [isDragging, applyPointerClientX]);
 
 
-        setCursorX(x);
+    const handleMouseDown = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setIsDragging(true);
+        applyPointerClientX(e.clientX);
     };
 
-    // 鼠标松开/离开：结束拖动
-    const handleDragEnd = () => setIsDragging(false);
-
-    console.log("cursorX", cursorX);
+    const timePixels = convertSecondsToPixels(
+        Math.max(0, Math.min(config.totalDuration, currentTime)),
+        config.pixelsPerSecond,
+    );
+    const cursorX = isDragging && dragX !== null ? dragX : timePixels;
 
     return (<div className="timeline-area"
         ref={areaRef}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove} // 🔥 只监听容器自身 mousemove
-        onMouseUp={handleDragEnd}
-        onMouseLeave={handleDragEnd}>
-        <TimelineCursor position={cursorX} height={areaRef.current?.clientHeight - 50} isDragging={isDragging} />
+        onMouseDown={handleMouseDown}>
+
+
+        <TimelineRuler config={config} />
+        <TimelineCursor
+            position={cursorX}
+            height={Math.max(0, (areaRef.current?.clientHeight ?? 0) - 50)}
+            isDragging={isDragging}
+        />
     </div>)
 
 }
