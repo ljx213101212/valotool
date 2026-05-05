@@ -1,29 +1,19 @@
-import { useState } from 'react';
 import './App.css';
 import { PlayTimerControl } from './components/PlayTimerControl';
-import { usePlaybackClock } from './hooks/usePlaybackClock';
 import TimelineArea from './modules/TimelineArea';
-
-/** 与时间轴 TimelineArea 内 config.totalDuration 保持一致 */
-const TIMELINE_TOTAL_SECONDS = 135;
+import { useTimelinePlaybackStore } from './store/timelinePlaybackStore';
 
 function App() {
-  const [currentTime, setCurrentTime] = useState(0);
-  const { playing, togglePlay } = usePlaybackClock({
-    currentTime,
-    setCurrentTime,
-    maxTime: TIMELINE_TOTAL_SECONDS,
-  });
+  const currentTime = useTimelinePlaybackStore((s) => s.currentTime);
 
   return (
     <>
       <h1>Timeline Editor</h1>
-      <PlayTimerControl currentTime={currentTime} playing={playing} onTogglePlay={togglePlay} />
-      <TimelineArea currentTime={currentTime} setCurrentTime={setCurrentTime} />
+      <PlayTimerControl />
+      <TimelineArea />
 
-      {currentTime}
     </>
   );
 }
 
-export default App
+export default App;

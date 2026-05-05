@@ -1,10 +1,5 @@
+import { useTimelinePlaybackStore } from '../store/timelinePlaybackStore';
 import './PlayTimerControl.less';
-
-export type PlayTimerControlProps = {
-  currentTime: number;
-  playing: boolean;
-  onTogglePlay: () => void;
-};
 
 function formatTime(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) return '0:00.000';
@@ -15,14 +10,17 @@ function formatTime(seconds: number): string {
   return `${m}:${String(s).padStart(2, '0')}.${String(ms).padStart(3, '0')}`;
 }
 
-/** 仅负责展示与播放按钮；时钟逻辑由 usePlaybackClock 提供 */
-export function PlayTimerControl({ currentTime, playing, onTogglePlay }: PlayTimerControlProps) {
+export function PlayTimerControl() {
+  const currentTime = useTimelinePlaybackStore((s) => s.currentTime);
+  const playing = useTimelinePlaybackStore((s) => s.playing);
+  const togglePlay = useTimelinePlaybackStore((s) => s.togglePlay);
+
   return (
     <div className="play-timer-control">
       <button
         type="button"
         className="play-timer-control__btn"
-        onClick={onTogglePlay}
+        onClick={togglePlay}
         aria-pressed={playing}
       >
         {playing ? '暂停' : '播放'}

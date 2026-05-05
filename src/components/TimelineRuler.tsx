@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import { formatTime } from '../utils/convert';
 
 export interface TimelineConfig {
