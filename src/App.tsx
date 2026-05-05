@@ -1,17 +1,12 @@
 import './App.css';
-import { PlayTimerControl } from './components/PlayTimerControl';
-import TimelineArea from './modules/TimelineArea';
-import { useTimelinePlaybackStore } from './store/timelinePlaybackStore';
+import Map from './modules/Map';
 
 function App() {
-  const currentTime = useTimelinePlaybackStore((s) => s.currentTime);
+
 
   return (
     <>
-      <h1>Timeline Editor</h1>
-      <PlayTimerControl />
-      <TimelineArea />
-
+    <Map />
     </>
   );
 }
