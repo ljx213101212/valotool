@@ -1,0 +1,70 @@
+.left-tactical-panel {
+  padding: 16px 14px 20px;
+  box-sizing: border-box;
+}
+
+.left-tactical-panel__header {
+  margin-bottom: 14px;
+}
+
+.left-tactical-panel__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.95);
+}
+
+.left-tactical-panel__block {
+  margin-bottom: 18px;
+}
+
+.left-tactical-panel__field-label {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: rgba(226, 232, 240, 0.85);
+  font-weight: 500;
+}
+
+.side-toggle {
+  display: flex;
+  gap: 0;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(51, 65, 85, 0.9);
+}
+
+.side-toggle__btn {
+  flex: 1;
+  margin: 0;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(148, 163, 184, 0.95);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color 0.12s ease,
+    background 0.12s ease,
+    box-shadow 0.12s ease;
+
+  &:hover:not(.side-toggle__btn--active) {
+    color: #e2e8f0;
+    background: rgba(30, 41, 59, 0.65);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(56, 189, 248, 0.75);
+    outline-offset: 1px;
+  }
+}
+
+.side-toggle__btn--active {
+  color: #f0f9ff;
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.35) 0%, rgba(14, 116, 144, 0.25) 100%);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.45);
+}
