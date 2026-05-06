@@ -1,4 +1,5 @@
 import { MapPicker } from '@/components/MapPicker';
+import { MatchupModule } from '@/components/MatchupModule';
 import { useMapSelectionStore } from '@/store/useMapSelectionStore';
 import './LeftTacticalPanel.less';
 
@@ -16,6 +17,7 @@ export function LeftTacticalPanel() {
 
       <section className="left-tactical-panel__block" aria-labelledby="side-toggle-label">
         <p id="side-toggle-label" className="left-tactical-panel__field-label">
+          阵营
         </p>
         <div className="side-toggle" role="group" aria-label="进攻或防守">
           <button
@@ -36,6 +38,8 @@ export function LeftTacticalPanel() {
           </button>
         </div>
       </section>
+
+      <MatchupModule />
     </div>
   );
 }
