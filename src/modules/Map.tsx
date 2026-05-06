@@ -1,5 +1,7 @@
+import { useDroppable } from "@dnd-kit/core";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { valorantMap } from "../data/valorantMap";
+import { MAP_DROP_ZONE_ID } from "@/constants/dnd";
 import { useMapSelectionStore } from "@/store/useMapSelectionStore";
 import { Layer, Line, Shape, Stage } from "react-konva";
 import "./Map.less";
@@ -10,9 +12,12 @@ const Map = () => {
   const mapHeight = valorantMap.bounds.max.y - valorantMap.bounds.min.y + 100;
   const defense = side === "defense";
 
+  const { setNodeRef, isOver } = useDroppable({ id: MAP_DROP_ZONE_ID });
+
     return (
     <div
-      className="map-root"
+      ref={setNodeRef}
+      className={`map-root${isOver ? " map-root--drop-over" : ""}`}
     >
       <TransformWrapper
         initialScale={1}

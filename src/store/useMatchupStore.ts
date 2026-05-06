@@ -6,6 +6,9 @@ export type MatchupSide = 'attack' | 'defense';
 interface MatchupState {
   attackAgentIds: string[];
   defenseAgentIds: string[];
+  /** 从右侧拖入地图时加入的阵营（与左侧「场景」进攻/防守视角无关） */
+  dragDropTargetSide: MatchupSide;
+  setDragDropTargetSide: (side: MatchupSide) => void;
   addAgent: (side: MatchupSide, agentId: string) => void;
   removeAgent: (side: MatchupSide, agentId: string) => void;
 }
@@ -15,6 +18,8 @@ export const useMatchupStore = create<MatchupState>()(
     (set) => ({
       attackAgentIds: [],
       defenseAgentIds: [],
+      dragDropTargetSide: 'attack',
+      setDragDropTargetSide: (side) => set({ dragDropTargetSide: side }),
 
       addAgent: (side, agentId) =>
         set((s) => {
@@ -38,13 +43,21 @@ export const useMatchupStore = create<MatchupState>()(
       partialize: (s) => ({
         attackAgentIds: s.attackAgentIds,
         defenseAgentIds: s.defenseAgentIds,
+        dragDropTargetSide: s.dragDropTargetSide,
       }),
       merge: (persisted, current) => {
-        const p = persisted as Partial<Pick<MatchupState, 'attackAgentIds' | 'defenseAgentIds'>> | undefined;
+        const p = persisted as
+          | Partial<Pick<MatchupState, 'attackAgentIds' | 'defenseAgentIds' | 'dragDropTargetSide'>>
+          | undefined;
+        const sideOk =
+          p?.dragDropTargetSide === 'attack' || p?.dragDropTargetSide === 'defense'
+            ? p.dragDropTargetSide
+            : current.dragDropTargetSide;
         return {
           ...current,
           attackAgentIds: Array.isArray(p?.attackAgentIds) ? p.attackAgentIds : current.attackAgentIds,
           defenseAgentIds: Array.isArray(p?.defenseAgentIds) ? p.defenseAgentIds : current.defenseAgentIds,
+          dragDropTargetSide: sideOk,
         };
       },
     }

@@ -1,6 +1,8 @@
 import './App.css';
 import { AppLayout } from './layout/AppLayout';
+import { DndAppProvider } from './components/DndAppProvider';
 import { LeftTacticalPanel } from './components/LeftTacticalPanel';
+import { RightInspectorPanel } from './components/RightInspectorPanel';
 import Map from './modules/Map';
 
 function App() {
@@ -8,13 +10,14 @@ function App() {
 
   return (
     <>
-    {/* <Map /> */}
+    <DndAppProvider>
     <AppLayout   left={<LeftTacticalPanel />}
-      main={<Map />} // 你的地图直接放这里！
-      right={<div style={{ padding: 20 }}>右侧属性面板</div>}
+      main={<Map />}
+      right={<RightInspectorPanel />}
       timeline={<div style={{ padding: 20 }}>下方时间线</div>}>
   
     </AppLayout>
+    </DndAppProvider>
     </>
   );
 }
