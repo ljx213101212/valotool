@@ -1,19 +1,18 @@
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { valorantMap } from "../data/valorantMap";
+import { useMapSelectionStore } from "@/store/useMapSelectionStore";
 import { Layer, Line, Shape, Stage } from "react-konva";
+import "./Map.less";
 
 const Map = () => {
-
+  const side = useMapSelectionStore((s) => s.side);
+  const mapWidth = valorantMap.bounds.max.x - valorantMap.bounds.min.x + 100;
+  const mapHeight = valorantMap.bounds.max.y - valorantMap.bounds.min.y + 100;
+  const defense = side === "defense";
 
     return (
     <div
-      style={{
-        width: '100vw',
-        minHeight: '100vh',
-        height: '100dvh',
-        overflow: 'hidden',
-        background: '#0f1923',
-      }}
+      className="map-root"
     >
       <TransformWrapper
         initialScale={1}
@@ -33,10 +32,13 @@ const Map = () => {
             maxHeight: '100%',
           }}
         >
-          {/* 地图画布 */}
+          <div
+            className={defense ? "map-stage-wrap map-stage-wrap--defense" : "map-stage-wrap"}
+            style={{ width: mapWidth, height: mapHeight }}
+          >
           <Stage
-            width={valorantMap.bounds.max.x - valorantMap.bounds.min.x + 100}
-            height={valorantMap.bounds.max.y - valorantMap.bounds.min.y + 100}
+            width={mapWidth}
+            height={mapHeight}
             // onClick={handleMapClick}
             // onTap={handleMapClick}
           >
@@ -74,6 +76,7 @@ const Map = () => {
             {/* 层3：视野范围 */}
             
           </Stage>
+          </div>
         </TransformComponent>
       </TransformWrapper>
     </div>

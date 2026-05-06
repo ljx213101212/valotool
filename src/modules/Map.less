@@ -1,0 +1,17 @@
+.map-root {
+  width: 100%;
+  min-height: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0f1923;
+}
+
+/* 与画布同尺寸的盒子，防守时整体旋转 180°（绕中心） */
+.map-stage-wrap {
+  position: relative;
+  transform-origin: center center;
+}
+
+.map-stage-wrap--defense {
+  transform: rotate(180deg);
+}
