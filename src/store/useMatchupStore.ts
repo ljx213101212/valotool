@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { devtools, persist } from 'zustand/middleware';
 import type { MapAgentPlacement, MatchupSide } from '@/types/matchup';
 import { reconcileMapPlacements } from '@/utils/reconcileMapPlacements';
 
@@ -21,8 +21,9 @@ interface MatchupState {
 }
 
 export const useMatchupStore = create<MatchupState>()(
-  persist(
-    (set) => ({
+  devtools(
+    persist(
+      (set) => ({
       attackAgentIds: [],
       defenseAgentIds: [],
       mapPlacements: [],
@@ -115,5 +116,7 @@ export const useMatchupStore = create<MatchupState>()(
         };
       },
     }
+    ),
+    { name: 'MatchupStore', enabled: import.meta.env.DEV }
   )
 );

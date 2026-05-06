@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { devtools, persist } from 'zustand/middleware';
 
 interface LayoutState {
   leftOpen: boolean;
@@ -11,16 +11,19 @@ interface LayoutState {
 }
 
 export const useLayoutStore = create<LayoutState>()(
-  persist(
-    (set) => ({
-      leftOpen: true,
-      rightOpen: true,
-      timelineOpen: true,
+  devtools(
+    persist(
+      (set) => ({
+        leftOpen: true,
+        rightOpen: true,
+        timelineOpen: true,
 
-      toggleLeft: () => set((s) => ({ leftOpen: !s.leftOpen })),
-      toggleRight: () => set((s) => ({ rightOpen: !s.rightOpen })),
-      toggleTimeline: () => set((s) => ({ timelineOpen: !s.timelineOpen })),
-    }),
-    { name: 'valorant-layout-storage' } // 刷新记住状态
+        toggleLeft: () => set((s) => ({ leftOpen: !s.leftOpen })),
+        toggleRight: () => set((s) => ({ rightOpen: !s.rightOpen })),
+        toggleTimeline: () => set((s) => ({ timelineOpen: !s.timelineOpen })),
+      }),
+      { name: 'valorant-layout-storage' } // 刷新记住状态
+    ),
+    { name: 'LayoutStore', enabled: import.meta.env.DEV }
   )
 );
