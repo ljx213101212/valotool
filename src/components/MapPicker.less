@@ -1,0 +1,208 @@
+.map-picker__section-title {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: rgba(226, 232, 240, 0.85);
+  font-weight: 500;
+}
+
+.map-picker__square {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 0.5;
+  max-width: min(100%, 260px);
+  //margin: 0 auto;
+  padding: 0;
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: 14px;
+  cursor: pointer;
+  overflow: hidden;
+  text-align: left;
+  background: #020617;
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.8),
+    0 12px 32px rgba(0, 0, 0, 0.45);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.12s ease;
+
+  &:hover {
+    border-color: rgba(125, 211, 252, 0.55);
+    box-shadow:
+      0 0 0 1px rgba(56, 189, 248, 0.25),
+      0 16px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(56, 189, 248, 0.85);
+    outline-offset: 2px;
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+.map-picker__square-media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.map-picker__square-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.map-picker__square-fallback {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+      120% 80% at 50% 100%,
+      color-mix(in srgb, var(--map-accent) 55%, transparent) 0%,
+      transparent 55%
+    ),
+    linear-gradient(155deg, color-mix(in srgb, var(--map-accent) 42%, #020617) 0%, #020617 72%);
+}
+
+.map-picker__square-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to top,
+    rgba(2, 6, 23, 0.92) 0%,
+    rgba(2, 6, 23, 0.35) 42%,
+    transparent 68%
+  );
+  pointer-events: none;
+}
+
+.map-picker__square-label {
+  position: absolute;
+  z-index: 2;
+  left: 12px;
+  right: 12px;
+  bottom: 36px;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #f8fafc;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+}
+
+.map-picker__square-hint {
+  position: absolute;
+  z-index: 2;
+  left: 12px;
+  bottom: 12px;
+  font-size: 11px;
+  color: rgba(186, 230, 253, 0.75);
+  letter-spacing: 0.02em;
+}
+
+.map-picker-modal {
+  .ant-modal-title {
+    color: #e2e8f0 !important;
+    font-weight: 600 !important;
+  }
+
+  .ant-modal-close {
+    color: rgba(148, 163, 184, 0.9);
+  }
+}
+
+.map-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 4px;
+
+  @media (max-width: 640px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.map-picker-tile {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(51, 65, 85, 0.85);
+  cursor: pointer;
+  overflow: hidden;
+  background: #020617;
+  transition:
+    border-color 0.12s ease,
+    box-shadow 0.12s ease,
+    transform 0.1s ease;
+
+  &:hover {
+    border-color: rgba(56, 189, 248, 0.45);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(56, 189, 248, 0.85);
+    outline-offset: 2px;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &--selected {
+    border-color: rgba(56, 189, 248, 0.85);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35);
+  }
+}
+
+.map-picker-tile__media {
+  position: absolute;
+  inset: 0;
+}
+
+.map-picker-tile__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.map-picker-tile__fallback {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+      110% 75% at 50% 100%,
+      color-mix(in srgb, var(--map-accent) 50%, transparent) 0%,
+      transparent 52%
+    ),
+    linear-gradient(150deg, color-mix(in srgb, var(--map-accent) 38%, #020617) 0%, #020617 75%);
+}
+
+.map-picker-tile__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(2, 6, 23, 0.88) 0%, transparent 55%);
+  pointer-events: none;
+}
+
+.map-picker-tile__label {
+  position: absolute;
+  z-index: 1;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #f1f5f9;
+  text-align: left;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}

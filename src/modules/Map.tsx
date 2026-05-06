@@ -1,9 +1,6 @@
-import React, { useState } from "react";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
-import {calculateViewPolygon } from "../utils/viewCalculation";
 import { valorantMap } from "../data/valorantMap";
-import type { Point } from "@/types/map";
-import { Circle, Layer, Line, Shape, Stage } from "react-konva";
+import { Layer, Line, Shape, Stage } from "react-konva";
 
 const Map = () => {
 

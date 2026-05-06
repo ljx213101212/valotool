@@ -45,16 +45,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               {leftOpen && (
                 <>
                   <Panel defaultSize={"20%"} minSize={"10%"} maxSize={"40%"}>
-                  <Group orientation="horizontal">
-                    <Panel defaultSize={"20%"} minSize={"10%"} maxSize={"40%"}>
-
-                    </Panel>
-                    <Separator className="resize-h" />
-                    <Panel defaultSize={"80%"} minSize={"60%"} maxSize={"90%"}>
-                        <div className="panel-left">{left}</div>
-                    </Panel>
-                  
-                    </Group>
+                    <div className="panel-left">{left}</div>
                   </Panel>
                   <Separator className="resize-h" />
                 </>
