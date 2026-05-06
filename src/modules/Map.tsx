@@ -4,10 +4,13 @@ import { valorantMap } from "../data/valorantMap";
 import { MAP_DROP_ZONE_ID } from "@/constants/dnd";
 import { useMapSelectionStore } from "@/store/useMapSelectionStore";
 import { Layer, Line, Shape, Stage } from "react-konva";
+import { useMatchupStore } from "@/store/useMatchupStore";
+import { MapHeroToken } from "./MapHeroToken";
 import "./Map.less";
 
 const Map = () => {
   const side = useMapSelectionStore((s) => s.side);
+  const mapPlacements = useMatchupStore((s) => s.mapPlacements);
   const mapWidth = valorantMap.bounds.max.x - valorantMap.bounds.min.x + 100;
   const mapHeight = valorantMap.bounds.max.y - valorantMap.bounds.min.y + 100;
   const defense = side === "defense";
@@ -78,7 +81,14 @@ const Map = () => {
               ))}
             </Layer>
 
-            {/* 层3：视野范围 */}
+            {/* 层3：阵容特工（头像 + 视野尖角 + 朝向拖柄） */}
+            <Layer>
+              {mapPlacements.map((p) => (
+                <MapHeroToken key={p.id} placement={p} />
+              ))}
+            </Layer>
+
+            {/* 层4：视野范围 */}
             
           </Stage>
           </div>
