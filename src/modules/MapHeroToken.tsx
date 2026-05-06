@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { Circle, Group, Image, Line } from 'react-konva';
+import { tacticalSideMapTokenColors } from '@/constants/tacticalSideColors';
 import { getAgentPortraitUrl } from '@/data/agentPortraitUrl';
 import { useMatchupStore } from '@/store/useMatchupStore';
 import type { MapAgentPlacement } from '@/types/matchup';
@@ -84,9 +85,7 @@ export function MapHeroToken({
     }
   }, [placement.facing, dragFacing]);
 
-  const attack = placement.side === 'attack';
-  const accent = attack ? '#38bdf8' : '#fbbf24';
-  const wedgeFill = attack ? 'rgba(56, 189, 248, 0.38)' : 'rgba(251, 191, 36, 0.38)';
+  const { accent, wedgeFill } = tacticalSideMapTokenColors(placement.side);
 
   const showHandle = hovered || dragFacing;
   const facing = dragFacing ? liveFacing : placement.facing;

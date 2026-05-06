@@ -1,3 +1,5 @@
+@import '../constants/tacticalSideColors.less';
+
 .right-inspector-panel {
   display: flex;
   flex-direction: column;
@@ -76,11 +78,11 @@
 }
 
 .right-inspector-heroes__title--attack {
-  color: rgba(252, 165, 165, 0.95);
+  color: @tactical-attack-title;
 }
 
 .right-inspector-heroes__title--defense {
-  color: rgba(125, 211, 252, 0.95);
+  color: @tactical-defense-title;
 }
 
 .right-inspector-heroes__list {
@@ -263,11 +265,11 @@
 }
 
 .right-heroes-picker__roster-title--attack {
-  color: rgba(252, 165, 165, 0.95);
+  color: @tactical-attack-title;
 }
 
 .right-heroes-picker__roster-title--defense {
-  color: rgba(125, 211, 252, 0.95);
+  color: @tactical-defense-title;
 }
 
 .right-heroes-picker__roster-list {
