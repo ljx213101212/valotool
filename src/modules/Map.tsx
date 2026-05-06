@@ -1,4 +1,5 @@
 import { useDroppable } from "@dnd-kit/core";
+import { useEffect, useState } from "react";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { valorantMap } from "../data/valorantMap";
 import { MAP_DROP_ZONE_ID } from "@/constants/dnd";
@@ -14,8 +15,22 @@ const Map = () => {
   const mapWidth = valorantMap.bounds.max.x - valorantMap.bounds.min.x + 100;
   const mapHeight = valorantMap.bounds.max.y - valorantMap.bounds.min.y + 100;
   const defense = side === "defense";
+  const [mapTransformLocked, setMapTransformLocked] = useState(false);
 
   const { setNodeRef, isOver } = useDroppable({ id: MAP_DROP_ZONE_ID });
+
+  useEffect(() => {
+    if (!mapTransformLocked) return;
+    const release = () => setMapTransformLocked(false);
+    window.addEventListener("pointerup", release);
+    window.addEventListener("pointercancel", release);
+    window.addEventListener("blur", release);
+    return () => {
+      window.removeEventListener("pointerup", release);
+      window.removeEventListener("pointercancel", release);
+      window.removeEventListener("blur", release);
+    };
+  }, [mapTransformLocked]);
 
     return (
     <div
@@ -23,6 +38,7 @@ const Map = () => {
       className={`map-root${isOver ? " map-root--drop-over" : ""}`}
     >
       <TransformWrapper
+        disabled={mapTransformLocked}
         initialScale={1}
         minScale={0.5}
         maxScale={2}
@@ -84,7 +100,11 @@ const Map = () => {
             {/* 层3：阵容特工（头像 + 视野尖角 + 朝向拖柄） */}
             <Layer>
               {mapPlacements.map((p) => (
-                <MapHeroToken key={p.id} placement={p} />
+                <MapHeroToken
+                  key={p.id}
+                  placement={p}
+                  setMapTransformLocked={setMapTransformLocked}
+                />
               ))}
             </Layer>
 
