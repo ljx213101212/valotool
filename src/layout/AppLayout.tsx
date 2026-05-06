@@ -9,7 +9,7 @@ export const LayoutHotkeys = () => {
 
   useHotkeys('ctrl+b', toggleLeft, { preventDefault: true });
   useHotkeys('ctrl+j', toggleTimeline, { preventDefault: true });
-  useHotkeys('ctrl+shift+b', toggleRight, { preventDefault: true });
+  useHotkeys('ctrl+alt+b', toggleRight, { preventDefault: true });
 
   return null;
 };
@@ -41,11 +41,20 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           <Panel defaultSize={"80%"} minSize={"10%"} maxSize={"80%"}>
             <Group orientation="horizontal">
               
-              {/* 左侧：英雄池 */}
+              {/* 左侧：配置选项 */}
               {leftOpen && (
                 <>
                   <Panel defaultSize={"20%"} minSize={"10%"} maxSize={"40%"}>
-                    <div className="panel-left">{left}</div>
+                  <Group orientation="horizontal">
+                    <Panel defaultSize={"20%"} minSize={"10%"} maxSize={"40%"}>
+
+                    </Panel>
+                    <Separator className="resize-h" />
+                    <Panel defaultSize={"80%"} minSize={"60%"} maxSize={"90%"}>
+                        <div className="panel-left">{left}</div>
+                    </Panel>
+                  
+                    </Group>
                   </Panel>
                   <Separator className="resize-h" />
                 </>
