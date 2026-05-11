@@ -4,6 +4,7 @@ import { DndAppProvider } from './components/DndAppProvider';
 import { LeftTacticalPanel } from './components/LeftTacticalPanel';
 import { RightInspectorPanel } from './components/RightInspectorPanel';
 import Map from './modules/Map';
+import Timeline from './modules/Timeline';
 
 function App() {
 
@@ -14,7 +15,7 @@ function App() {
     <AppLayout   left={<LeftTacticalPanel />}
       main={<Map />}
       right={<RightInspectorPanel />}
-      timeline={<div style={{ padding: 20 }}>下方时间线</div>}>
+      timeline={<div style={{ padding: 20 }}> <Timeline /></div>}>
   
     </AppLayout>
     </DndAppProvider>
