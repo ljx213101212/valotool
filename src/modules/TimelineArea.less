@@ -5,6 +5,10 @@
     overflow-x: scroll;
 }
 
+.timeline-area--blocked {
+    pointer-events: none;
+}
+
 .timeline-area__rulerTrack {
     position: relative;
 }
@@ -17,11 +21,16 @@
     padding: 0;
     border: none;
     transform: translate(-50%, -50%) rotate(45deg);
-    cursor: pointer;
+    cursor: grab;
     background: #e8b339;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
 }
 
 .timeline-keyframe-marker:hover {
     background: #f0c14d;
+}
+
+.timeline-keyframe-marker--dragging {
+    cursor: grabbing;
+    opacity: 0.92;
 }

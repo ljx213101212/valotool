@@ -1,0 +1,152 @@
+@import '../constants/tacticalSideColors.less';
+
+.keyframe-detail-drawer.ant-drawer {
+  .ant-drawer-header {
+    padding: 0;
+  }
+
+  .ant-drawer-body {
+    padding: 0;
+  }
+
+  .ant-drawer-title {
+    margin: 0;
+  }
+
+  .ant-drawer-close {
+    padding: 10px;
+    border-radius: 8px;
+    transition:
+      color 0.12s ease,
+      background 0.12s ease;
+
+    &:hover {
+      color: #f1f5f9 !important;
+      background: rgba(51, 65, 85, 0.55);
+    }
+  }
+}
+
+.keyframe-detail-drawer__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.keyframe-detail-drawer__label {
+  font-weight: 700;
+  font-size: 14px;
+  color: rgba(148, 163, 184, 0.95);
+  letter-spacing: 0.04em;
+}
+
+.keyframe-detail-drawer__time {
+  font-weight: 700;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: rgba(241, 245, 249, 0.98);
+}
+
+.keyframe-detail-drawer__body {
+  padding: 4px 2px 0;
+}
+
+.keyframe-detail-drawer__list {
+  margin: 0 0 16px;
+}
+
+.keyframe-detail-drawer__row {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 12px;
+  align-items: baseline;
+  padding: 11px 12px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(51, 65, 85, 0.55);
+  background: rgba(15, 23, 42, 0.65);
+
+  dt {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(148, 163, 184, 0.92);
+  }
+
+  dd {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(226, 232, 240, 0.96);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.keyframe-detail-drawer__section {
+  margin-bottom: 14px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.keyframe-detail-drawer__section-title {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.88);
+}
+
+.keyframe-detail-drawer__agents,
+.keyframe-detail-drawer__placements {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: rgba(226, 232, 240, 0.94);
+  line-height: 1.55;
+}
+
+.keyframe-detail-drawer__placements {
+  list-style: none;
+  padding-left: 0;
+}
+
+.keyframe-detail-drawer__placements li {
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(51, 65, 85, 0.45);
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.keyframe-detail-drawer__empty {
+  color: rgba(71, 85, 105, 0.98);
+  font-style: italic;
+  list-style: none;
+  padding-left: 0;
+}
+
+.keyframe-detail-drawer__side-tag {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.keyframe-detail-drawer__side-tag--attack {
+  color: @tactical-attack-text-on-muted;
+  border: 1px solid @tactical-attack-border-mid;
+  background: rgba(127, 29, 29, 0.22);
+}
+
+.keyframe-detail-drawer__side-tag--defense {
+  color: @tactical-defense-title;
+  border: 1px solid @tactical-defense-border-mid;
+  background: rgba(30, 58, 138, 0.28);
+}

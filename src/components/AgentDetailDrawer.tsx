@@ -1,47 +1,29 @@
 import type { DrawerProps } from 'antd';
 import { Drawer } from 'antd';
+import { useEffect } from 'react';
 import { getAgentLabel } from '@/data/agentsCatalog';
+import { useUiOverlayStore } from '@/store/uiOverlayStore';
 import { useMatchupStore } from '@/store/useMatchupStore';
+import { TACTICAL_DRAWER_Z_INDEX, tacticalDrawerStyles } from '@/components/tacticalDrawerStyles';
 import './AgentDetailDrawer.less';
 
-/** 与右侧战术面板、地图区一致的深蓝玻璃质感 */
-const drawerStyles: NonNullable<DrawerProps['styles']> = {
-  mask: {
-    background: 'rgba(15, 23, 42, 0.78)',
-    backdropFilter: 'blur(4px)',
-  },
-  wrapper: {
-    boxShadow: '-18px 0 52px rgba(0, 0, 0, 0.58)',
-  },
-  section: {
-    background: '#0f172a',
-    borderLeft: '1px solid rgba(56, 189, 248, 0.16)',
-  },
-  header: {
-    background: 'linear-gradient(180deg, rgba(30, 41, 59, 0.55) 0%, rgba(15, 23, 42, 1) 100%)',
-    borderBottom: '1px solid rgba(51, 65, 85, 0.88)',
-    padding: '14px 18px',
-    boxShadow: 'inset 0 -1px 0 rgba(56, 189, 248, 0.06)',
-  },
-  title: {
-    color: '#e2e8f0',
-  },
-  body: {
-    background: '#0f172a',
-    padding: '18px 18px 24px',
-  },
-  close: {
-    color: 'rgba(148, 163, 184, 0.95)',
-  },
-};
+const drawerStyles = tacticalDrawerStyles satisfies NonNullable<DrawerProps['styles']>;
 
 export function AgentDetailDrawer() {
   const selectedPlacementId = useMatchupStore((s) => s.selectedPlacementId);
   const setSelectedPlacementId = useMatchupStore((s) => s.setSelectedPlacementId);
   const mapPlacements = useMatchupStore((s) => s.mapPlacements);
+  const pushDrawerLayer = useUiOverlayStore((s) => s.pushDrawerLayer);
+  const popDrawerLayer = useUiOverlayStore((s) => s.popDrawerLayer);
 
   const placement = mapPlacements.find((p) => p.id === selectedPlacementId);
   const open = !!placement;
+
+  useEffect(() => {
+    if (!open) return;
+    pushDrawerLayer();
+    return () => popDrawerLayer();
+  }, [open, pushDrawerLayer, popDrawerLayer]);
 
   return (
     <Drawer
@@ -68,6 +50,7 @@ export function AgentDetailDrawer() {
       rootClassName="agent-detail-drawer"
       styles={drawerStyles}
       destroyOnClose
+      zIndex={TACTICAL_DRAWER_Z_INDEX}
     >
       {placement ? (
         <dl className="agent-detail-drawer__list">

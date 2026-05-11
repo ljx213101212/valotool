@@ -16,6 +16,8 @@ export type TimelineKeyframeSnapshot = {
 };
 
 export type TimelineKeyframeEntry = {
+  /** 稳定标识，用于拖拽与详情面板 */
+  id: string;
   time: number;
   snapshot: TimelineKeyframeSnapshot;
 };
