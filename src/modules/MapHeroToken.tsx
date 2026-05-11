@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { Circle, Group, Image, Line } from 'react-konva';
 import { tacticalSideMapTokenColors } from '@/constants/tacticalSideColors';
@@ -7,6 +7,9 @@ import { useMatchupStore } from '@/store/useMatchupStore';
 import type { MapAgentPlacement } from '@/types/matchup';
 
 const BODY_R = 24;
+/** 选中时头像外侧白色描边圈半径（描边居中于圆上） */
+const SELECT_RING_R = BODY_R + 4;
+const SELECT_RING_STROKE = 3;
 const ORBIT = BODY_R + 10;
 const HANDLE_R = 5;
 /** 顶点距圆心距离（须 > BODY_R） */
@@ -46,15 +49,20 @@ type TokenGroupRef = {
 export function MapHeroToken({
   placement,
   setMapTransformLocked,
+  isSelected,
+  onSelect,
 }: {
   placement: MapAgentPlacement;
   setMapTransformLocked?: (locked: boolean) => void;
+  isSelected?: boolean;
+  onSelect?: () => void;
 }) {
   const patchMapPlacement = useMatchupStore((s) => s.patchMapPlacement);
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [hovered, setHovered] = useState(false);
   const [dragFacing, setDragFacing] = useState(false);
   const [dragBody, setDragBody] = useState(false);
+  const bodyDragMovedRef = useRef(false);
   const [bodyDraft, setBodyDraft] = useState<{ x: number; y: number } | null>(null);
   const [liveFacing, setLiveFacing] = useState(placement.facing);
   const groupRef = useRef<TokenGroupRef | null>(null);
@@ -138,6 +146,21 @@ export function MapHeroToken({
   const gx = dragBody && bodyDraft ? bodyDraft.x : placement.x;
   const gy = dragBody && bodyDraft ? bodyDraft.y : placement.y;
 
+  const setStageCursor = (target: { getStage?: () => { container: () => HTMLElement } | null } | null, cursor: string) => {
+    const stage = target?.getStage?.() ?? null;
+    const el = stage?.container();
+    if (el) el.style.cursor = cursor;
+  };
+
+  const onSelectClick = useCallback(
+    (e: { cancelBubble: boolean }) => {
+      if (bodyDragMovedRef.current) return;
+      e.cancelBubble = true;
+      onSelect?.();
+    },
+    [onSelect]
+  );
+
   return (
     <Group
       ref={(node) => {
@@ -149,11 +172,13 @@ export function MapHeroToken({
       onDragStart={(e) => {
         lockMapTransform();
         e.evt.stopPropagation();
+        bodyDragMovedRef.current = false;
         setDragBody(true);
         setBodyDraft({ x: placement.x, y: placement.y });
       }}
       onDragMove={(e) => {
         e.evt.stopPropagation();
+        bodyDragMovedRef.current = true;
         setBodyDraft({ x: e.target.x(), y: e.target.y() });
       }}
       onDragEnd={(e) => {
@@ -161,12 +186,16 @@ export function MapHeroToken({
         patchMapPlacement(placement.id, { x: e.target.x(), y: e.target.y() });
         setDragBody(false);
         setBodyDraft(null);
+        window.setTimeout(() => {
+          bodyDragMovedRef.current = false;
+        }, 0);
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseDown={onTokenPointerDown}
       onTouchStart={onTokenPointerDown}
-      onMouseLeave={() => {
+      onMouseLeave={(e) => {
         if (!dragFacing && !dragBody) setHovered(false);
+        setStageCursor(e.target, '');
       }}
     >
       <Line
@@ -178,6 +207,21 @@ export function MapHeroToken({
         listening={false}
         perfectDrawEnabled={false}
       />
+
+      {isSelected ? (
+        <Circle
+          radius={SELECT_RING_R}
+          stroke="#ffffff"
+          strokeWidth={SELECT_RING_STROKE}
+          fillEnabled={false}
+          listening
+          hitStrokeWidth={18}
+          perfectDrawEnabled={false}
+          onClick={onSelectClick}
+          onMouseEnter={(e) => setStageCursor(e.target, 'pointer')}
+          onMouseLeave={(e) => setStageCursor(e.target, '')}
+        />
+      ) : null}
 
       <Group
         listening={false}
@@ -200,6 +244,10 @@ export function MapHeroToken({
         strokeWidth={2}
         fill="rgba(0,0,0,0.01)"
         listening
+        hitStrokeWidth={12}
+        onClick={onSelectClick}
+        onMouseEnter={(e) => setStageCursor(e.target, 'pointer')}
+        onMouseLeave={(e) => setStageCursor(e.target, '')}
       />
 
       <Circle
@@ -212,6 +260,8 @@ export function MapHeroToken({
         opacity={showHandle ? 1 : 0}
         listening={showHandle}
         hitStrokeWidth={showHandle ? 14 : 0}
+        onMouseEnter={(e) => setStageCursor(e.target, 'grab')}
+        onMouseLeave={(e) => setStageCursor(e.target, '')}
         onMouseDown={(e) => {
           e.cancelBubble = true;
           beginFacingDrag();

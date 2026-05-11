@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DOMParser } from 'xmldom';
 
-import type { MapPolygon, Point, Wall } from '../src/types/map';
+import type { MapArea, MapPolygon, Point, Wall } from '../src/types/map';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');

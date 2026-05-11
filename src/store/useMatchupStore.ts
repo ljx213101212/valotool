@@ -9,6 +9,9 @@ interface MatchupState {
   attackAgentIds: string[];
   defenseAgentIds: string[];
   mapPlacements: MapAgentPlacement[];
+  /** 地图上当前选中的特工 placement（仅内存，不参与 persist） */
+  selectedPlacementId: string | null;
+  setSelectedPlacementId: (id: string | null) => void;
   /** 从右侧拖入地图时加入的阵营（与左侧「场景」进攻/防守视角无关） */
   dragDropTargetSide: MatchupSide;
   setDragDropTargetSide: (side: MatchupSide) => void;
@@ -20,6 +23,15 @@ interface MatchupState {
   ) => void;
 }
 
+function pickSelectionAfterPlacements(
+  prevSelected: string | null,
+  mapPlacements: MapAgentPlacement[]
+): string | null {
+  return prevSelected && mapPlacements.some((p) => p.id === prevSelected)
+    ? prevSelected
+    : null;
+}
+
 export const useMatchupStore = create<MatchupState>()(
   devtools(
     persist(
@@ -27,6 +39,8 @@ export const useMatchupStore = create<MatchupState>()(
       attackAgentIds: [],
       defenseAgentIds: [],
       mapPlacements: [],
+      selectedPlacementId: null,
+      setSelectedPlacementId: (id) => set({ selectedPlacementId: id }),
       dragDropTargetSide: 'attack',
       setDragDropTargetSide: (side) => set({ dragDropTargetSide: side }),
 
@@ -38,14 +52,16 @@ export const useMatchupStore = create<MatchupState>()(
             side === 'attack' ? [...s.attackAgentIds, agentId] : s.attackAgentIds;
           const defenseAgentIds =
             side === 'defense' ? [...s.defenseAgentIds, agentId] : s.defenseAgentIds;
+          const mapPlacements = reconcileMapPlacements(
+            attackAgentIds,
+            defenseAgentIds,
+            s.mapPlacements
+          );
           return {
             attackAgentIds,
             defenseAgentIds,
-            mapPlacements: reconcileMapPlacements(
-              attackAgentIds,
-              defenseAgentIds,
-              s.mapPlacements
-            ),
+            mapPlacements,
+            selectedPlacementId: pickSelectionAfterPlacements(s.selectedPlacementId, mapPlacements),
           };
         }),
 
@@ -57,14 +73,16 @@ export const useMatchupStore = create<MatchupState>()(
             side === 'defense'
               ? s.defenseAgentIds.filter((id) => id !== agentId)
               : s.defenseAgentIds;
+          const mapPlacements = reconcileMapPlacements(
+            attackAgentIds,
+            defenseAgentIds,
+            s.mapPlacements
+          );
           return {
             attackAgentIds,
             defenseAgentIds,
-            mapPlacements: reconcileMapPlacements(
-              attackAgentIds,
-              defenseAgentIds,
-              s.mapPlacements
-            ),
+            mapPlacements,
+            selectedPlacementId: pickSelectionAfterPlacements(s.selectedPlacementId, mapPlacements),
           };
         }),
 
