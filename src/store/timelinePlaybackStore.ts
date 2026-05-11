@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { TIMELINE_TOTAL_SECONDS } from '../constants/timeline';
+import { quantizeTimelineSeconds } from '../utils/timelineQuantize';
 
 export type TimelinePlaybackState = {
   currentTime: number;
@@ -49,7 +50,7 @@ export const useTimelinePlaybackStore = create<TimelinePlaybackState>()(
 
         seek: (seconds: number) => {
           const maxTime = get().maxTime;
-          const t = clampTime(seconds, maxTime);
+          const t = quantizeTimelineSeconds(clampTime(seconds, maxTime), maxTime);
           accumulatedMsRef = t * 1000;
           if (playingRef) {
             segmentStartPerfRef = performance.now();

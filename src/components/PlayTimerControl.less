@@ -1,23 +1,59 @@
 .play-timer-control {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   font-family: system-ui, sans-serif;
 }
 
-.play-timer-control__btn {
-  padding: 6px 14px;
+.play-timer-control__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
   border-radius: 6px;
   border: 1px solid #444;
   background: #1e1e1e;
   color: #f0f0f0;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
 }
 
-.play-timer-control__btn:hover {
+.play-timer-control__icon-btn:hover:not(:disabled) {
   border-color: #666;
   background: #2a2a2a;
+}
+
+.play-timer-control__icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.play-timer-control__icon-btn--primary {
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+}
+
+.play-timer-control__icon-btn--add-keyframe {
+  border-color: #5a8f5a;
+  color: #9bd49b;
+}
+
+.play-timer-control__icon-btn--add-keyframe:hover {
+  border-color: #6faf6f;
+  background: #243024;
+}
+
+.play-timer-control__icon-btn--delete-keyframe {
+  border-color: #8f4a4a;
+  color: #e89393;
+}
+
+.play-timer-control__icon-btn--delete-keyframe:hover {
+  border-color: #b06060;
+  background: #302020;
 }
 
 .play-timer-control__time {
@@ -25,4 +61,5 @@
   letter-spacing: 0.02em;
   color: #ccc;
   min-width: 6.5em;
+  margin-left: 4px;
 }

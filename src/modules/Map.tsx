@@ -5,6 +5,7 @@ import { valorantMap } from "../data/valorantMap";
 import { MAP_DROP_ZONE_ID } from "@/constants/dnd";
 import { useMapSelectionStore } from "@/store/useMapSelectionStore";
 import { Layer, Line, Shape, Stage } from "react-konva";
+import { AgentDetailDrawer } from "@/components/AgentDetailDrawer";
 import { useMatchupStore } from "@/store/useMatchupStore";
 import { MapHeroToken } from "./MapHeroToken";
 import "./Map.less";
@@ -12,6 +13,8 @@ import "./Map.less";
 const Map = () => {
   const side = useMapSelectionStore((s) => s.side);
   const mapPlacements = useMatchupStore((s) => s.mapPlacements);
+  const selectedPlacementId = useMatchupStore((s) => s.selectedPlacementId);
+  const setSelectedPlacementId = useMatchupStore((s) => s.setSelectedPlacementId);
   const mapWidth = valorantMap.bounds.max.x - valorantMap.bounds.min.x + 100;
   const mapHeight = valorantMap.bounds.max.y - valorantMap.bounds.min.y + 100;
   const defense = side === "defense";
@@ -37,6 +40,7 @@ const Map = () => {
       ref={setNodeRef}
       className={`map-root${isOver ? " map-root--drop-over" : ""}`}
     >
+      <AgentDetailDrawer />
       <TransformWrapper
         disabled={mapTransformLocked}
         initialScale={1}
@@ -66,7 +70,40 @@ const Map = () => {
             // onClick={handleMapClick}
             // onTap={handleMapClick}
           >
-            {/* 层1：地图区域 */}
+            {/* 层1：可走地面 + 箱顶 */}
+            <Layer>
+              {valorantMap.walkableFloor.map((poly, idx) => (
+                <Shape
+                  key={`floor-${idx}`}
+                  sceneFunc={(ctx) => {
+                    ctx.beginPath();
+                    ctx.moveTo(poly[0].x, poly[0].y);
+                    poly.forEach((p) => ctx.lineTo(p.x, p.y));
+                    ctx.closePath();
+                    ctx.fillStyle = 'rgba(13, 41, 59, 0.35)';
+                    ctx.fill();
+                  }}
+                />
+              ))}
+              {valorantMap.boxWalkable.map((poly, idx) => (
+                <Shape
+                  key={`box-${idx}`}
+                  sceneFunc={(ctx) => {
+                    ctx.beginPath();
+                    ctx.moveTo(poly[0].x, poly[0].y);
+                    poly.forEach((p) => ctx.lineTo(p.x, p.y));
+                    ctx.closePath();
+                    ctx.fillStyle = 'rgba(13, 41, 59, 0.45)';
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(28, 225, 207, 0.6)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                  }}
+                />
+              ))}
+            </Layer>
+
+            {/* 层2：包点逻辑区 */}
             <Layer>
               {valorantMap.areas.map((area) => (
                 <Shape
@@ -74,7 +111,7 @@ const Map = () => {
                   sceneFunc={(ctx) => {
                     ctx.beginPath();
                     ctx.moveTo(area.polygon[0].x, area.polygon[0].y);
-                    area.polygon.forEach(p => ctx.lineTo(p.x, p.y));
+                    area.polygon.forEach((p) => ctx.lineTo(p.x, p.y));
                     ctx.closePath();
                     ctx.fillStyle = 'rgba(0, 255, 255, 0.1)';
                     ctx.fill();
@@ -85,7 +122,7 @@ const Map = () => {
               ))}
             </Layer>
 
-            {/* 层2：墙体（遮挡物） */}
+            {/* 层3：墙体（遮挡物） */}
             <Layer>
               {valorantMap.walls.map((wall) => (
                 <Line
@@ -97,18 +134,20 @@ const Map = () => {
               ))}
             </Layer>
 
-            {/* 层3：阵容特工（头像 + 视野尖角 + 朝向拖柄） */}
+            {/* 层4：阵容特工（头像 + 视野尖角 + 朝向拖柄） */}
             <Layer>
               {mapPlacements.map((p) => (
                 <MapHeroToken
                   key={p.id}
                   placement={p}
                   setMapTransformLocked={setMapTransformLocked}
+                  isSelected={selectedPlacementId === p.id}
+                  onSelect={() => setSelectedPlacementId(p.id)}
                 />
               ))}
             </Layer>
 
-            {/* 层4：视野范围 */}
+            {/* 层5：视野范围 */}
             
           </Stage>
           </div>
