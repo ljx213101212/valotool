@@ -6,12 +6,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-1",
     "line": [
       {
-        "x": 63.5,
-        "y": 235
+        "x": 103.5,
+        "y": 275
       },
       {
-        "x": 62.5,
-        "y": 450
+        "x": 102.5,
+        "y": 490
       }
     ],
     "isOpaque": true
@@ -20,12 +20,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-2",
     "line": [
       {
-        "x": 63,
-        "y": 449.5
+        "x": 103,
+        "y": 489.5
       },
       {
-        "x": 97,
-        "y": 449.5
+        "x": 137,
+        "y": 489.5
       }
     ],
     "isOpaque": true
@@ -34,12 +34,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-3",
     "line": [
       {
-        "x": 96.5,
-        "y": 450
+        "x": 136.5,
+        "y": 490
       },
       {
-        "x": 96.5,
-        "y": 614
+        "x": 136.5,
+        "y": 654
       }
     ],
     "isOpaque": true
@@ -48,12 +48,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-4",
     "line": [
       {
-        "x": 97,
-        "y": 613.5
+        "x": 137,
+        "y": 653.5
       },
       {
-        "x": 166,
-        "y": 613.5
+        "x": 206,
+        "y": 653.5
       }
     ],
     "isOpaque": true
@@ -62,12 +62,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-5",
     "line": [
       {
-        "x": 166.5,
-        "y": 614
+        "x": 206.5,
+        "y": 654
       },
       {
-        "x": 166.5,
-        "y": 582
+        "x": 206.5,
+        "y": 622
       }
     ],
     "isOpaque": true
@@ -76,12 +76,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-6",
     "line": [
       {
-        "x": 167,
-        "y": 582.5
+        "x": 207,
+        "y": 622.5
       },
       {
-        "x": 221,
-        "y": 582.5
+        "x": 261,
+        "y": 622.5
       }
     ],
     "isOpaque": true
@@ -90,12 +90,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-7",
     "line": [
       {
-        "x": 221.5,
-        "y": 582
+        "x": 261.5,
+        "y": 622
       },
       {
-        "x": 221.5,
-        "y": 598
+        "x": 261.5,
+        "y": 638
       }
     ],
     "isOpaque": true
@@ -104,12 +104,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-8",
     "line": [
       {
-        "x": 222,
-        "y": 598.5
+        "x": 262,
+        "y": 638.5
       },
       {
-        "x": 197,
-        "y": 598.5
+        "x": 237,
+        "y": 638.5
       }
     ],
     "isOpaque": true
@@ -118,12 +118,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-9",
     "line": [
       {
-        "x": 196.5,
-        "y": 598
+        "x": 236.5,
+        "y": 638
       },
       {
-        "x": 196.5,
-        "y": 794
+        "x": 236.5,
+        "y": 834
       }
     ],
     "isOpaque": true
@@ -132,12 +132,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-10",
     "line": [
       {
-        "x": 197,
-        "y": 793.5
+        "x": 237,
+        "y": 833.5
       },
       {
-        "x": 278,
-        "y": 793.5
+        "x": 318,
+        "y": 833.5
       }
     ],
     "isOpaque": true
@@ -146,12 +146,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-11",
     "line": [
       {
-        "x": 277.5,
-        "y": 793
+        "x": 317.5,
+        "y": 833
       },
       {
-        "x": 277.5,
-        "y": 819
+        "x": 317.5,
+        "y": 859
       }
     ],
     "isOpaque": true
@@ -160,12 +160,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-12",
     "line": [
       {
-        "x": 278,
-        "y": 818.5
+        "x": 318,
+        "y": 858.5
       },
       {
-        "x": 415,
-        "y": 818.5
+        "x": 455,
+        "y": 858.5
       }
     ],
     "isOpaque": true
@@ -174,12 +174,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-13",
     "line": [
       {
-        "x": 414.5,
-        "y": 818
+        "x": 454.5,
+        "y": 858
       },
       {
-        "x": 414.5,
-        "y": 810
+        "x": 454.5,
+        "y": 850
       }
     ],
     "isOpaque": true
@@ -188,12 +188,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-14",
     "line": [
       {
-        "x": 415,
-        "y": 810.5
+        "x": 455,
+        "y": 850.5
       },
       {
-        "x": 433,
-        "y": 810.5
+        "x": 473,
+        "y": 850.5
       }
     ],
     "isOpaque": true
@@ -202,12 +202,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-15",
     "line": [
       {
-        "x": 432.5,
-        "y": 810
+        "x": 472.5,
+        "y": 850
       },
       {
-        "x": 432.5,
-        "y": 824
+        "x": 472.5,
+        "y": 864
       }
     ],
     "isOpaque": true
@@ -216,12 +216,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-16",
     "line": [
       {
-        "x": 432,
-        "y": 823.5
+        "x": 472,
+        "y": 863.5
       },
       {
-        "x": 428,
-        "y": 823.5
+        "x": 468,
+        "y": 863.5
       }
     ],
     "isOpaque": true
@@ -230,12 +230,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-17",
     "line": [
       {
-        "x": 428.5,
-        "y": 824
+        "x": 468.5,
+        "y": 864
       },
       {
-        "x": 428.5,
-        "y": 923
+        "x": 468.5,
+        "y": 963
       }
     ],
     "isOpaque": true
@@ -244,12 +244,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-18",
     "line": [
       {
-        "x": 429,
-        "y": 922.5
+        "x": 469,
+        "y": 962.5
       },
       {
-        "x": 452,
-        "y": 922.5
+        "x": 492,
+        "y": 962.5
       }
     ],
     "isOpaque": true
@@ -258,12 +258,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-19",
     "line": [
       {
-        "x": 451.5,
-        "y": 923
+        "x": 491.5,
+        "y": 963
       },
       {
-        "x": 451.5,
-        "y": 926
+        "x": 491.5,
+        "y": 966
       }
     ],
     "isOpaque": true
@@ -272,12 +272,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-20",
     "line": [
       {
-        "x": 451,
-        "y": 925.5
+        "x": 491,
+        "y": 965.5
       },
       {
-        "x": 465,
-        "y": 925.5
+        "x": 505,
+        "y": 965.5
       }
     ],
     "isOpaque": true
@@ -286,12 +286,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-21",
     "line": [
       {
-        "x": 464.5,
-        "y": 926
+        "x": 504.5,
+        "y": 966
       },
       {
-        "x": 464.5,
-        "y": 924
+        "x": 504.5,
+        "y": 964
       }
     ],
     "isOpaque": true
@@ -300,12 +300,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-22",
     "line": [
       {
-        "x": 464,
-        "y": 924.5
+        "x": 504,
+        "y": 964.5
       },
       {
-        "x": 483,
-        "y": 924.5
+        "x": 523,
+        "y": 964.5
       }
     ],
     "isOpaque": true
@@ -314,12 +314,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-23",
     "line": [
       {
-        "x": 482.5,
-        "y": 925
+        "x": 522.5,
+        "y": 965
       },
       {
-        "x": 482.5,
-        "y": 923
+        "x": 522.5,
+        "y": 963
       }
     ],
     "isOpaque": true
@@ -328,12 +328,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-24",
     "line": [
       {
-        "x": 483,
-        "y": 923.5
+        "x": 523,
+        "y": 963.5
       },
       {
-        "x": 490,
-        "y": 923.5
+        "x": 530,
+        "y": 963.5
       }
     ],
     "isOpaque": true
@@ -342,12 +342,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-25",
     "line": [
       {
-        "x": 489.5,
-        "y": 923
+        "x": 529.5,
+        "y": 963
       },
       {
-        "x": 489.5,
-        "y": 927
+        "x": 529.5,
+        "y": 967
       }
     ],
     "isOpaque": true
@@ -356,12 +356,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-26",
     "line": [
       {
-        "x": 490,
-        "y": 926.5
+        "x": 530,
+        "y": 966.5
       },
       {
-        "x": 497,
-        "y": 926.5
+        "x": 537,
+        "y": 966.5
       }
     ],
     "isOpaque": true
@@ -370,12 +370,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-27",
     "line": [
       {
-        "x": 496.5,
-        "y": 927
+        "x": 536.5,
+        "y": 967
       },
       {
-        "x": 496.5,
-        "y": 928
+        "x": 536.5,
+        "y": 968
       }
     ],
     "isOpaque": true
@@ -384,12 +384,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-28",
     "line": [
       {
-        "x": 497,
-        "y": 927.5
+        "x": 537,
+        "y": 967.5
       },
       {
-        "x": 514,
-        "y": 927.5
+        "x": 554,
+        "y": 967.5
       }
     ],
     "isOpaque": true
@@ -398,12 +398,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-29",
     "line": [
       {
-        "x": 513.5,
-        "y": 928
+        "x": 553.5,
+        "y": 968
       },
       {
-        "x": 513.5,
-        "y": 929
+        "x": 553.5,
+        "y": 969
       }
     ],
     "isOpaque": true
@@ -412,12 +412,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-30",
     "line": [
       {
-        "x": 514,
-        "y": 928.5
+        "x": 554,
+        "y": 968.5
       },
       {
-        "x": 555,
-        "y": 928.5
+        "x": 595,
+        "y": 968.5
       }
     ],
     "isOpaque": true
@@ -426,12 +426,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-31",
     "line": [
       {
-        "x": 554.5,
-        "y": 928
+        "x": 594.5,
+        "y": 968
       },
       {
-        "x": 554.5,
-        "y": 814
+        "x": 594.5,
+        "y": 854
       }
     ],
     "isOpaque": true
@@ -440,12 +440,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-32",
     "line": [
       {
-        "x": 555,
-        "y": 814.5
+        "x": 595,
+        "y": 854.5
       },
       {
-        "x": 722,
-        "y": 814.5
+        "x": 762,
+        "y": 854.5
       }
     ],
     "isOpaque": true
@@ -454,12 +454,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-33",
     "line": [
       {
-        "x": 721.5,
-        "y": 814
+        "x": 761.5,
+        "y": 854
       },
       {
-        "x": 721.5,
-        "y": 739
+        "x": 761.5,
+        "y": 779
       }
     ],
     "isOpaque": true
@@ -468,12 +468,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-34",
     "line": [
       {
-        "x": 721,
-        "y": 739.5
+        "x": 761,
+        "y": 779.5
       },
       {
-        "x": 908,
-        "y": 740.49
+        "x": 948,
+        "y": 780.49
       }
     ],
     "isOpaque": true
@@ -482,12 +482,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-35",
     "line": [
       {
-        "x": 907.5,
-        "y": 740
+        "x": 947.5,
+        "y": 780
       },
       {
-        "x": 907.5,
-        "y": 636
+        "x": 947.5,
+        "y": 676
       }
     ],
     "isOpaque": true
@@ -496,12 +496,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-36",
     "line": [
       {
-        "x": 907,
-        "y": 636.5
+        "x": 947,
+        "y": 676.5
       },
       {
-        "x": 954,
-        "y": 636.5
+        "x": 994,
+        "y": 676.5
       }
     ],
     "isOpaque": true
@@ -510,12 +510,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-37",
     "line": [
       {
-        "x": 953.5,
-        "y": 636
+        "x": 993.5,
+        "y": 676
       },
       {
-        "x": 953.5,
-        "y": 581
+        "x": 993.5,
+        "y": 621
       }
     ],
     "isOpaque": true
@@ -524,12 +524,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-38",
     "line": [
       {
-        "x": 953,
-        "y": 581.5
+        "x": 993,
+        "y": 621.5
       },
       {
-        "x": 923,
-        "y": 581.5
+        "x": 963,
+        "y": 621.5
       }
     ],
     "isOpaque": true
@@ -538,12 +538,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-39",
     "line": [
       {
-        "x": 923.5,
-        "y": 581
+        "x": 963.5,
+        "y": 621
       },
       {
-        "x": 923.5,
-        "y": 457
+        "x": 963.5,
+        "y": 497
       }
     ],
     "isOpaque": true
@@ -552,12 +552,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-40",
     "line": [
       {
-        "x": 923,
-        "y": 457.5
+        "x": 963,
+        "y": 497.5
       },
       {
-        "x": 861,
-        "y": 457.5
+        "x": 901,
+        "y": 497.5
       }
     ],
     "isOpaque": true
@@ -566,12 +566,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-41",
     "line": [
       {
-        "x": 861.5,
-        "y": 458
+        "x": 901.5,
+        "y": 498
       },
       {
-        "x": 861.5,
-        "y": 490
+        "x": 901.5,
+        "y": 530
       }
     ],
     "isOpaque": true
@@ -580,12 +580,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-42",
     "line": [
       {
-        "x": 861,
-        "y": 489.5
+        "x": 901,
+        "y": 529.5
       },
       {
-        "x": 838,
-        "y": 489.5
+        "x": 878,
+        "y": 529.5
       }
     ],
     "isOpaque": true
@@ -594,12 +594,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-43",
     "line": [
       {
-        "x": 838.5,
-        "y": 489
+        "x": 878.5,
+        "y": 529
       },
       {
-        "x": 838.5,
-        "y": 387
+        "x": 878.5,
+        "y": 427
       }
     ],
     "isOpaque": true
@@ -608,12 +608,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-44",
     "line": [
       {
-        "x": 839,
-        "y": 387.5
+        "x": 879,
+        "y": 427.5
       },
       {
-        "x": 911,
-        "y": 387.5
+        "x": 951,
+        "y": 427.5
       }
     ],
     "isOpaque": true
@@ -622,12 +622,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-45",
     "line": [
       {
-        "x": 910.29,
-        "y": 387.6
+        "x": 950.29,
+        "y": 427.6
       },
       {
-        "x": 969.29,
-        "y": 430.6
+        "x": 1009.29,
+        "y": 470.6
       }
     ],
     "isOpaque": true
@@ -636,12 +636,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-46",
     "line": [
       {
-        "x": 969,
-        "y": 430.5
+        "x": 1009,
+        "y": 470.5
       },
       {
-        "x": 989,
-        "y": 430.5
+        "x": 1029,
+        "y": 470.5
       }
     ],
     "isOpaque": true
@@ -650,12 +650,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-47",
     "line": [
       {
-        "x": 988.5,
-        "y": 430
+        "x": 1028.5,
+        "y": 470
       },
       {
-        "x": 988.5,
-        "y": 399
+        "x": 1028.5,
+        "y": 439
       }
     ],
     "isOpaque": true
@@ -664,12 +664,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-48",
     "line": [
       {
-        "x": 988,
-        "y": 399.5
+        "x": 1028,
+        "y": 439.5
       },
       {
-        "x": 984,
-        "y": 399.5
+        "x": 1024,
+        "y": 439.5
       }
     ],
     "isOpaque": true
@@ -678,12 +678,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-49",
     "line": [
       {
-        "x": 984.5,
-        "y": 399
+        "x": 1024.5,
+        "y": 439
       },
       {
-        "x": 984.5,
-        "y": 282
+        "x": 1024.5,
+        "y": 322
       }
     ],
     "isOpaque": true
@@ -692,12 +692,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-50",
     "line": [
       {
-        "x": 985,
-        "y": 282.5
+        "x": 1025,
+        "y": 322.5
       },
       {
-        "x": 989,
-        "y": 282.5
+        "x": 1029,
+        "y": 322.5
       }
     ],
     "isOpaque": true
@@ -706,12 +706,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-51",
     "line": [
       {
-        "x": 988.5,
-        "y": 282
+        "x": 1028.5,
+        "y": 322
       },
       {
-        "x": 988.5,
-        "y": 249
+        "x": 1028.5,
+        "y": 289
       }
     ],
     "isOpaque": true
@@ -720,12 +720,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-52",
     "line": [
       {
-        "x": 989,
-        "y": 249.5
+        "x": 1029,
+        "y": 289.5
       },
       {
-        "x": 932,
-        "y": 249.5
+        "x": 972,
+        "y": 289.5
       }
     ],
     "isOpaque": true
@@ -734,12 +734,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-53",
     "line": [
       {
-        "x": 932.5,
-        "y": 249
+        "x": 972.5,
+        "y": 289
       },
       {
-        "x": 932.5,
-        "y": 214
+        "x": 972.5,
+        "y": 254
       }
     ],
     "isOpaque": true
@@ -748,12 +748,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-54",
     "line": [
       {
-        "x": 932,
-        "y": 214.5
+        "x": 972,
+        "y": 254.5
       },
       {
-        "x": 841,
-        "y": 214.5
+        "x": 881,
+        "y": 254.5
       }
     ],
     "isOpaque": true
@@ -762,26 +762,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-55",
     "line": [
       {
-        "x": 840.5,
-        "y": 215
+        "x": 880.5,
+        "y": 255
       },
       {
-        "x": 840.5,
-        "y": 200
-      }
-    ],
-    "isOpaque": true
-  },
-  {
-    "id": "wall-56",
-    "line": [
-      {
-        "x": 834.5,
-        "y": 201
-      },
-      {
-        "x": 834.5,
-        "y": 191
+        "x": 880.5,
+        "y": 240
       }
     ],
     "isOpaque": true
@@ -790,12 +776,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-57",
     "line": [
       {
-        "x": 835,
-        "y": 191.5
+        "x": 874.5,
+        "y": 241
       },
       {
-        "x": 876,
-        "y": 191.5
+        "x": 874.5,
+        "y": 231
       }
     ],
     "isOpaque": true
@@ -804,12 +790,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-58",
     "line": [
       {
-        "x": 876.5,
-        "y": 192
+        "x": 875,
+        "y": 231.5
       },
       {
-        "x": 876.5,
-        "y": 138
+        "x": 916,
+        "y": 231.5
       }
     ],
     "isOpaque": true
@@ -818,12 +804,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-59",
     "line": [
       {
-        "x": 877,
-        "y": 137.5
+        "x": 916.5,
+        "y": 232
       },
       {
-        "x": 690,
-        "y": 137.5
+        "x": 916.5,
+        "y": 178
       }
     ],
     "isOpaque": true
@@ -832,12 +818,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-60",
     "line": [
       {
-        "x": 690.5,
-        "y": 137
+        "x": 917,
+        "y": 177.5
       },
       {
-        "x": 690.5,
-        "y": 192
+        "x": 730,
+        "y": 177.5
       }
     ],
     "isOpaque": true
@@ -846,12 +832,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-61",
     "line": [
       {
-        "x": 691,
-        "y": 191.5
+        "x": 730.5,
+        "y": 177
       },
       {
-        "x": 546,
-        "y": 191.5
+        "x": 730.5,
+        "y": 232
       }
     ],
     "isOpaque": true
@@ -860,12 +846,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-62",
     "line": [
       {
-        "x": 546.5,
-        "y": 192
+        "x": 731,
+        "y": 231.5
       },
       {
-        "x": 546.5,
-        "y": 59
+        "x": 586,
+        "y": 231.5
       }
     ],
     "isOpaque": true
@@ -874,12 +860,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-63",
     "line": [
       {
-        "x": 547,
-        "y": 59.5
+        "x": 586.5,
+        "y": 232
       },
       {
-        "x": 470,
-        "y": 59.5
+        "x": 586.5,
+        "y": 99
       }
     ],
     "isOpaque": true
@@ -888,12 +874,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-64",
     "line": [
       {
-        "x": 470.5,
-        "y": 60
+        "x": 587,
+        "y": 99.5
       },
       {
-        "x": 470.5,
-        "y": 249
+        "x": 510,
+        "y": 99.5
       }
     ],
     "isOpaque": true
@@ -902,12 +888,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-65",
     "line": [
       {
-        "x": 470,
-        "y": 248.5
+        "x": 510.5,
+        "y": 100
       },
       {
-        "x": 338,
-        "y": 248.5
+        "x": 510.5,
+        "y": 289
       }
     ],
     "isOpaque": true
@@ -916,12 +902,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-66",
     "line": [
       {
-        "x": 338.5,
-        "y": 249
+        "x": 510,
+        "y": 288.5
       },
       {
-        "x": 338.5,
-        "y": 195
+        "x": 378,
+        "y": 288.5
       }
     ],
     "isOpaque": true
@@ -930,12 +916,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-67",
     "line": [
       {
-        "x": 339,
-        "y": 195.5
+        "x": 378.5,
+        "y": 289
       },
       {
-        "x": 209,
-        "y": 195.5
+        "x": 378.5,
+        "y": 235
       }
     ],
     "isOpaque": true
@@ -944,12 +930,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-68",
     "line": [
       {
-        "x": 209.5,
-        "y": 196
+        "x": 379,
+        "y": 235.5
       },
       {
-        "x": 209.5,
-        "y": 243
+        "x": 249,
+        "y": 235.5
       }
     ],
     "isOpaque": true
@@ -958,12 +944,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-69",
     "line": [
       {
-        "x": 210,
-        "y": 242.5
+        "x": 249.5,
+        "y": 236
       },
       {
-        "x": 217,
-        "y": 242.5
+        "x": 249.5,
+        "y": 283
       }
     ],
     "isOpaque": true
@@ -972,12 +958,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-70",
     "line": [
       {
-        "x": 216.5,
-        "y": 243
+        "x": 250,
+        "y": 282.5
       },
       {
-        "x": 216.5,
-        "y": 293
+        "x": 257,
+        "y": 282.5
       }
     ],
     "isOpaque": true
@@ -986,12 +972,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-71",
     "line": [
       {
-        "x": 217,
-        "y": 292.5
+        "x": 256.5,
+        "y": 283
       },
       {
-        "x": 126,
-        "y": 292.5
+        "x": 256.5,
+        "y": 333
       }
     ],
     "isOpaque": true
@@ -1000,12 +986,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-72",
     "line": [
       {
-        "x": 126.5,
-        "y": 293
+        "x": 257,
+        "y": 332.5
       },
       {
-        "x": 126.5,
-        "y": 235
+        "x": 166,
+        "y": 332.5
       }
     ],
     "isOpaque": true
@@ -1014,12 +1000,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-73",
     "line": [
       {
-        "x": 127,
-        "y": 235.5
+        "x": 166.5,
+        "y": 333
       },
       {
-        "x": 63,
-        "y": 235.5
+        "x": 166.5,
+        "y": 275
       }
     ],
     "isOpaque": true
@@ -1028,12 +1014,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-74",
     "line": [
       {
-        "x": 141.5,
-        "y": 449
+        "x": 167,
+        "y": 275.5
       },
       {
-        "x": 141.5,
-        "y": 512
+        "x": 103,
+        "y": 275.5
       }
     ],
     "isOpaque": true
@@ -1042,12 +1028,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-75",
     "line": [
       {
-        "x": 142,
-        "y": 449.5
+        "x": 181.5,
+        "y": 489
       },
       {
-        "x": 232,
-        "y": 449.5
+        "x": 181.5,
+        "y": 552
       }
     ],
     "isOpaque": true
@@ -1056,12 +1042,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-76",
     "line": [
       {
-        "x": 231.35,
-        "y": 449.65
+        "x": 182,
+        "y": 489.5
       },
       {
-        "x": 252.35,
-        "y": 470.65
+        "x": 272,
+        "y": 489.5
       }
     ],
     "isOpaque": true
@@ -1070,12 +1056,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-77",
     "line": [
       {
-        "x": 252,
-        "y": 470.5
+        "x": 271.35,
+        "y": 489.65
       },
       {
-        "x": 323,
-        "y": 470.5
+        "x": 292.35,
+        "y": 510.65
       }
     ],
     "isOpaque": true
@@ -1084,12 +1070,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-78",
     "line": [
       {
-        "x": 322.5,
-        "y": 471
+        "x": 292,
+        "y": 510.5
       },
       {
-        "x": 322.5,
-        "y": 435
+        "x": 363,
+        "y": 510.5
       }
     ],
     "isOpaque": true
@@ -1098,12 +1084,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-79",
     "line": [
       {
-        "x": 322,
-        "y": 435.5
+        "x": 362.5,
+        "y": 511
       },
       {
-        "x": 327,
-        "y": 435.5
+        "x": 362.5,
+        "y": 475
       }
     ],
     "isOpaque": true
@@ -1112,12 +1098,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-80",
     "line": [
       {
-        "x": 326.5,
-        "y": 436
+        "x": 362,
+        "y": 475.5
       },
       {
-        "x": 326.5,
-        "y": 537
+        "x": 367,
+        "y": 475.5
       }
     ],
     "isOpaque": true
@@ -1126,12 +1112,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-81",
     "line": [
       {
-        "x": 326,
-        "y": 536.47
+        "x": 366.5,
+        "y": 476
       },
       {
-        "x": 350,
-        "y": 536.5
+        "x": 366.5,
+        "y": 577
       }
     ],
     "isOpaque": true
@@ -1140,12 +1126,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-82",
     "line": [
       {
-        "x": 349.65,
-        "y": 536.65
+        "x": 366,
+        "y": 576.47
       },
       {
-        "x": 385.65,
-        "y": 500.65
+        "x": 390,
+        "y": 576.5
       }
     ],
     "isOpaque": true
@@ -1154,12 +1140,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-83",
     "line": [
       {
-        "x": 385,
-        "y": 500.5
+        "x": 389.65,
+        "y": 576.65
       },
       {
-        "x": 463,
-        "y": 500.5
+        "x": 425.65,
+        "y": 540.65
       }
     ],
     "isOpaque": true
@@ -1168,12 +1154,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-84",
     "line": [
       {
-        "x": 462.5,
-        "y": 501
+        "x": 425,
+        "y": 540.5
       },
       {
-        "x": 462.5,
-        "y": 551
+        "x": 503,
+        "y": 540.5
       }
     ],
     "isOpaque": true
@@ -1182,12 +1168,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-85",
     "line": [
       {
-        "x": 463,
-        "y": 550.5
+        "x": 502.5,
+        "y": 541
       },
       {
-        "x": 443,
-        "y": 550.5
+        "x": 502.5,
+        "y": 591
       }
     ],
     "isOpaque": true
@@ -1196,12 +1182,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-86",
     "line": [
       {
-        "x": 443.5,
-        "y": 550
+        "x": 503,
+        "y": 590.5
       },
       {
-        "x": 443.5,
-        "y": 629
+        "x": 483,
+        "y": 590.5
       }
     ],
     "isOpaque": true
@@ -1210,12 +1196,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-87",
     "line": [
       {
-        "x": 443,
-        "y": 628.5
+        "x": 483.5,
+        "y": 590
       },
       {
-        "x": 436,
-        "y": 628.5
+        "x": 483.5,
+        "y": 669
       }
     ],
     "isOpaque": true
@@ -1224,12 +1210,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-88",
     "line": [
       {
-        "x": 436.5,
-        "y": 629
+        "x": 483,
+        "y": 668.5
       },
       {
-        "x": 436.5,
-        "y": 598
+        "x": 476,
+        "y": 668.5
       }
     ],
     "isOpaque": true
@@ -1238,12 +1224,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-89",
     "line": [
       {
-        "x": 437,
-        "y": 598.5
+        "x": 476.5,
+        "y": 669
       },
       {
-        "x": 305,
-        "y": 598.5
+        "x": 476.5,
+        "y": 638
       }
     ],
     "isOpaque": true
@@ -1252,12 +1238,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-90",
     "line": [
       {
-        "x": 305.5,
-        "y": 599
+        "x": 477,
+        "y": 638.5
       },
       {
-        "x": 305.5,
-        "y": 680
+        "x": 345,
+        "y": 638.5
       }
     ],
     "isOpaque": true
@@ -1266,12 +1252,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-91",
     "line": [
       {
-        "x": 306,
-        "y": 679.5
+        "x": 345.5,
+        "y": 639
       },
       {
-        "x": 291,
-        "y": 679.5
+        "x": 345.5,
+        "y": 720
       }
     ],
     "isOpaque": true
@@ -1280,12 +1266,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-92",
     "line": [
       {
-        "x": 291.5,
-        "y": 679
+        "x": 346,
+        "y": 719.5
       },
       {
-        "x": 291.5,
-        "y": 597
+        "x": 331,
+        "y": 719.5
       }
     ],
     "isOpaque": true
@@ -1294,12 +1280,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-93",
     "line": [
       {
-        "x": 292,
-        "y": 597.5
+        "x": 331.5,
+        "y": 719
       },
       {
-        "x": 251,
-        "y": 597.5
+        "x": 331.5,
+        "y": 637
       }
     ],
     "isOpaque": true
@@ -1308,12 +1294,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-94",
     "line": [
       {
-        "x": 251.5,
-        "y": 598
+        "x": 332,
+        "y": 637.5
       },
       {
-        "x": 251.5,
-        "y": 582
+        "x": 291,
+        "y": 637.5
       }
     ],
     "isOpaque": true
@@ -1322,12 +1308,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-95",
     "line": [
       {
-        "x": 252,
-        "y": 582.5
+        "x": 291.5,
+        "y": 638
       },
       {
-        "x": 258,
-        "y": 582.5
+        "x": 291.5,
+        "y": 622
       }
     ],
     "isOpaque": true
@@ -1336,12 +1322,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-96",
     "line": [
       {
-        "x": 257.5,
-        "y": 582
+        "x": 292,
+        "y": 622.5
       },
       {
-        "x": 257.5,
-        "y": 511
+        "x": 298,
+        "y": 622.5
       }
     ],
     "isOpaque": true
@@ -1350,12 +1336,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-97",
     "line": [
       {
-        "x": 257,
-        "y": 511.5
+        "x": 297.5,
+        "y": 622
       },
       {
-        "x": 142,
-        "y": 511.53
+        "x": 297.5,
+        "y": 551
       }
     ],
     "isOpaque": true
@@ -1364,12 +1350,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-98",
     "line": [
       {
-        "x": 244,
-        "y": 242.5
+        "x": 297,
+        "y": 551.5
       },
       {
-        "x": 268,
-        "y": 242.5
+        "x": 182,
+        "y": 551.53
       }
     ],
     "isOpaque": true
@@ -1378,12 +1364,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-99",
     "line": [
       {
-        "x": 267.5,
-        "y": 242
+        "x": 284,
+        "y": 282.5
       },
       {
-        "x": 267.5,
-        "y": 227
+        "x": 308,
+        "y": 282.5
       }
     ],
     "isOpaque": true
@@ -1392,12 +1378,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-100",
     "line": [
       {
-        "x": 267,
-        "y": 227.5
+        "x": 307.5,
+        "y": 282
       },
       {
-        "x": 299,
-        "y": 227.5
+        "x": 307.5,
+        "y": 267
       }
     ],
     "isOpaque": true
@@ -1406,12 +1392,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-101",
     "line": [
       {
-        "x": 298.5,
-        "y": 228
+        "x": 307,
+        "y": 267.5
       },
       {
-        "x": 298.5,
-        "y": 286
+        "x": 339,
+        "y": 267.5
       }
     ],
     "isOpaque": true
@@ -1420,12 +1406,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-102",
     "line": [
       {
-        "x": 299,
-        "y": 285.5
+        "x": 338.5,
+        "y": 268
       },
       {
-        "x": 408,
-        "y": 285.5
+        "x": 338.5,
+        "y": 326
       }
     ],
     "isOpaque": true
@@ -1434,12 +1420,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-103",
     "line": [
       {
-        "x": 408.5,
-        "y": 285
+        "x": 339,
+        "y": 325.5
       },
       {
-        "x": 408.5,
-        "y": 337
+        "x": 448,
+        "y": 325.5
       }
     ],
     "isOpaque": true
@@ -1448,12 +1434,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-104",
     "line": [
       {
-        "x": 408,
-        "y": 336.5
+        "x": 448.5,
+        "y": 325
       },
       {
-        "x": 353,
-        "y": 336.5
+        "x": 448.5,
+        "y": 377
       }
     ],
     "isOpaque": true
@@ -1462,12 +1448,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-105",
     "line": [
       {
-        "x": 353.5,
-        "y": 336
+        "x": 448,
+        "y": 376.5
       },
       {
-        "x": 353.5,
-        "y": 383
+        "x": 393,
+        "y": 376.5
       }
     ],
     "isOpaque": true
@@ -1476,12 +1462,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-106",
     "line": [
       {
-        "x": 353,
-        "y": 382.5
+        "x": 393.5,
+        "y": 376
       },
       {
-        "x": 288,
-        "y": 382.5
+        "x": 393.5,
+        "y": 423
       }
     ],
     "isOpaque": true
@@ -1490,12 +1476,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-107",
     "line": [
       {
-        "x": 288.5,
-        "y": 383
+        "x": 393,
+        "y": 422.5
       },
       {
-        "x": 288.5,
-        "y": 292
+        "x": 328,
+        "y": 422.5
       }
     ],
     "isOpaque": true
@@ -1504,12 +1490,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-108",
     "line": [
       {
-        "x": 289,
-        "y": 292.5
+        "x": 328.5,
+        "y": 423
       },
       {
-        "x": 244,
-        "y": 292.5
+        "x": 328.5,
+        "y": 332
       }
     ],
     "isOpaque": true
@@ -1518,12 +1504,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-109",
     "line": [
       {
-        "x": 244.5,
-        "y": 292
+        "x": 329,
+        "y": 332.5
       },
       {
-        "x": 244.5,
-        "y": 242
+        "x": 284,
+        "y": 332.5
       }
     ],
     "isOpaque": true
@@ -1532,12 +1518,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-110",
     "line": [
       {
-        "x": 383.5,
-        "y": 355
+        "x": 284.5,
+        "y": 332
       },
       {
-        "x": 384.5,
-        "y": 469
+        "x": 284.5,
+        "y": 282
       }
     ],
     "isOpaque": true
@@ -1546,12 +1532,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-111",
     "line": [
       {
-        "x": 384,
-        "y": 468.5
+        "x": 423.5,
+        "y": 395
       },
       {
-        "x": 400,
-        "y": 468.5
+        "x": 424.5,
+        "y": 509
       }
     ],
     "isOpaque": true
@@ -1560,12 +1546,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-112",
     "line": [
       {
-        "x": 399.5,
-        "y": 469
+        "x": 424,
+        "y": 508.5
       },
       {
-        "x": 399.5,
-        "y": 437
+        "x": 440,
+        "y": 508.5
       }
     ],
     "isOpaque": true
@@ -1574,12 +1560,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-113",
     "line": [
       {
-        "x": 400,
-        "y": 437.5
+        "x": 439.5,
+        "y": 509
       },
       {
-        "x": 455,
-        "y": 437.5
+        "x": 439.5,
+        "y": 477
       }
     ],
     "isOpaque": true
@@ -1588,12 +1574,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-114",
     "line": [
       {
-        "x": 454.5,
-        "y": 437
+        "x": 440,
+        "y": 477.5
       },
       {
-        "x": 454.5,
-        "y": 469
+        "x": 495,
+        "y": 477.5
       }
     ],
     "isOpaque": true
@@ -1602,12 +1588,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-115",
     "line": [
       {
-        "x": 454,
-        "y": 468.5
+        "x": 494.5,
+        "y": 477
       },
       {
-        "x": 463,
-        "y": 468.5
+        "x": 494.5,
+        "y": 509
       }
     ],
     "isOpaque": true
@@ -1616,12 +1602,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-116",
     "line": [
       {
-        "x": 462.5,
-        "y": 469
+        "x": 494,
+        "y": 508.5
       },
       {
-        "x": 462.5,
-        "y": 445
+        "x": 503,
+        "y": 508.5
       }
     ],
     "isOpaque": true
@@ -1630,12 +1616,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-117",
     "line": [
       {
-        "x": 463,
-        "y": 445.5
+        "x": 502.5,
+        "y": 509
       },
       {
-        "x": 510,
-        "y": 445.5
+        "x": 502.5,
+        "y": 485
       }
     ],
     "isOpaque": true
@@ -1644,12 +1630,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-118",
     "line": [
       {
-        "x": 509.5,
-        "y": 446
+        "x": 503,
+        "y": 485.5
       },
       {
-        "x": 509.5,
-        "y": 441
+        "x": 550,
+        "y": 485.5
       }
     ],
     "isOpaque": true
@@ -1658,12 +1644,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-119",
     "line": [
       {
-        "x": 510,
-        "y": 441.5
+        "x": 549.5,
+        "y": 486
       },
       {
-        "x": 505,
-        "y": 441.5
+        "x": 549.5,
+        "y": 481
       }
     ],
     "isOpaque": true
@@ -1672,12 +1658,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-120",
     "line": [
       {
-        "x": 505.5,
-        "y": 442
+        "x": 550,
+        "y": 481.5
       },
       {
-        "x": 505.5,
-        "y": 430
+        "x": 545,
+        "y": 481.5
       }
     ],
     "isOpaque": true
@@ -1686,12 +1672,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-121",
     "line": [
       {
-        "x": 505.65,
-        "y": 430.35
+        "x": 545.5,
+        "y": 482
       },
       {
-        "x": 486.65,
-        "y": 411.35
+        "x": 545.5,
+        "y": 470
       }
     ],
     "isOpaque": true
@@ -1700,12 +1686,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-122",
     "line": [
       {
-        "x": 486.5,
-        "y": 412
+        "x": 545.65,
+        "y": 470.35
       },
       {
-        "x": 486.5,
-        "y": 386
+        "x": 526.65,
+        "y": 451.35
       }
     ],
     "isOpaque": true
@@ -1714,12 +1700,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-123",
     "line": [
       {
-        "x": 486,
-        "y": 386.5
+        "x": 526.5,
+        "y": 452
       },
       {
-        "x": 572,
-        "y": 386.5
+        "x": 526.5,
+        "y": 426
       }
     ],
     "isOpaque": true
@@ -1728,12 +1714,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-124",
     "line": [
       {
-        "x": 571.5,
-        "y": 387
+        "x": 526,
+        "y": 426.5
       },
       {
-        "x": 571.5,
-        "y": 416
+        "x": 612,
+        "y": 426.5
       }
     ],
     "isOpaque": true
@@ -1742,12 +1728,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-125",
     "line": [
       {
-        "x": 571,
-        "y": 415.5
+        "x": 611.5,
+        "y": 427
       },
       {
-        "x": 587,
-        "y": 415.5
+        "x": 611.5,
+        "y": 456
       }
     ],
     "isOpaque": true
@@ -1756,12 +1742,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-126",
     "line": [
       {
-        "x": 586.5,
-        "y": 416
+        "x": 611,
+        "y": 455.5
       },
       {
-        "x": 586.5,
-        "y": 359
+        "x": 627,
+        "y": 455.5
       }
     ],
     "isOpaque": true
@@ -1770,12 +1756,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-127",
     "line": [
       {
-        "x": 586,
-        "y": 359.5
+        "x": 626.5,
+        "y": 456
       },
       {
-        "x": 658,
-        "y": 359.5
+        "x": 626.5,
+        "y": 399
       }
     ],
     "isOpaque": true
@@ -1784,12 +1770,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-128",
     "line": [
       {
-        "x": 657.5,
-        "y": 360
+        "x": 626,
+        "y": 399.5
       },
       {
-        "x": 657.5,
-        "y": 305
+        "x": 698,
+        "y": 399.5
       }
     ],
     "isOpaque": true
@@ -1798,12 +1784,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-129",
     "line": [
       {
-        "x": 658,
-        "y": 305.5
+        "x": 697.5,
+        "y": 400
       },
       {
-        "x": 622,
-        "y": 305.5
+        "x": 697.5,
+        "y": 345
       }
     ],
     "isOpaque": true
@@ -1812,12 +1798,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-130",
     "line": [
       {
-        "x": 622.5,
-        "y": 306
+        "x": 698,
+        "y": 345.5
       },
       {
-        "x": 622.5,
-        "y": 222
+        "x": 662,
+        "y": 345.5
       }
     ],
     "isOpaque": true
@@ -1826,12 +1812,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-131",
     "line": [
       {
-        "x": 623,
-        "y": 222.5
+        "x": 662.5,
+        "y": 346
       },
       {
-        "x": 540,
-        "y": 222.5
+        "x": 662.5,
+        "y": 262
       }
     ],
     "isOpaque": true
@@ -1840,12 +1826,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-132",
     "line": [
       {
-        "x": 540.39,
-        "y": 222.32
+        "x": 663,
+        "y": 262.5
       },
       {
-        "x": 521.39,
-        "y": 245.32
+        "x": 580,
+        "y": 262.5
       }
     ],
     "isOpaque": true
@@ -1854,12 +1840,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-133",
     "line": [
       {
-        "x": 521.5,
-        "y": 245
+        "x": 580.39,
+        "y": 262.32
       },
       {
-        "x": 521.5,
-        "y": 298
+        "x": 561.39,
+        "y": 285.32
       }
     ],
     "isOpaque": true
@@ -1868,12 +1854,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-134",
     "line": [
       {
-        "x": 522,
-        "y": 297.5
+        "x": 561.5,
+        "y": 285
       },
       {
-        "x": 470,
-        "y": 297.5
+        "x": 561.5,
+        "y": 338
       }
     ],
     "isOpaque": true
@@ -1882,12 +1868,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-135",
     "line": [
       {
-        "x": 470.5,
-        "y": 298
+        "x": 562,
+        "y": 337.5
       },
       {
-        "x": 470.5,
-        "y": 285
+        "x": 510,
+        "y": 337.5
       }
     ],
     "isOpaque": true
@@ -1896,12 +1882,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-136",
     "line": [
       {
-        "x": 471,
-        "y": 285.5
+        "x": 510.5,
+        "y": 338
       },
       {
-        "x": 436,
-        "y": 285.5
+        "x": 510.5,
+        "y": 325
       }
     ],
     "isOpaque": true
@@ -1910,12 +1896,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-137",
     "line": [
       {
-        "x": 436.5,
-        "y": 285
+        "x": 511,
+        "y": 325.5
       },
       {
-        "x": 436.5,
-        "y": 356
+        "x": 476,
+        "y": 325.5
       }
     ],
     "isOpaque": true
@@ -1924,12 +1910,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-138",
     "line": [
       {
-        "x": 437,
-        "y": 355.5
+        "x": 476.5,
+        "y": 325
       },
       {
-        "x": 384,
-        "y": 355.5
+        "x": 476.5,
+        "y": 396
       }
     ],
     "isOpaque": true
@@ -1938,12 +1924,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-139",
     "line": [
       {
-        "x": 646,
-        "y": 222.5
+        "x": 477,
+        "y": 395.5
       },
       {
-        "x": 752,
-        "y": 222.5
+        "x": 424,
+        "y": 395.5
       }
     ],
     "isOpaque": true
@@ -1952,12 +1938,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-140",
     "line": [
       {
-        "x": 751.5,
-        "y": 223
+        "x": 686,
+        "y": 262.5
       },
       {
-        "x": 751.5,
-        "y": 171
+        "x": 792,
+        "y": 262.5
       }
     ],
     "isOpaque": true
@@ -1966,12 +1952,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-141",
     "line": [
       {
-        "x": 752,
-        "y": 171.5
+        "x": 791.5,
+        "y": 263
       },
       {
-        "x": 760,
-        "y": 171.5
+        "x": 791.5,
+        "y": 211
       }
     ],
     "isOpaque": true
@@ -1980,12 +1966,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-142",
     "line": [
       {
-        "x": 759.5,
-        "y": 172
+        "x": 792,
+        "y": 211.5
       },
       {
-        "x": 759.5,
-        "y": 192
+        "x": 800,
+        "y": 211.5
       }
     ],
     "isOpaque": true
@@ -1994,12 +1980,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-143",
     "line": [
       {
-        "x": 760,
-        "y": 191.5
+        "x": 799.5,
+        "y": 212
       },
       {
-        "x": 810,
-        "y": 191.5
+        "x": 799.5,
+        "y": 232
       }
     ],
     "isOpaque": true
@@ -2008,12 +1994,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-144",
     "line": [
       {
-        "x": 809.5,
-        "y": 191
+        "x": 800,
+        "y": 231.5
       },
       {
-        "x": 809.5,
-        "y": 201
+        "x": 850,
+        "y": 231.5
       }
     ],
     "isOpaque": true
@@ -2022,12 +2008,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-145",
     "line": [
       {
-        "x": 810,
-        "y": 200.5
+        "x": 849.5,
+        "y": 231
       },
       {
-        "x": 803,
-        "y": 200.5
+        "x": 849.5,
+        "y": 241
       }
     ],
     "isOpaque": true
@@ -2036,12 +2022,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-146",
     "line": [
       {
-        "x": 803.5,
-        "y": 201
+        "x": 850,
+        "y": 240.5
       },
       {
-        "x": 803.5,
-        "y": 232
+        "x": 843,
+        "y": 240.5
       }
     ],
     "isOpaque": true
@@ -2050,12 +2036,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-147",
     "line": [
       {
-        "x": 803.4,
-        "y": 231.31
+        "x": 843.5,
+        "y": 241
       },
       {
-        "x": 793.4,
-        "y": 244.31
+        "x": 843.5,
+        "y": 272
       }
     ],
     "isOpaque": true
@@ -2064,12 +2050,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-148",
     "line": [
       {
-        "x": 794,
-        "y": 244.5
+        "x": 843.4,
+        "y": 271.31
       },
       {
-        "x": 775,
-        "y": 244.5
+        "x": 833.4,
+        "y": 284.31
       }
     ],
     "isOpaque": true
@@ -2078,12 +2064,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-149",
     "line": [
       {
-        "x": 775.5,
-        "y": 244
+        "x": 834,
+        "y": 284.5
       },
       {
-        "x": 775.5,
-        "y": 287
+        "x": 815,
+        "y": 284.5
       }
     ],
     "isOpaque": true
@@ -2092,12 +2078,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-150",
     "line": [
       {
-        "x": 776,
-        "y": 286.5
+        "x": 815.5,
+        "y": 284
       },
       {
-        "x": 748,
-        "y": 286.5
+        "x": 815.5,
+        "y": 327
       }
     ],
     "isOpaque": true
@@ -2106,12 +2092,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-151",
     "line": [
       {
-        "x": 748.5,
-        "y": 286
+        "x": 816,
+        "y": 326.5
       },
       {
-        "x": 748.5,
-        "y": 297
+        "x": 788,
+        "y": 326.5
       }
     ],
     "isOpaque": true
@@ -2120,12 +2106,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-152",
     "line": [
       {
-        "x": 749,
-        "y": 296.5
+        "x": 788.5,
+        "y": 326
       },
       {
-        "x": 744,
-        "y": 296.5
+        "x": 788.5,
+        "y": 337
       }
     ],
     "isOpaque": true
@@ -2134,12 +2120,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-153",
     "line": [
       {
-        "x": 744.5,
-        "y": 297
+        "x": 789,
+        "y": 336.5
       },
       {
-        "x": 744.5,
-        "y": 241
+        "x": 784,
+        "y": 336.5
       }
     ],
     "isOpaque": true
@@ -2148,12 +2134,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-154",
     "line": [
       {
-        "x": 744,
-        "y": 241.5
+        "x": 784.5,
+        "y": 337
       },
       {
-        "x": 646,
-        "y": 241.5
+        "x": 784.5,
+        "y": 281
       }
     ],
     "isOpaque": true
@@ -2162,12 +2148,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-155",
     "line": [
       {
-        "x": 646.5,
-        "y": 242
+        "x": 784,
+        "y": 281.5
       },
       {
-        "x": 646.5,
-        "y": 222
+        "x": 686,
+        "y": 281.5
       }
     ],
     "isOpaque": true
@@ -2176,12 +2162,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-156",
     "line": [
       {
-        "x": 291.5,
-        "y": 707
+        "x": 686.5,
+        "y": 282
       },
       {
-        "x": 291.5,
-        "y": 732
+        "x": 686.5,
+        "y": 262
       }
     ],
     "isOpaque": true
@@ -2190,12 +2176,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-157",
     "line": [
       {
-        "x": 292,
-        "y": 731.5
+        "x": 331.5,
+        "y": 747
       },
       {
-        "x": 341,
-        "y": 731.5
+        "x": 331.5,
+        "y": 772
       }
     ],
     "isOpaque": true
@@ -2204,12 +2190,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-158",
     "line": [
       {
-        "x": 340.5,
-        "y": 732
+        "x": 332,
+        "y": 771.5
       },
       {
-        "x": 340.5,
-        "y": 771
+        "x": 381,
+        "y": 771.5
       }
     ],
     "isOpaque": true
@@ -2218,12 +2204,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-159",
     "line": [
       {
-        "x": 340.35,
-        "y": 770.65
+        "x": 380.5,
+        "y": 772
       },
       {
-        "x": 347.35,
-        "y": 777.65
+        "x": 380.5,
+        "y": 811
       }
     ],
     "isOpaque": true
@@ -2232,12 +2218,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-160",
     "line": [
       {
-        "x": 347,
-        "y": 777.5
+        "x": 380.35,
+        "y": 810.65
       },
       {
-        "x": 535,
-        "y": 777.5
+        "x": 387.35,
+        "y": 817.65
       }
     ],
     "isOpaque": true
@@ -2246,12 +2232,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-161",
     "line": [
       {
-        "x": 534.5,
-        "y": 778
+        "x": 387,
+        "y": 817.5
       },
       {
-        "x": 534.5,
-        "y": 751
+        "x": 575,
+        "y": 817.5
       }
     ],
     "isOpaque": true
@@ -2260,12 +2246,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-162",
     "line": [
       {
-        "x": 534,
-        "y": 751.5
+        "x": 574.5,
+        "y": 818
       },
       {
-        "x": 555,
-        "y": 751.5
+        "x": 574.5,
+        "y": 791
       }
     ],
     "isOpaque": true
@@ -2274,12 +2260,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-163",
     "line": [
       {
-        "x": 554.5,
-        "y": 752
+        "x": 574,
+        "y": 791.5
       },
       {
-        "x": 554.5,
-        "y": 774
+        "x": 595,
+        "y": 791.5
       }
     ],
     "isOpaque": true
@@ -2288,12 +2274,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-164",
     "line": [
       {
-        "x": 555,
-        "y": 773.5
+        "x": 594.5,
+        "y": 792
       },
       {
-        "x": 648,
-        "y": 773.5
+        "x": 594.5,
+        "y": 814
       }
     ],
     "isOpaque": true
@@ -2302,12 +2288,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-165",
     "line": [
       {
-        "x": 647.5,
-        "y": 774
+        "x": 595,
+        "y": 813.5
       },
       {
-        "x": 647.5,
-        "y": 690
+        "x": 688,
+        "y": 813.5
       }
     ],
     "isOpaque": true
@@ -2316,12 +2302,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-166",
     "line": [
       {
-        "x": 648,
-        "y": 690.5
+        "x": 687.5,
+        "y": 814
       },
       {
-        "x": 838,
-        "y": 690.5
+        "x": 687.5,
+        "y": 730
       }
     ],
     "isOpaque": true
@@ -2330,12 +2316,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-167",
     "line": [
       {
-        "x": 837.5,
-        "y": 691
+        "x": 688,
+        "y": 730.5
       },
       {
-        "x": 837.5,
-        "y": 644
+        "x": 878,
+        "y": 730.5
       }
     ],
     "isOpaque": true
@@ -2344,12 +2330,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-168",
     "line": [
       {
-        "x": 838,
-        "y": 644.5
+        "x": 877.5,
+        "y": 731
       },
       {
-        "x": 854,
-        "y": 644.5
+        "x": 877.5,
+        "y": 684
       }
     ],
     "isOpaque": true
@@ -2358,12 +2344,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-169",
     "line": [
       {
-        "x": 853.5,
-        "y": 645
+        "x": 878,
+        "y": 684.5
       },
       {
-        "x": 853.5,
-        "y": 621
+        "x": 894,
+        "y": 684.5
       }
     ],
     "isOpaque": true
@@ -2372,12 +2358,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-170",
     "line": [
       {
-        "x": 854,
-        "y": 621.5
+        "x": 893.5,
+        "y": 685
       },
       {
-        "x": 847,
-        "y": 621.5
+        "x": 893.5,
+        "y": 661
       }
     ],
     "isOpaque": true
@@ -2386,12 +2372,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-171",
     "line": [
       {
-        "x": 847.5,
-        "y": 621
+        "x": 894,
+        "y": 661.5
       },
       {
-        "x": 847.5,
-        "y": 630
+        "x": 887,
+        "y": 661.5
       }
     ],
     "isOpaque": true
@@ -2400,12 +2386,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-172",
     "line": [
       {
-        "x": 848,
-        "y": 629.5
+        "x": 887.5,
+        "y": 661
       },
       {
-        "x": 818,
-        "y": 629.5
+        "x": 887.5,
+        "y": 670
       }
     ],
     "isOpaque": true
@@ -2414,12 +2400,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-173",
     "line": [
       {
-        "x": 818.5,
-        "y": 630
+        "x": 888,
+        "y": 669.5
       },
       {
-        "x": 818.5,
-        "y": 677
+        "x": 858,
+        "y": 669.5
       }
     ],
     "isOpaque": true
@@ -2428,12 +2414,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-174",
     "line": [
       {
-        "x": 819,
-        "y": 676.5
+        "x": 858.5,
+        "y": 670
       },
       {
-        "x": 618,
-        "y": 676.5
+        "x": 858.5,
+        "y": 717
       }
     ],
     "isOpaque": true
@@ -2442,12 +2428,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-175",
     "line": [
       {
-        "x": 618.5,
-        "y": 676
+        "x": 859,
+        "y": 716.5
       },
       {
-        "x": 618.5,
-        "y": 629
+        "x": 658,
+        "y": 716.5
       }
     ],
     "isOpaque": true
@@ -2456,12 +2442,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-176",
     "line": [
       {
-        "x": 619,
-        "y": 629.5
+        "x": 658.5,
+        "y": 716
       },
       {
-        "x": 536,
-        "y": 629.5
+        "x": 658.5,
+        "y": 669
       }
     ],
     "isOpaque": true
@@ -2470,12 +2456,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-177",
     "line": [
       {
-        "x": 536.5,
-        "y": 629
+        "x": 659,
+        "y": 669.5
       },
       {
-        "x": 536.5,
-        "y": 684
+        "x": 576,
+        "y": 669.5
       }
     ],
     "isOpaque": true
@@ -2484,12 +2470,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-178",
     "line": [
       {
-        "x": 537.01,
-        "y": 683.5
+        "x": 576.5,
+        "y": 669
       },
       {
-        "x": 442.01,
-        "y": 684.51
+        "x": 576.5,
+        "y": 724
       }
     ],
     "isOpaque": true
@@ -2498,12 +2484,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-179",
     "line": [
       {
-        "x": 442.5,
-        "y": 684
+        "x": 577.01,
+        "y": 723.5
       },
       {
-        "x": 442.5,
-        "y": 660
+        "x": 482.01,
+        "y": 724.51
       }
     ],
     "isOpaque": true
@@ -2512,12 +2498,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-180",
     "line": [
       {
-        "x": 442,
-        "y": 660.5
+        "x": 482.5,
+        "y": 724
       },
       {
-        "x": 436,
-        "y": 660.5
+        "x": 482.5,
+        "y": 700
       }
     ],
     "isOpaque": true
@@ -2526,12 +2512,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-181",
     "line": [
       {
-        "x": 436.5,
-        "y": 661
+        "x": 482,
+        "y": 700.5
       },
       {
-        "x": 436.5,
-        "y": 693
+        "x": 476,
+        "y": 700.5
       }
     ],
     "isOpaque": true
@@ -2540,12 +2526,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-182",
     "line": [
       {
-        "x": 436,
-        "y": 692.5
+        "x": 476.5,
+        "y": 701
       },
       {
-        "x": 383,
-        "y": 692.5
+        "x": 476.5,
+        "y": 733
       }
     ],
     "isOpaque": true
@@ -2554,12 +2540,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-183",
     "line": [
       {
-        "x": 383.5,
-        "y": 692
+        "x": 476,
+        "y": 732.5
       },
       {
-        "x": 383.5,
-        "y": 660
+        "x": 423,
+        "y": 732.5
       }
     ],
     "isOpaque": true
@@ -2568,12 +2554,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-184",
     "line": [
       {
-        "x": 383,
-        "y": 660.5
+        "x": 423.5,
+        "y": 732
       },
       {
-        "x": 353,
-        "y": 660.5
+        "x": 423.5,
+        "y": 700
       }
     ],
     "isOpaque": true
@@ -2582,12 +2568,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-185",
     "line": [
       {
-        "x": 353.5,
-        "y": 661
+        "x": 423,
+        "y": 700.5
       },
       {
-        "x": 353.5,
-        "y": 708
+        "x": 393,
+        "y": 700.5
       }
     ],
     "isOpaque": true
@@ -2596,12 +2582,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-186",
     "line": [
       {
-        "x": 354,
-        "y": 707.5
+        "x": 393.5,
+        "y": 701
       },
       {
-        "x": 291,
-        "y": 707.5
+        "x": 393.5,
+        "y": 748
       }
     ],
     "isOpaque": true
@@ -2610,12 +2596,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-187",
     "line": [
       {
-        "x": 624,
-        "y": 386.5
+        "x": 394,
+        "y": 747.5
       },
       {
-        "x": 678,
-        "y": 386.5
+        "x": 331,
+        "y": 747.5
       }
     ],
     "isOpaque": true
@@ -2624,12 +2610,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-188",
     "line": [
       {
-        "x": 677.5,
-        "y": 386
+        "x": 664,
+        "y": 426.5
       },
       {
-        "x": 677.5,
-        "y": 391
+        "x": 718,
+        "y": 426.5
       }
     ],
     "isOpaque": true
@@ -2638,12 +2624,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-189",
     "line": [
       {
-        "x": 678,
-        "y": 390.5
+        "x": 717.5,
+        "y": 426
       },
       {
-        "x": 648,
-        "y": 390.5
+        "x": 717.5,
+        "y": 431
       }
     ],
     "isOpaque": true
@@ -2652,12 +2638,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-190",
     "line": [
       {
-        "x": 648.5,
-        "y": 390
+        "x": 718,
+        "y": 430.5
       },
       {
-        "x": 648.5,
-        "y": 524
+        "x": 688,
+        "y": 430.5
       }
     ],
     "isOpaque": true
@@ -2666,12 +2652,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-191",
     "line": [
       {
-        "x": 648.35,
-        "y": 523.64
+        "x": 688.5,
+        "y": 430
       },
       {
-        "x": 673.35,
-        "y": 547.64
+        "x": 688.5,
+        "y": 564
       }
     ],
     "isOpaque": true
@@ -2680,12 +2666,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-192",
     "line": [
       {
-        "x": 673,
-        "y": 547.5
+        "x": 688.35,
+        "y": 563.64
       },
       {
-        "x": 736,
-        "y": 547.5
+        "x": 713.35,
+        "y": 587.64
       }
     ],
     "isOpaque": true
@@ -2694,12 +2680,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-193",
     "line": [
       {
-        "x": 735.5,
-        "y": 548
+        "x": 713,
+        "y": 587.5
       },
       {
-        "x": 735.5,
-        "y": 518
+        "x": 776,
+        "y": 587.5
       }
     ],
     "isOpaque": true
@@ -2708,12 +2694,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-194",
     "line": [
       {
-        "x": 713,
-        "y": 517.5
+        "x": 775.5,
+        "y": 588
       },
       {
-        "x": 776,
-        "y": 517.5
+        "x": 775.5,
+        "y": 558
       }
     ],
     "isOpaque": true
@@ -2722,12 +2708,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-195",
     "line": [
       {
-        "x": 775.5,
-        "y": 517
+        "x": 753,
+        "y": 557.5
       },
       {
-        "x": 775.5,
-        "y": 567
+        "x": 816,
+        "y": 557.5
       }
     ],
     "isOpaque": true
@@ -2736,12 +2722,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-196",
     "line": [
       {
-        "x": 775,
-        "y": 566.5
+        "x": 815.5,
+        "y": 557
       },
       {
-        "x": 823,
-        "y": 566.5
+        "x": 815.5,
+        "y": 607
       }
     ],
     "isOpaque": true
@@ -2750,12 +2736,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-197",
     "line": [
       {
-        "x": 822.64,
-        "y": 566.65
+        "x": 815,
+        "y": 606.5
       },
       {
-        "x": 852.64,
-        "y": 535.65
+        "x": 863,
+        "y": 606.5
       }
     ],
     "isOpaque": true
@@ -2764,12 +2750,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-198",
     "line": [
       {
-        "x": 852,
-        "y": 535.5
+        "x": 862.64,
+        "y": 606.65
       },
       {
-        "x": 869,
-        "y": 535.5
+        "x": 892.64,
+        "y": 575.65
       }
     ],
     "isOpaque": true
@@ -2778,12 +2764,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-199",
     "line": [
       {
-        "x": 868.5,
-        "y": 535
+        "x": 892,
+        "y": 575.5
       },
       {
-        "x": 868.5,
-        "y": 582
+        "x": 909,
+        "y": 575.5
       }
     ],
     "isOpaque": true
@@ -2792,12 +2778,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-200",
     "line": [
       {
-        "x": 869,
-        "y": 582.5
+        "x": 908.5,
+        "y": 575
       },
       {
-        "x": 853,
-        "y": 582.5
+        "x": 908.5,
+        "y": 622
       }
     ],
     "isOpaque": true
@@ -2806,12 +2792,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-201",
     "line": [
       {
-        "x": 853.5,
-        "y": 582
+        "x": 909,
+        "y": 622.5
       },
       {
-        "x": 853.5,
-        "y": 606
+        "x": 893,
+        "y": 622.5
       }
     ],
     "isOpaque": true
@@ -2820,12 +2806,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-202",
     "line": [
       {
-        "x": 854,
-        "y": 605.5
+        "x": 893.5,
+        "y": 622
       },
       {
-        "x": 847,
-        "y": 605.5
+        "x": 893.5,
+        "y": 646
       }
     ],
     "isOpaque": true
@@ -2834,12 +2820,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-203",
     "line": [
       {
-        "x": 847.5,
-        "y": 606
+        "x": 894,
+        "y": 645.5
       },
       {
-        "x": 847.5,
-        "y": 597
+        "x": 887,
+        "y": 645.5
       }
     ],
     "isOpaque": true
@@ -2848,12 +2834,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-204",
     "line": [
       {
-        "x": 847,
-        "y": 597.5
+        "x": 887.5,
+        "y": 646
       },
       {
-        "x": 786,
-        "y": 597.5
+        "x": 887.5,
+        "y": 637
       }
     ],
     "isOpaque": true
@@ -2862,12 +2848,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-205",
     "line": [
       {
-        "x": 786.5,
-        "y": 597
+        "x": 887,
+        "y": 637.5
       },
       {
-        "x": 786.5,
-        "y": 644
+        "x": 826,
+        "y": 637.5
       }
     ],
     "isOpaque": true
@@ -2876,12 +2862,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-206",
     "line": [
       {
-        "x": 786,
-        "y": 643.5
+        "x": 826.5,
+        "y": 637
       },
       {
-        "x": 643,
-        "y": 643.5
+        "x": 826.5,
+        "y": 684
       }
     ],
     "isOpaque": true
@@ -2890,12 +2876,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-207",
     "line": [
       {
-        "x": 643.5,
-        "y": 643
+        "x": 826,
+        "y": 683.5
       },
       {
-        "x": 643.5,
-        "y": 583
+        "x": 683,
+        "y": 683.5
       }
     ],
     "isOpaque": true
@@ -2904,12 +2890,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-208",
     "line": [
       {
-        "x": 643,
-        "y": 583.5
+        "x": 683.5,
+        "y": 683
       },
       {
-        "x": 618,
-        "y": 583.5
+        "x": 683.5,
+        "y": 623
       }
     ],
     "isOpaque": true
@@ -2918,12 +2904,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-209",
     "line": [
       {
-        "x": 618.5,
-        "y": 583
+        "x": 683,
+        "y": 623.5
       },
       {
-        "x": 618.5,
-        "y": 598
+        "x": 658,
+        "y": 623.5
       }
     ],
     "isOpaque": true
@@ -2932,12 +2918,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-210",
     "line": [
       {
-        "x": 619,
-        "y": 597.5
+        "x": 658.5,
+        "y": 623
       },
       {
-        "x": 536,
-        "y": 597.5
+        "x": 658.5,
+        "y": 638
       }
     ],
     "isOpaque": true
@@ -2946,12 +2932,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-211",
     "line": [
       {
-        "x": 536.5,
-        "y": 597
+        "x": 659,
+        "y": 637.5
       },
       {
-        "x": 536.5,
-        "y": 550
+        "x": 576,
+        "y": 637.5
       }
     ],
     "isOpaque": true
@@ -2960,12 +2946,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-212",
     "line": [
       {
-        "x": 536,
-        "y": 550.5
+        "x": 576.5,
+        "y": 637
       },
       {
-        "x": 540,
-        "y": 550.5
+        "x": 576.5,
+        "y": 590
       }
     ],
     "isOpaque": true
@@ -2974,12 +2960,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-213",
     "line": [
       {
-        "x": 539.5,
-        "y": 551
+        "x": 576,
+        "y": 590.5
       },
       {
-        "x": 539.5,
-        "y": 455
+        "x": 580,
+        "y": 590.5
       }
     ],
     "isOpaque": true
@@ -2988,12 +2974,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-214",
     "line": [
       {
-        "x": 540,
-        "y": 455.5
+        "x": 579.5,
+        "y": 591
       },
       {
-        "x": 535,
-        "y": 455.5
+        "x": 579.5,
+        "y": 495
       }
     ],
     "isOpaque": true
@@ -3002,12 +2988,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-215",
     "line": [
       {
-        "x": 535.65,
-        "y": 455.35
+        "x": 580,
+        "y": 495.5
       },
       {
-        "x": 531.65,
-        "y": 451.35
+        "x": 575,
+        "y": 495.5
       }
     ],
     "isOpaque": true
@@ -3016,12 +3002,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-216",
     "line": [
       {
-        "x": 531.5,
-        "y": 452
+        "x": 575.65,
+        "y": 495.35
       },
       {
-        "x": 531.5,
-        "y": 446
+        "x": 571.65,
+        "y": 491.35
       }
     ],
     "isOpaque": true
@@ -3030,12 +3016,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-217",
     "line": [
       {
-        "x": 532,
-        "y": 446.5
+        "x": 571.5,
+        "y": 492
       },
       {
-        "x": 528,
-        "y": 446.5
+        "x": 571.5,
+        "y": 486
       }
     ],
     "isOpaque": true
@@ -3044,12 +3030,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-218",
     "line": [
       {
-        "x": 528.5,
-        "y": 446
+        "x": 572,
+        "y": 486.5
       },
       {
-        "x": 528.5,
-        "y": 441
+        "x": 568,
+        "y": 486.5
       }
     ],
     "isOpaque": true
@@ -3058,12 +3044,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-219",
     "line": [
       {
-        "x": 529,
-        "y": 441.5
+        "x": 568.5,
+        "y": 486
       },
       {
-        "x": 624,
-        "y": 441.5
+        "x": 568.5,
+        "y": 481
       }
     ],
     "isOpaque": true
@@ -3072,12 +3058,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-220",
     "line": [
       {
-        "x": 623.5,
-        "y": 442
+        "x": 569,
+        "y": 481.5
       },
       {
-        "x": 623.5,
-        "y": 386
+        "x": 664,
+        "y": 481.5
       }
     ],
     "isOpaque": true
@@ -3086,12 +3072,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-221",
     "line": [
       {
-        "x": 744.5,
-        "y": 320
+        "x": 663.5,
+        "y": 482
       },
       {
-        "x": 744.5,
-        "y": 337
+        "x": 663.5,
+        "y": 426
       }
     ],
     "isOpaque": true
@@ -3100,12 +3086,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-222",
     "line": [
       {
-        "x": 745,
-        "y": 336.5
+        "x": 784.5,
+        "y": 360
       },
       {
-        "x": 735,
-        "y": 336.5
+        "x": 784.5,
+        "y": 377
       }
     ],
     "isOpaque": true
@@ -3114,12 +3100,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-223",
     "line": [
       {
-        "x": 735.44,
-        "y": 336.23
+        "x": 785,
+        "y": 376.5
       },
       {
-        "x": 710.44,
-        "y": 384.23
+        "x": 775,
+        "y": 376.5
       }
     ],
     "isOpaque": true
@@ -3128,12 +3114,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-224",
     "line": [
       {
-        "x": 710.5,
-        "y": 384
+        "x": 775.44,
+        "y": 376.23
       },
       {
-        "x": 710.5,
-        "y": 391
+        "x": 750.44,
+        "y": 424.23
       }
     ],
     "isOpaque": true
@@ -3142,12 +3128,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-225",
     "line": [
       {
-        "x": 711,
-        "y": 390.5
+        "x": 750.5,
+        "y": 424
       },
       {
-        "x": 726,
-        "y": 390.5
+        "x": 750.5,
+        "y": 431
       }
     ],
     "isOpaque": true
@@ -3156,12 +3142,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-226",
     "line": [
       {
-        "x": 725.5,
-        "y": 390
+        "x": 751,
+        "y": 430.5
       },
       {
-        "x": 725.5,
-        "y": 422
+        "x": 766,
+        "y": 430.5
       }
     ],
     "isOpaque": true
@@ -3170,12 +3156,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-227",
     "line": [
       {
-        "x": 725.44,
-        "y": 421.24
+        "x": 765.5,
+        "y": 430
       },
       {
-        "x": 713.44,
-        "y": 443.24
+        "x": 765.5,
+        "y": 462
       }
     ],
     "isOpaque": true
@@ -3184,12 +3170,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-228",
     "line": [
       {
-        "x": 713.5,
-        "y": 443
+        "x": 765.44,
+        "y": 461.24
       },
       {
-        "x": 713.5,
-        "y": 485
+        "x": 753.44,
+        "y": 483.24
       }
     ],
     "isOpaque": true
@@ -3198,12 +3184,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-229",
     "line": [
       {
-        "x": 713,
-        "y": 484.5
+        "x": 753.5,
+        "y": 483
       },
       {
-        "x": 775,
-        "y": 484.5
+        "x": 753.5,
+        "y": 525
       }
     ],
     "isOpaque": true
@@ -3212,12 +3198,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-230",
     "line": [
       {
-        "x": 774.5,
-        "y": 485
+        "x": 753,
+        "y": 524.5
       },
       {
-        "x": 774.5,
-        "y": 448
+        "x": 815,
+        "y": 524.5
       }
     ],
     "isOpaque": true
@@ -3226,12 +3212,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-231",
     "line": [
       {
-        "x": 774,
-        "y": 448.5
+        "x": 814.5,
+        "y": 525
       },
       {
-        "x": 807,
-        "y": 448.5
+        "x": 814.5,
+        "y": 488
       }
     ],
     "isOpaque": true
@@ -3240,12 +3226,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-232",
     "line": [
       {
-        "x": 806.5,
-        "y": 449
+        "x": 814,
+        "y": 488.5
       },
       {
-        "x": 806.5,
-        "y": 418
+        "x": 847,
+        "y": 488.5
       }
     ],
     "isOpaque": true
@@ -3254,12 +3240,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-233",
     "line": [
       {
-        "x": 807,
-        "y": 418.5
+        "x": 846.5,
+        "y": 489
       },
       {
-        "x": 760,
-        "y": 418.5
+        "x": 846.5,
+        "y": 458
       }
     ],
     "isOpaque": true
@@ -3268,12 +3254,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-234",
     "line": [
       {
-        "x": 760.5,
-        "y": 419
+        "x": 847,
+        "y": 458.5
       },
       {
-        "x": 760.5,
-        "y": 344
+        "x": 800,
+        "y": 458.5
       }
     ],
     "isOpaque": true
@@ -3282,12 +3268,12 @@ export const valorantMap: TacticalMap = {
     "id": "wall-235",
     "line": [
       {
-        "x": 760.55,
-        "y": 344.22
+        "x": 800.5,
+        "y": 459
       },
       {
-        "x": 748.55,
-        "y": 320.22
+        "x": 800.5,
+        "y": 384
       }
     ],
     "isOpaque": true
@@ -3296,26 +3282,243 @@ export const valorantMap: TacticalMap = {
     "id": "wall-236",
     "line": [
       {
-        "x": 744,
-        "y": 320.5
+        "x": 800.55,
+        "y": 384.22
       },
       {
-        "x": 749,
-        "y": 320.5
+        "x": 788.55,
+        "y": 360.22
+      }
+    ],
+    "isOpaque": true
+  },
+  {
+    "id": "wall-237",
+    "line": [
+      {
+        "x": 784,
+        "y": 360.5
+      },
+      {
+        "x": 789,
+        "y": 360.5
       }
     ],
     "isOpaque": true
   }
 ],
-  areas: [],
+  walkableFloor: [
+  [
+    {
+      "x": 104,
+      "y": 370
+    },
+    {
+      "x": 104,
+      "y": 276
+    },
+    {
+      "x": 149.2,
+      "y": 276
+    },
+    {
+      "x": 149.2,
+      "y": 291
+    },
+    {
+      "x": 156.23,
+      "y": 291
+    },
+    {
+      "x": 156.23,
+      "y": 299
+    },
+    {
+      "x": 165.28,
+      "y": 299
+    },
+    {
+      "x": 165.28,
+      "y": 333
+    },
+    {
+      "x": 313.94,
+      "y": 333
+    },
+    {
+      "x": 313.94,
+      "y": 364
+    },
+    {
+      "x": 298.87,
+      "y": 364
+    },
+    {
+      "x": 298.87,
+      "y": 381
+    },
+    {
+      "x": 314.44,
+      "y": 381
+    },
+    {
+      "x": 313.94,
+      "y": 451
+    },
+    {
+      "x": 327,
+      "y": 451
+    },
+    {
+      "x": 327,
+      "y": 488
+    },
+    {
+      "x": 137.15,
+      "y": 488
+    },
+    {
+      "x": 137.15,
+      "y": 472.5
+    },
+    {
+      "x": 121.08,
+      "y": 472.5
+    },
+    {
+      "x": 121.08,
+      "y": 452
+    },
+    {
+      "x": 104,
+      "y": 452
+    },
+    {
+      "x": 104,
+      "y": 389
+    },
+    {
+      "x": 144.18,
+      "y": 389
+    },
+    {
+      "x": 144.18,
+      "y": 370
+    },
+    {
+      "x": 104,
+      "y": 370
+    }
+  ]
+],
+  boxWalkable: [
+  [
+    {
+      "x": 144.5,
+      "y": 370
+    },
+    {
+      "x": 103.5,
+      "y": 370
+    },
+    {
+      "x": 103.5,
+      "y": 389
+    },
+    {
+      "x": 144.5,
+      "y": 389
+    },
+    {
+      "x": 144.5,
+      "y": 370
+    }
+  ]
+],
+  areas: [
+  {
+    "id": "site-b",
+    "name": "B包点",
+    "polygon": [
+      {
+        "x": 180.5,
+        "y": 354.5
+      },
+      {
+        "x": 180.5,
+        "y": 333.5
+      },
+      {
+        "x": 313.5,
+        "y": 333.5
+      },
+      {
+        "x": 313.5,
+        "y": 365.5
+      },
+      {
+        "x": 299.5,
+        "y": 365.5
+      },
+      {
+        "x": 299.5,
+        "y": 380.5
+      },
+      {
+        "x": 313.5,
+        "y": 380.5
+      },
+      {
+        "x": 313.5,
+        "y": 411.5
+      },
+      {
+        "x": 256.5,
+        "y": 411.5
+      },
+      {
+        "x": 256.5,
+        "y": 399.5
+      },
+      {
+        "x": 230.5,
+        "y": 399.5
+      },
+      {
+        "x": 230.5,
+        "y": 384
+      },
+      {
+        "x": 213.5,
+        "y": 384
+      },
+      {
+        "x": 213.5,
+        "y": 399.5
+      },
+      {
+        "x": 197.5,
+        "y": 399.5
+      },
+      {
+        "x": 197.5,
+        "y": 354.5
+      },
+      {
+        "x": 180.5,
+        "y": 354.5
+      }
+    ]
+  }
+],
   bounds: {
   "min": {
-    "x": 42.5,
-    "y": 39
+    "x": 82.5,
+    "y": 79
   },
   "max": {
-    "x": 1009,
-    "y": 949
+    "x": 1049,
+    "y": 989
   }
 },
 };

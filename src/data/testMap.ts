@@ -2,6 +2,15 @@ import type { TacticalMap } from '@/types/map';
 
 // 示例地图：方形场地 + 中间一堵墙 + 右侧一堵墙（用于测试视野遮挡）
 export const testMap: TacticalMap = {
+  walkableFloor: [
+    [
+      { x: 100, y: 100 },
+      { x: 900, y: 100 },
+      { x: 900, y: 700 },
+      { x: 100, y: 700 },
+    ],
+  ],
+  boxWalkable: [],
   walls: [
     // 地图外框围墙
     { id: 'wall-1', line: [{ x: 100, y: 100 }, { x: 900, y: 100 }], isOpaque: true },
