@@ -1,11 +1,15 @@
 import type { DrawerProps } from 'antd';
 import { Drawer } from 'antd';
 import { useCallback, useEffect, useMemo } from 'react';
+import { KillEventRow } from '@/components/KillEventRow';
 import { getAgentLabel } from '@/data/agentsCatalog';
 import { useUiOverlayStore } from '@/store/uiOverlayStore';
 import { useMatchupStore } from '@/store/useMatchupStore';
 import { useTimelineKeyframeStore } from '@/store/timelineKeyframeStore';
+import { useTimelinePlaybackStore } from '@/store/timelinePlaybackStore';
 import { TACTICAL_DRAWER_Z_INDEX, tacticalDrawerStyles } from '@/components/tacticalDrawerStyles';
+import { collectAgentKillFeed } from '@/utils/agentKillFeed';
+import { formatTimelineQuantized } from '@/utils/timelineQuantize';
 import './AgentDetailDrawer.less';
 
 const drawerStyles = tacticalDrawerStyles satisfies NonNullable<DrawerProps['styles']>;
@@ -17,9 +21,18 @@ export function AgentDetailDrawer() {
   const pushDrawerLayer = useUiOverlayStore((s) => s.pushDrawerLayer);
   const popDrawerLayer = useUiOverlayStore((s) => s.popDrawerLayer);
   const recordKillAtPlayhead = useTimelineKeyframeStore((s) => s.recordKillAtPlayhead);
+  const keyframes = useTimelineKeyframeStore((s) => s.keyframes);
+  const seek = useTimelinePlaybackStore((s) => s.seek);
+  const pausePlayback = useTimelinePlaybackStore((s) => s.pausePlayback);
+  const maxTime = useTimelinePlaybackStore((s) => s.maxTime);
 
   const placement = mapPlacements.find((p) => p.id === selectedPlacementId);
   const open = !!placement;
+
+  const killFeed = useMemo(
+    () => (placement ? collectAgentKillFeed(placement, keyframes) : []),
+    [placement, keyframes]
+  );
 
   const livingEnemies = useMemo(() => {
     if (!placement) return [];
@@ -33,6 +46,14 @@ export function AgentDetailDrawer() {
       recordKillAtPlayhead(killerId, victimId);
     },
     [recordKillAtPlayhead]
+  );
+
+  const jumpToKeyframe = useCallback(
+    (time: number) => {
+      pausePlayback();
+      seek(time);
+    },
+    [pausePlayback, seek]
   );
 
   useEffect(() => {
@@ -100,10 +121,51 @@ export function AgentDetailDrawer() {
               击杀记录
             </h2>
             <p className="agent-detail-drawer__kills-hint">
-              记录在当前时间轴刻度（100ms）的关键帧中；同一刻度内多次击杀按顺序保存，用于首杀等逻辑。
+              新建击杀写入当前播放头所在关键帧；下方为全时间轴中与该特工相关的击杀事件，点击可跳转。
             </p>
+
+            <h3 className="agent-detail-drawer__kill-feed-heading">时间轴履历</h3>
+            {killFeed.length === 0 ? (
+              <p className="agent-detail-drawer__kills-muted">暂无关键帧击杀记录。</p>
+            ) : (
+              <ul className="agent-detail-drawer__kill-feed-list" role="list">
+                {killFeed.map((entry, i) => {
+                  const kLabel = getAgentLabel(entry.killer.agentId);
+                  const vLabel = getAgentLabel(entry.victim.agentId);
+                  const rowLabel = `${kLabel} 击杀 ${vLabel}`;
+                  const timeStr = formatTimelineQuantized(entry.keyframeTime, maxTime);
+                  return (
+                    <KillEventRow
+                      key={`${entry.keyframeId}-${entry.indexInKeyframe}-${entry.role}`}
+                      displayIndex={i + 1}
+                      killer={entry.killer}
+                      victim={entry.victim}
+                      onClick={() => jumpToKeyframe(entry.keyframeTime)}
+                      ariaJumpLabel={`跳转到 ${timeStr}：${rowLabel}`}
+                      trailing={
+                        <div className="agent-detail-drawer__kill-feed-meta">
+                          <span className="agent-detail-drawer__kill-feed-time">{timeStr}</span>
+                          <span
+                            className={
+                              entry.role === 'dealt'
+                                ? 'agent-detail-drawer__kill-feed-tag agent-detail-drawer__kill-feed-tag--dealt'
+                                : 'agent-detail-drawer__kill-feed-tag agent-detail-drawer__kill-feed-tag--received'
+                            }
+                          >
+                            {entry.role === 'dealt' ? '主动出击' : '被淘汰'}
+                          </span>
+                        </div>
+                      }
+                    />
+                  );
+                })}
+              </ul>
+            )}
+
             {placement.eliminated ? (
-              <p className="agent-detail-drawer__kills-muted">该特工已淘汰，无法继续记录击杀。</p>
+              <p className="agent-detail-drawer__kills-muted agent-detail-drawer__kills-muted--spaced">
+                该特工已淘汰，无法继续记录新的击杀。
+              </p>
             ) : (
               <>
                 <div className="agent-detail-drawer__kill-block">

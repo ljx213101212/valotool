@@ -4,10 +4,9 @@ import {
   DeleteOutlined,
   PlusOutlined,
   RollbackOutlined,
-  ThunderboltOutlined,
 } from '@ant-design/icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AgentMapTokenChip } from '@/components/AgentMapTokenChip';
+import { KillEventRow } from '@/components/KillEventRow';
 import { getAgentLabel } from '@/data/agentsCatalog';
 import { TACTICAL_DRAWER_Z_INDEX, tacticalDrawerStyles } from '@/components/tacticalDrawerStyles';
 import { tacticalModalStyles } from '@/components/tacticalModalStyles';
@@ -291,47 +290,13 @@ export function KeyframeDetailDrawer() {
                 {(snap.killEvents ?? []).map((ev, i) => {
                   const killer = snap.matchup.mapPlacements.find((p) => p.id === ev.killerPlacementId);
                   const victim = snap.matchup.mapPlacements.find((p) => p.id === ev.victimPlacementId);
-                  const kLabel = killer ? getAgentLabel(killer.agentId) : '未知';
-                  const vLabel = victim ? getAgentLabel(victim.agentId) : '未知';
-                  const rowLabel = `${kLabel} 击杀 ${vLabel}`;
                   return (
-                    <li key={`${ev.killerPlacementId}-${ev.victimPlacementId}-${i}`} className="keyframe-detail-drawer__kill-row">
-                      <span className="keyframe-detail-drawer__kill-row-idx" aria-hidden>
-                        {i + 1}
-                      </span>
-                      <div className="keyframe-detail-drawer__kill-row-tokens" role="group" aria-label={rowLabel}>
-                        {killer ? (
-                          <AgentMapTokenChip
-                            agentId={killer.agentId}
-                            side={killer.side}
-                            eliminated={!!killer.eliminated}
-                            title={getAgentLabel(killer.agentId)}
-                          />
-                        ) : (
-                          <span className="keyframe-detail-drawer__kill-missing" title="未知特工">
-                            ?
-                          </span>
-                        )}
-                        <ThunderboltOutlined
-                          className="keyframe-detail-drawer__kill-icon"
-                          aria-label="击杀"
-                          title="击杀"
-                        />
-                        {victim ? (
-                          <AgentMapTokenChip
-                            agentId={victim.agentId}
-                            side={victim.side}
-                            eliminated={!!victim.eliminated}
-                            alwaysShowPortrait
-                            title={getAgentLabel(victim.agentId)}
-                          />
-                        ) : (
-                          <span className="keyframe-detail-drawer__kill-missing" title="未知特工">
-                            ?
-                          </span>
-                        )}
-                      </div>
-                    </li>
+                    <KillEventRow
+                      key={`${ev.killerPlacementId}-${ev.victimPlacementId}-${i}`}
+                      displayIndex={i + 1}
+                      killer={killer ?? null}
+                      victim={victim ?? null}
+                    />
                   );
                 })}
               </ul>
