@@ -19,7 +19,9 @@ interface MatchupState {
   removeAgent: (side: MatchupSide, agentId: string) => void;
   patchMapPlacement: (
     id: string,
-    patch: Partial<Pick<MapAgentPlacement, 'x' | 'y' | 'facing'>>
+    patch: Partial<
+      Pick<MapAgentPlacement, 'x' | 'y' | 'facing' | 'eliminated' | 'eliminatedByPlacementId'>
+    >
   ) => void;
 }
 

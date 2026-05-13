@@ -119,3 +119,98 @@
   color: rgba(71, 85, 105, 0.98);
   font-style: italic;
 }
+
+.agent-detail-drawer__kills {
+  margin-top: 14px;
+  padding: 0 12px 16px;
+}
+
+.agent-detail-drawer__kills-title {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.95);
+}
+
+.agent-detail-drawer__kills-hint {
+  margin: 0 0 14px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgba(100, 116, 139, 0.95);
+}
+
+.agent-detail-drawer__kills-muted {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(100, 116, 139, 0.92);
+}
+
+.agent-detail-drawer__kill-block {
+  margin-bottom: 14px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.agent-detail-drawer__kill-block-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(226, 232, 240, 0.92);
+}
+
+.agent-detail-drawer__kill-targets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.agent-detail-drawer__kill-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(51, 65, 85, 0.65);
+  background: rgba(15, 23, 42, 0.72);
+  color: rgba(226, 232, 240, 0.96);
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    border-color 0.12s ease,
+    background 0.12s ease;
+
+  &:hover {
+    border-color: rgba(56, 189, 248, 0.35);
+    background: rgba(30, 41, 59, 0.85);
+  }
+}
+
+.agent-detail-drawer__kill-side {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.agent-detail-drawer__kill-side--attack {
+  color: @tactical-attack-text-on-muted;
+  border: 1px solid @tactical-attack-border-mid;
+  background: rgba(127, 29, 29, 0.35);
+}
+
+.agent-detail-drawer__kill-side--defense {
+  color: @tactical-defense-title;
+  border: 1px solid @tactical-defense-border-mid;
+  background: rgba(30, 58, 138, 0.38);
+}

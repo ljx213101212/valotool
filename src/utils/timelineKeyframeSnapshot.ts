@@ -17,6 +17,7 @@ export function captureTimelineKeyframeSnapshot(): TimelineKeyframeSnapshot {
       selectedMapId: mapSel.selectedMapId,
       side: mapSel.side,
     },
+    killEvents: [],
   };
 }
 

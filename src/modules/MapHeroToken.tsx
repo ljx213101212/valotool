@@ -15,6 +15,8 @@ const HANDLE_R = 5;
 /** 顶点距圆心距离（须 > BODY_R） */
 const VISION_LEN = 18;
 const VISION_ARC_STEPS = 28;
+/** 淘汰态仅显示 X 时的臂长 */
+const X_ARM = BODY_R * 0.72;
 
 /**
  * 圆外顶点 + 两条切线 + 圆上两切点间的弧，围成封闭区域（不进入圆内）。
@@ -93,9 +95,10 @@ export function MapHeroToken({
     }
   }, [placement.facing, dragFacing]);
 
+  const eliminated = !!placement.eliminated;
   const { accent, wedgeFill } = tacticalSideMapTokenColors(placement.side);
 
-  const showHandle = hovered || dragFacing;
+  const showHandle = (hovered || dragFacing) && !eliminated;
   const facing = dragFacing ? liveFacing : placement.facing;
 
   const lockMapTransform = () => {
@@ -160,6 +163,50 @@ export function MapHeroToken({
     },
     [onSelect]
   );
+
+  if (eliminated) {
+    return (
+      <Group
+        ref={(node) => {
+          groupRef.current = node as unknown as TokenGroupRef | null;
+        }}
+        x={placement.x}
+        y={placement.y}
+        onMouseLeave={(e) => {
+          setStageCursor(e.target, '');
+        }}
+      >
+        <Line
+          points={[-X_ARM, -X_ARM, X_ARM, X_ARM]}
+          stroke={accent}
+          strokeWidth={4}
+          lineCap="round"
+          lineJoin="round"
+          listening={false}
+          perfectDrawEnabled={false}
+        />
+        <Line
+          points={[X_ARM, -X_ARM, -X_ARM, X_ARM]}
+          stroke={accent}
+          strokeWidth={4}
+          lineCap="round"
+          lineJoin="round"
+          listening={false}
+          perfectDrawEnabled={false}
+        />
+        <Circle
+          radius={BODY_R + 6}
+          fill="rgba(0,0,0,0.001)"
+          listening
+          hitStrokeWidth={16}
+          perfectDrawEnabled={false}
+          onClick={onSelectClick}
+          onMouseEnter={(e) => setStageCursor(e.target, 'pointer')}
+          onMouseLeave={(e) => setStageCursor(e.target, '')}
+        />
+      </Group>
+    );
+  }
 
   return (
     <Group
