@@ -1,0 +1,51 @@
+.agent-map-token-chip {
+  position: relative;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid var(--chip-accent, #94a3b8);
+  background: rgba(15, 23, 42, 0.95);
+  overflow: hidden;
+}
+
+.agent-map-token-chip__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.agent-map-token-chip__fallback {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(30, 41, 59, 0.95);
+}
+
+.agent-map-token-chip--eliminated {
+  border-color: var(--chip-accent, #94a3b8);
+  background: transparent;
+}
+
+.agent-map-token-chip__x {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.agent-map-token-chip__x-bar {
+  position: absolute;
+  width: 2.5px;
+  height: 62%;
+  border-radius: 2px;
+  background: var(--chip-accent, #94a3b8);
+  transform: rotate(45deg);
+}
+
+.agent-map-token-chip__x-bar--cross {
+  transform: rotate(-45deg);
+}
