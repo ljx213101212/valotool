@@ -3,14 +3,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DOMParser } from 'xmldom';
 
-import type { MapArea, MapPolygon, Point, Wall } from '../src/types/map';
+import type { MapArea, MapPolygon, Point, Wall } from '../src/shared/types/map';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 
 /** 约定见 scripts/MAP_SVG_CONVENTIONS.md */
 const SVG_FILE_PATH = path.join(ROOT, 'src/assets/maps/split.svg');
-const OUTPUT_TS_PATH = path.join(ROOT, 'src', 'data', 'valorantMap.ts');
+const OUTPUT_TS_PATH = path.join(ROOT, 'src', 'shared', 'data', 'valorantMap.ts');
 
 function round(n: number): number {
   return Math.round(n * 100) / 100;
@@ -198,7 +198,7 @@ function main(): void {
   };
 
   const body = [
-    `import type { TacticalMap } from '@/types/map';`,
+    `import type { TacticalMap } from '@/shared/types/map';`,
     '',
     'export const valorantMap: TacticalMap = {',
     `  walls: ${JSON.stringify(walls, null, 2)},`,
