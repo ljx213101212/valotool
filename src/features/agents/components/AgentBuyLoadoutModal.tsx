@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { ConfigProvider, Modal, theme } from 'antd';
 import { TACTICAL_DRAWER_Z_INDEX } from '@/features/tactical-panels/components/tacticalDrawerStyles';
 import { tacticalModalStyles } from '@/features/tactical-panels/components/tacticalModalStyles';
-import { SIDEARMS } from '@/features/weapons/config';
+import { PRIMARY_WEAPONS, SIDEARMS, type PrimaryWeapon } from '@/features/weapons/config';
 import {
   getWeaponLabel,
   weaponEquippedAriaSuffix,
@@ -15,6 +15,31 @@ const TACTICAL_MODAL_Z = TACTICAL_DRAWER_Z_INDEX + 50;
 
 const MODAL_ROOT_CLASS = 'agent-buy-loadout-modal';
 const MODAL_WRAP_CLASS = 'agent-buy-loadout-modal-wrap';
+
+/** 与 `config.ts` 里 PRIMARY_WEAPONS 分段一致：列1=4、列2=4、列3=狙击3+机枪2 */
+const PRIMARY_COLUMNS: readonly (readonly PrimaryWeapon[])[] = [
+  PRIMARY_WEAPONS.slice(0, 4),
+  PRIMARY_WEAPONS.slice(4, 8),
+  PRIMARY_WEAPONS.slice(8, 13),
+];
+
+function primaryWeaponGridStyle(
+  colIndex: number,
+  rowInCol: number,
+): CSSProperties {
+  const col = colIndex + 1;
+  if (colIndex <= 1) {
+    const rowStart = 1 + rowInCol * 3;
+    return { gridColumn: col, gridRow: `${rowStart} / span 3` };
+  }
+  // 第三列：前 3 格各 span 2；战神/奥丁各 span 3（与列 1、2 单格同高）
+  if (rowInCol < 3) {
+    const rowStart = 1 + rowInCol * 2;
+    return { gridColumn: col, gridRow: `${rowStart} / span 2` };
+  }
+  const rowStart = rowInCol === 3 ? 7 : 10;
+  return { gridColumn: col, gridRow: `${rowStart} / span 3` };
+}
 
 const modalTheme = {
   algorithm: theme.darkAlgorithm,
@@ -41,6 +66,7 @@ export function AgentBuyLoadoutModal({
   weaponLocale = 'zh',
 }: AgentBuyLoadoutModalProps) {
   const [equippedSidearmName, setEquippedSidearmName] = useState<string>('classic');
+  const [equippedPrimaryName, setEquippedPrimaryName] = useState<string>('phantom');
 
   return (
     <ConfigProvider theme={modalTheme}>
@@ -123,13 +149,61 @@ export function AgentBuyLoadoutModal({
                 role="group"
                 aria-label="长枪栏位"
               >
-                {Array.from({ length: 12 }, (_, i) => (
-                  <div
-                    key={`primary-${i}`}
-                    className="agent-buy-loadout__cell"
-                    aria-label={`长枪 ${i + 1}`}
-                  />
-                ))}
+                {PRIMARY_COLUMNS.map((col, colIndex) =>
+                  col.map((w, rowInCol) => {
+                    const equipped = equippedPrimaryName === w.name;
+                    const iconSrc = getWeaponDisplayIconUrl(w.displayIconMirror);
+                    const label = getWeaponLabel(weaponLocale, w.name);
+                    const pickClass = [
+                      'agent-buy-loadout__weapon-pick',
+                      equipped ? 'agent-buy-loadout__weapon-pick--equipped' : '',
+                      colIndex === 2 && rowInCol < 3
+                        ? 'agent-buy-loadout__weapon-pick--primary-compact'
+                        : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ');
+                    return (
+                      <button
+                        key={w.name}
+                        type="button"
+                        className={pickClass}
+                        style={primaryWeaponGridStyle(colIndex, rowInCol)}
+                        aria-pressed={equipped}
+                        aria-label={`${label}${weaponEquippedAriaSuffix(weaponLocale, equipped)}`}
+                        onClick={() => setEquippedPrimaryName(w.name)}
+                      >
+                        <div className="agent-buy-loadout__weapon-pick__icon-wrap">
+                          {iconSrc ? (
+                            <img
+                              className="agent-buy-loadout__weapon-pick__icon"
+                              src={iconSrc}
+                              alt=""
+                              draggable={false}
+                            />
+                          ) : null}
+                        </div>
+                        <div className="agent-buy-loadout__weapon-pick__meta">
+                          <div className="agent-buy-loadout__weapon-pick__price-row">
+                            {equipped ? (
+                              <span className="agent-buy-loadout__weapon-pick__owned">已拥有</span>
+                            ) : (
+                              <>
+                                <span className="agent-buy-loadout__weapon-pick__credits" aria-hidden>
+                                  ¤
+                                </span>
+                                <span className="agent-buy-loadout__weapon-pick__price-num">
+                                  {w.price}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                          <div className="agent-buy-loadout__weapon-pick__name">{label}</div>
+                        </div>
+                      </button>
+                    );
+                  }),
+                )}
               </div>
             </div>
 

@@ -23,19 +23,26 @@ const SIDEARMS = [
 
 /** 除 `sidearms/` 外各子目录下的长枪等（与仓库内 SVG 一一对应）。 */
 const PRIMARY_WEAPONS = [
-  weaponAsset('heavies', 'ares', 1600),
-  weaponAsset('heavies', 'odin', 3200),
+
+  // 第一列
+  weaponAsset('smgs', 'stinger', 950),
+  weaponAsset('smgs', 'spectre', 1600),
+  weaponAsset('shotguns', 'bucky', 850),
+  weaponAsset('shotguns', 'judge', 1850),
+
+  // 第二列
   weaponAsset('riffles', 'bulldog', 2050),
   weaponAsset('riffles', 'guardian', 2250),
   weaponAsset('riffles', 'phantom', 2900),
   weaponAsset('riffles', 'vandal', 2900),
-  weaponAsset('shotguns', 'bucky', 850),
-  weaponAsset('shotguns', 'judge', 1850),
-  weaponAsset('smgs', 'spectre', 1600),
-  weaponAsset('smgs', 'stinger', 950),
+
+  // 第三列：上三格狙击（总高=第一列前两格）；下两格机枪，单格高度与第一、二列相同
   weaponAsset('snipers', 'marshal', 950),
-  weaponAsset('snipers', 'operator', 4700),
   weaponAsset('snipers', 'outlaw', 2400),
+  weaponAsset('snipers', 'operator', 4700),
+  weaponAsset('heavies', 'ares', 1600),
+  weaponAsset('heavies', 'odin', 3200),
+ 
 ] as const;
 
 export type Sidearm = (typeof SIDEARMS)[number];

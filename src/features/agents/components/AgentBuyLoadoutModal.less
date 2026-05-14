@@ -263,11 +263,29 @@
     0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
+/* 3 列 × 12 行：列 1/2 每格 span 3；列 3 上三格各 span 2，下两格各 span 3（与列 1/2 单格同高） */
 .agent-buy-loadout__grid--primaries {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(3, minmax(44px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(12, minmax(0, 1fr));
   gap: 6px;
+}
+
+.agent-buy-loadout__weapon-pick--primary-compact {
+  .agent-buy-loadout__weapon-pick__icon {
+    max-height: 30px;
+  }
+
+  .agent-buy-loadout__weapon-pick__meta {
+    left: 4px;
+    bottom: 3px;
+  }
+
+  .agent-buy-loadout__weapon-pick__price-row,
+  .agent-buy-loadout__weapon-pick__owned,
+  .agent-buy-loadout__weapon-pick__name {
+    font-size: 7px;
+  }
 }
 
 .agent-buy-loadout__grid--armor {
