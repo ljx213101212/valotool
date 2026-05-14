@@ -1,10 +1,10 @@
 import './App.css';
-import { AppLayout } from './layout/AppLayout';
-import { DndAppProvider } from './components/DndAppProvider';
-import { LeftTacticalPanel } from './components/LeftTacticalPanel';
-import { RightInspectorPanel } from './components/RightInspectorPanel';
-import Map from './modules/Map';
-import Timeline from './modules/Timeline';
+import { AppLayout } from '@/features/shell/layout/AppLayout';
+import { DndAppProvider } from '@/features/shell/components/DndAppProvider';
+import { LeftTacticalPanel } from '@/features/tactical-panels/components/LeftTacticalPanel';
+import { RightInspectorPanel } from '@/features/tactical-panels/components/RightInspectorPanel';
+import Map from '@/features/map/components/Map';
+import Timeline from '@/features/timeline/components/Timeline';
 
 function App() {
 

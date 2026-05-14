@@ -21,4 +21,4 @@
 
 ## 数据流
 
-运行 `npm run map:gen` 会读取上述 SVG，生成 `src/data/valorantMap.ts` 中的 `TacticalMap`：`walls`、`walkableFloor`、`boxWalkable`、`areas`、`bounds`。
+运行 `npm run map:gen` 会读取上述 SVG，生成 `src/shared/data/valorantMap.ts` 中的 `TacticalMap`：`walls`、`walkableFloor`、`boxWalkable`、`areas`、`bounds`。
