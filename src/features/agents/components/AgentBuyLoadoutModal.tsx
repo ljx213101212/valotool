@@ -3,6 +3,11 @@ import { ConfigProvider, Modal, theme } from 'antd';
 import { TACTICAL_DRAWER_Z_INDEX } from '@/features/tactical-panels/components/tacticalDrawerStyles';
 import { tacticalModalStyles } from '@/features/tactical-panels/components/tacticalModalStyles';
 import { SIDEARMS } from '@/features/weapons/config';
+import {
+  getWeaponLabel,
+  weaponEquippedAriaSuffix,
+  type WeaponLocale,
+} from '@/features/weapons/localization';
 import { getWeaponDisplayIconUrl } from '@/features/weapons/weaponDisplayIconUrls';
 import './AgentBuyLoadoutModal.less';
 
@@ -26,9 +31,15 @@ const modalTheme = {
 export type AgentBuyLoadoutModalProps = {
   open: boolean;
   onClose: () => void;
+  /** 武器展示名语言；整 Modal 其它文案仍随产品语言单独做 i18n 时再接。 */
+  weaponLocale?: WeaponLocale;
 };
 
-export function AgentBuyLoadoutModal({ open, onClose }: AgentBuyLoadoutModalProps) {
+export function AgentBuyLoadoutModal({
+  open,
+  onClose,
+  weaponLocale = 'zh',
+}: AgentBuyLoadoutModalProps) {
   const [equippedSidearmName, setEquippedSidearmName] = useState<string>('classic');
 
   return (
@@ -58,6 +69,7 @@ export function AgentBuyLoadoutModal({ open, onClose }: AgentBuyLoadoutModalProp
                 {SIDEARMS.map((w) => {
                   const equipped = equippedSidearmName === w.name;
                   const iconSrc = getWeaponDisplayIconUrl(w.displayIconMirror);
+                  const label = getWeaponLabel(weaponLocale, w.name);
                   return (
                     <button
                       key={w.name}
@@ -68,7 +80,7 @@ export function AgentBuyLoadoutModal({ open, onClose }: AgentBuyLoadoutModalProp
                           : 'agent-buy-loadout__weapon-pick'
                       }
                       aria-pressed={equipped}
-                      aria-label={`${w.labelZh}${equipped ? '（已装备）' : ''}`}
+                      aria-label={`${label}${weaponEquippedAriaSuffix(weaponLocale, equipped)}`}
                       onClick={() => setEquippedSidearmName(w.name)}
                     >
                       <div className="agent-buy-loadout__weapon-pick__icon-wrap">
@@ -96,7 +108,7 @@ export function AgentBuyLoadoutModal({ open, onClose }: AgentBuyLoadoutModalProp
                             </>
                           )}
                         </div>
-                        <div className="agent-buy-loadout__weapon-pick__name">{w.labelZh}</div>
+                        <div className="agent-buy-loadout__weapon-pick__name">{label}</div>
                       </div>
                     </button>
                   );
