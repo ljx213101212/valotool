@@ -2,8 +2,15 @@ import { useState, type CSSProperties } from 'react';
 import { ConfigProvider, Modal, theme } from 'antd';
 import { TACTICAL_DRAWER_Z_INDEX } from '@/features/tactical-panels/components/tacticalDrawerStyles';
 import { tacticalModalStyles } from '@/features/tactical-panels/components/tacticalModalStyles';
-import { PRIMARY_WEAPONS, SIDEARMS, type PrimaryWeapon } from '@/features/weapons/config';
 import {
+  ARMOR,
+  PRIMARY_WEAPONS,
+  SIDEARMS,
+  type ArmorId,
+  type PrimaryWeapon,
+} from '@/features/weapons/config';
+import {
+  getArmorLabel,
   getWeaponLabel,
   weaponEquippedAriaSuffix,
   type WeaponLocale,
@@ -67,6 +74,7 @@ export function AgentBuyLoadoutModal({
 }: AgentBuyLoadoutModalProps) {
   const [equippedSidearmName, setEquippedSidearmName] = useState<string>('classic');
   const [equippedPrimaryName, setEquippedPrimaryName] = useState<string>('phantom');
+  const [equippedArmorName, setEquippedArmorName] = useState<ArmorId>('light');
 
   return (
     <ConfigProvider theme={modalTheme}>
@@ -214,13 +222,55 @@ export function AgentBuyLoadoutModal({
                 role="group"
                 aria-label="护甲栏位"
               >
-                {Array.from({ length: 3 }, (_, i) => (
-                  <div
-                    key={`armor-${i}`}
-                    className="agent-buy-loadout__cell"
-                    aria-label={`护甲 ${i + 1}`}
-                  />
-                ))}
+                {ARMOR.map((a) => {
+                  const equipped = equippedArmorName === a.name;
+                  const iconSrc =
+                    getWeaponDisplayIconUrl(a.displayIcon) ??
+                    getWeaponDisplayIconUrl(a.displayIconMirror);
+                  const label = getArmorLabel(weaponLocale, a.name);
+                  return (
+                    <button
+                      key={a.name}
+                      type="button"
+                      className={
+                        equipped
+                          ? 'agent-buy-loadout__weapon-pick agent-buy-loadout__weapon-pick--armor agent-buy-loadout__weapon-pick--equipped'
+                          : 'agent-buy-loadout__weapon-pick agent-buy-loadout__weapon-pick--armor'
+                      }
+                      aria-pressed={equipped}
+                      aria-label={`${label}${weaponEquippedAriaSuffix(weaponLocale, equipped)}`}
+                      onClick={() => setEquippedArmorName(a.name)}
+                    >
+                      <div className="agent-buy-loadout__weapon-pick__icon-wrap">
+                        {iconSrc ? (
+                          <img
+                            className="agent-buy-loadout__weapon-pick__icon agent-buy-loadout__weapon-pick__icon--armor"
+                            src={iconSrc}
+                            alt=""
+                            draggable={false}
+                          />
+                        ) : null}
+                      </div>
+                      <div className="agent-buy-loadout__weapon-pick__meta">
+                        <div className="agent-buy-loadout__weapon-pick__price-row">
+                          {equipped ? (
+                            <span className="agent-buy-loadout__weapon-pick__owned">已拥有</span>
+                          ) : (
+                            <>
+                              <span className="agent-buy-loadout__weapon-pick__credits" aria-hidden>
+                                ¤
+                              </span>
+                              <span className="agent-buy-loadout__weapon-pick__price-num">
+                                {a.price}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                        <div className="agent-buy-loadout__weapon-pick__name">{label}</div>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>

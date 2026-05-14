@@ -291,8 +291,15 @@
 .agent-buy-loadout__grid--armor {
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: repeat(3, minmax(48px, 1fr));
+  grid-template-rows: repeat(3, minmax(82px, 1fr));
   gap: 6px;
+}
+
+/* 护甲 PNG 为彩色 UI 图，不做短枪同款反色 */
+.agent-buy-loadout__weapon-pick--armor .agent-buy-loadout__weapon-pick__icon--armor {
+  filter: none;
+  opacity: 0.98;
+  max-height: 42px;
 }
 
 .agent-buy-loadout__bottom {

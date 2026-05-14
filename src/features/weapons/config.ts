@@ -45,11 +45,21 @@ const PRIMARY_WEAPONS = [
  
 ] as const;
 
+const ARMOR = [
+  weaponAsset('armor', 'light', 400),
+  weaponAsset('armor', 'regen', 650),
+  weaponAsset('armor', 'heavy', 1000),
+] as const;
+
 export type Sidearm = (typeof SIDEARMS)[number];
 export type PrimaryWeapon = (typeof PRIMARY_WEAPONS)[number];
+export type ArmorItem = (typeof ARMOR)[number];
 export type WeaponConfig = Sidearm | PrimaryWeapon;
 
-export { SIDEARMS, PRIMARY_WEAPONS };
+export { ARMOR, SIDEARMS, PRIMARY_WEAPONS };
+
+/** 护甲 id，与 `getArmorLabel`、资源 `armor/{id}.png` 一致。 */
+export type ArmorId = (typeof ARMOR)[number]['name'];
 
 export const ALL_WEAPONS = [...SIDEARMS, ...PRIMARY_WEAPONS] as const;
 export type AllWeapon = (typeof ALL_WEAPONS)[number];
