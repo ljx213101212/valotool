@@ -5,19 +5,26 @@ import TimelineRuler, { type TimelineConfig } from "../components/TimelineRuler"
 import { TIMELINE_TOTAL_SECONDS } from "../constants/timeline";
 import { useTimelinePlaybackStore } from "../store/timelinePlaybackStore";
 import { useTimelineKeyframeStore } from "../store/timelineKeyframeStore";
-import { applyTimelineKeyframeSnapshot } from "../utils/timelineKeyframeSnapshot";
-import { convertSecondsToPixels } from "../utils/convert";
+import { useTimelineInteractionBlocked } from "../store/uiOverlayStore";
+import { convertPixelsToSeconds, convertSecondsToPixels } from "../utils/convert";
 import { snapPointerToNearestKeyframe } from "../utils/timelineKeyframeSnap";
+
+const KEYFRAME_DRAG_THRESHOLD_PX = 4;
 
 const TimelineArea: React.FC = () => {
     const currentTime = useTimelinePlaybackStore((s) => s.currentTime);
     const seek = useTimelinePlaybackStore((s) => s.seek);
     const keyframes = useTimelineKeyframeStore((s) => s.keyframes);
+    const moveKeyframeTime = useTimelineKeyframeStore((s) => s.moveKeyframeTime);
+    const timelineBlocked = useTimelineInteractionBlocked();
 
     /** 拖动中的像素位置；非拖动时为 null，光标由 currentTime 推导 */
     const [dragX, setDragX] = useState<number | null>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [keyframeDragId, setKeyframeDragId] = useState<string | null>(null);
     const areaRef = useRef<HTMLDivElement>(null);
+    const keyframeDragMovedRef = useRef(false);
+    const keyframeDragStartClientXRef = useRef(0);
 
     const [config] = useState<TimelineConfig>({
         totalDuration: TIMELINE_TOTAL_SECONDS,
@@ -68,8 +75,40 @@ const TimelineArea: React.FC = () => {
         };
     }, [isDragging, applyPointerClientX]);
 
+    useEffect(() => {
+        if (!keyframeDragId) return;
+
+        const handleMove = (e: MouseEvent) => {
+            if (Math.abs(e.clientX - keyframeDragStartClientXRef.current) > KEYFRAME_DRAG_THRESHOLD_PX) {
+                keyframeDragMovedRef.current = true;
+            }
+            const el = areaRef.current;
+            if (!el) return;
+            const rect = el.getBoundingClientRect();
+            let x = e.clientX - rect.left + el.scrollLeft;
+            if (x < 0) x = 0;
+            if (x > contentWidth) x = contentWidth;
+            const seconds = Math.max(
+                0,
+                Math.min(config.totalDuration, convertPixelsToSeconds(x, config.pixelsPerSecond)),
+            );
+            moveKeyframeTime(keyframeDragId, seconds);
+        };
+
+        const handleUp = () => {
+            setKeyframeDragId(null);
+        };
+
+        document.addEventListener("mousemove", handleMove);
+        document.addEventListener("mouseup", handleUp);
+        return () => {
+            document.removeEventListener("mousemove", handleMove);
+            document.removeEventListener("mouseup", handleUp);
+        };
+    }, [keyframeDragId, contentWidth, config.totalDuration, config.pixelsPerSecond, moveKeyframeTime]);
 
     const handleMouseDown = (e: React.MouseEvent) => {
+        if (timelineBlocked) return;
         e.preventDefault();
         setIsDragging(true);
         applyPointerClientX(e.clientX);
@@ -82,9 +121,11 @@ const TimelineArea: React.FC = () => {
     const cursorX = isDragging && dragX !== null ? dragX : timePixels;
     const rulerMidY = config.height / 2;
 
-    return (<div className="timeline-area"
+    return (<div
+        className={`timeline-area${timelineBlocked ? " timeline-area--blocked" : ""}`}
         ref={areaRef}
         onMouseDown={handleMouseDown}
+        aria-disabled={timelineBlocked}
         >
 
 
@@ -92,20 +133,26 @@ const TimelineArea: React.FC = () => {
           <TimelineRuler config={config} />
           {keyframes.map((kf) => (
             <button
-              key={`${kf.time}`}
+              key={kf.id}
               type="button"
-              className="timeline-keyframe-marker"
+              className={`timeline-keyframe-marker${keyframeDragId === kf.id ? " timeline-keyframe-marker--dragging" : ""}`}
               style={{
                 left: `${kf.time * config.pixelsPerSecond}px`,
                 top: `${rulerMidY}px`,
               }}
-              aria-label={`关键帧 ${kf.time.toFixed(2)} 秒`}
-              title="跳转到此关键帧"
-              onMouseDown={(e) => e.stopPropagation()}
+              aria-label={`关键帧 ${kf.time.toFixed(1)} 秒，可拖动`}
+              title="拖动调整时间，点击跳转并恢复快照"
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                keyframeDragMovedRef.current = false;
+                keyframeDragStartClientXRef.current = e.clientX;
+                setKeyframeDragId(kf.id);
+              }}
               onClick={(e) => {
                 e.stopPropagation();
+                if (keyframeDragMovedRef.current) return;
                 seek(kf.time);
-                applyTimelineKeyframeSnapshot(kf.snapshot);
               }}
             />
           ))}

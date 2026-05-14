@@ -1,6 +1,7 @@
 import {
   CaretRightOutlined,
   DeleteOutlined,
+  EyeOutlined,
   PauseOutlined,
   PlusOutlined,
   StepBackwardOutlined,
@@ -8,6 +9,7 @@ import {
 } from '@ant-design/icons';
 import { useTimelinePlaybackStore } from '../store/timelinePlaybackStore';
 import {
+  useKeyframeAtPlayhead,
   useKeyframeSkipAvailability,
   usePlayheadAtKeyframe,
   useTimelineKeyframeStore,
@@ -24,7 +26,9 @@ export function PlayTimerControl() {
   const seekToNextKeyframe = useTimelineKeyframeStore((s) => s.seekToNextKeyframe);
   const addKeyframeAtCurrentTime = useTimelineKeyframeStore((s) => s.addKeyframeAtCurrentTime);
   const removeKeyframeAtCurrentTime = useTimelineKeyframeStore((s) => s.removeKeyframeAtCurrentTime);
+  const openKeyframeDetail = useTimelineKeyframeStore((s) => s.openKeyframeDetail);
   const atKeyframe = usePlayheadAtKeyframe(currentTime, maxTime);
+  const keyframeAtPlayhead = useKeyframeAtPlayhead(currentTime, maxTime);
   const { canPrev, canNext } = useKeyframeSkipAvailability(currentTime, maxTime);
 
   return (
@@ -60,15 +64,27 @@ export function PlayTimerControl() {
         <StepForwardOutlined />
       </button>
       {atKeyframe ? (
-        <button
-          type="button"
-          className="play-timer-control__icon-btn play-timer-control__icon-btn--delete-keyframe"
-          onClick={removeKeyframeAtCurrentTime}
-          aria-label="删除当前时间的关键帧"
-          title="删除当前时间的关键帧"
-        >
-          <DeleteOutlined />
-        </button>
+        <>
+          <button
+            type="button"
+            className="play-timer-control__icon-btn play-timer-control__icon-btn--delete-keyframe"
+            onClick={removeKeyframeAtCurrentTime}
+            aria-label="删除当前时间的关键帧"
+            title="删除当前时间的关键帧"
+          >
+            <DeleteOutlined />
+          </button>
+          <button
+            type="button"
+            className="play-timer-control__icon-btn play-timer-control__icon-btn--keyframe-detail"
+            onClick={() => keyframeAtPlayhead && openKeyframeDetail(keyframeAtPlayhead.id)}
+            disabled={!keyframeAtPlayhead}
+            aria-label="查看关键帧详情"
+            title="查看关键帧详情"
+          >
+            <EyeOutlined />
+          </button>
+        </>
       ) : (
         <button
           type="button"

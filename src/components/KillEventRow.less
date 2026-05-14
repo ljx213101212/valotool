@@ -1,0 +1,97 @@
+.kill-event-row {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.kill-event-row__btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 8px 10px;
+  text-align: left;
+  border: 1px solid rgba(51, 65, 85, 0.55);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.55);
+  color: inherit;
+  cursor: pointer;
+  transition:
+    border-color 0.12s ease,
+    background 0.12s ease;
+
+  &:hover {
+    border-color: rgba(56, 189, 248, 0.35);
+    background: rgba(30, 41, 59, 0.65);
+  }
+}
+
+.kill-event-row__static {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(51, 65, 85, 0.45);
+  background: rgba(15, 23, 42, 0.35);
+}
+
+.kill-event-row__idx {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: rgba(148, 163, 184, 0.95);
+  border: 1px solid rgba(51, 65, 85, 0.65);
+  background: rgba(15, 23, 42, 0.65);
+}
+
+.kill-event-row__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.kill-event-row__tokens {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+}
+
+.kill-event-row__icon {
+  font-size: 16px;
+  color: rgba(251, 191, 36, 0.92);
+  filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.18));
+}
+
+.kill-event-row__missing {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px dashed rgba(71, 85, 105, 0.85);
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(100, 116, 139, 0.95);
+}
+
+.kill-event-row__trailing {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(148, 163, 184, 0.9);
+  font-variant-numeric: tabular-nums;
+}

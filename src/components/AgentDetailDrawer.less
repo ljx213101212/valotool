@@ -119,3 +119,184 @@
   color: rgba(71, 85, 105, 0.98);
   font-style: italic;
 }
+
+.agent-detail-drawer__buy-wrap {
+  padding: 0 12px 14px;
+}
+
+.agent-detail-drawer__buy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  background: linear-gradient(180deg, rgba(13, 148, 136, 0.22) 0%, rgba(15, 23, 42, 0.85) 100%);
+  color: rgba(204, 251, 241, 0.96);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition:
+    border-color 0.12s ease,
+    background 0.12s ease,
+    box-shadow 0.12s ease;
+
+  &:hover {
+    border-color: rgba(45, 212, 191, 0.55);
+    background: linear-gradient(180deg, rgba(20, 184, 166, 0.32) 0%, rgba(15, 23, 42, 0.92) 100%);
+    box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.12);
+  }
+}
+
+.agent-detail-drawer__kills {
+  margin-top: 14px;
+  padding: 0 12px 16px;
+}
+
+.agent-detail-drawer__kills-title {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.95);
+}
+
+.agent-detail-drawer__kills-hint {
+  margin: 0 0 14px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgba(100, 116, 139, 0.95);
+}
+
+.agent-detail-drawer__kills-muted {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(100, 116, 139, 0.92);
+}
+
+.agent-detail-drawer__kill-block {
+  margin-bottom: 14px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.agent-detail-drawer__kill-block-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(226, 232, 240, 0.92);
+}
+
+.agent-detail-drawer__kill-targets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.agent-detail-drawer__kill-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(51, 65, 85, 0.65);
+  background: rgba(15, 23, 42, 0.72);
+  color: rgba(226, 232, 240, 0.96);
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    border-color 0.12s ease,
+    background 0.12s ease;
+
+  &:hover {
+    border-color: rgba(56, 189, 248, 0.35);
+    background: rgba(30, 41, 59, 0.85);
+  }
+}
+
+.agent-detail-drawer__kill-side {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.agent-detail-drawer__kill-side--attack {
+  color: @tactical-attack-text-on-muted;
+  border: 1px solid @tactical-attack-border-mid;
+  background: rgba(127, 29, 29, 0.35);
+}
+
+.agent-detail-drawer__kill-side--defense {
+  color: @tactical-defense-title;
+  border: 1px solid @tactical-defense-border-mid;
+  background: rgba(30, 58, 138, 0.38);
+}
+
+.agent-detail-drawer__kill-feed-heading {
+  margin: 16px 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.agent-detail-drawer__kill-feed-list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.agent-detail-drawer__kill-feed-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.agent-detail-drawer__kill-feed-time {
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgba(148, 163, 184, 0.95);
+}
+
+.agent-detail-drawer__kill-feed-tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.agent-detail-drawer__kill-feed-tag--dealt {
+  color: rgba(187, 247, 208, 0.95);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  background: rgba(20, 50, 30, 0.45);
+}
+
+.agent-detail-drawer__kill-feed-tag--received {
+  color: rgba(254, 202, 202, 0.95);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  background: rgba(60, 25, 25, 0.45);
+}
+
+.agent-detail-drawer__kills-muted--spaced {
+  margin-top: 12px;
+}
