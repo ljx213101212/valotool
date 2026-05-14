@@ -1,5 +1,13 @@
-import { useState, type CSSProperties } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { ConfigProvider, Modal, theme } from 'antd';
+import {
+  agentCatalogIdToAbilitySlug,
+  BUY_ROW_ABILITY_ORDER,
+  getAgentBuyRowAbilities,
+  type AgentAbilitySlug,
+  type BuyRowAbilitySlot,
+} from '@/features/abilities/config';
+import { getAbilityDisplayIconUrl } from '@/features/abilities/abilityDisplayIconUrls';
 import { TACTICAL_DRAWER_Z_INDEX } from '@/features/tactical-panels/components/tacticalDrawerStyles';
 import { tacticalModalStyles } from '@/features/tactical-panels/components/tacticalModalStyles';
 import {
@@ -63,18 +71,99 @@ const modalTheme = {
 export type AgentBuyLoadoutModalProps = {
   open: boolean;
   onClose: () => void;
+  /** 与 `agentsCatalog` 的 `id` 一致（如 `kay-o`）；缺省时按 Sova 展示技能栏。 */
+  agentCatalogId?: string | null;
   /** 武器展示名语言；整 Modal 其它文案仍随产品语言单独做 i18n 时再接。 */
   weaponLocale?: WeaponLocale;
 };
 
+function emptyAbilityPurchases(): Record<BuyRowAbilitySlot, number> {
+  return { Grenade: 0, Ability1: 0, Ability2: 0 };
+}
+
+function AgentBuyLoadoutAbilities({ agentSlug }: { agentSlug: AgentAbilitySlug }) {
+  const buyRowAbilities = useMemo(() => getAgentBuyRowAbilities(agentSlug), [agentSlug]);
+  const [abilityPurchases, setAbilityPurchases] = useState(emptyAbilityPurchases);
+
+  return (
+    <div
+      className="agent-buy-loadout__grid agent-buy-loadout__grid--abilities"
+      role="group"
+      aria-label="技能栏位"
+    >
+      {buyRowAbilities.map((ability, index) => {
+        const slot = BUY_ROW_ABILITY_ORDER[index];
+        const purchased = abilityPurchases[slot];
+        const max = ability.maxAmount;
+        const full = purchased >= max;
+        const iconSrc = getAbilityDisplayIconUrl(ability.displayIcon);
+        return (
+          <button
+            key={slot}
+            type="button"
+            className={
+              full
+                ? 'agent-buy-loadout__ability-pick agent-buy-loadout__ability-pick--full'
+                : 'agent-buy-loadout__ability-pick'
+            }
+            aria-label={`${ability.displayName}，已购 ${purchased} / ${max}`}
+            onClick={() => {
+              setAbilityPurchases((prev) => {
+                const cur = prev[slot];
+                if (cur >= max) return prev;
+                return { ...prev, [slot]: cur + 1 };
+              });
+            }}
+          >
+            <div className="agent-buy-loadout__ability-pick__dots" aria-hidden>
+              {Array.from({ length: max }, (_, i) => (
+                <span
+                  key={i}
+                  className={
+                    i < purchased
+                      ? 'agent-buy-loadout__ability-dot agent-buy-loadout__ability-dot--filled'
+                      : 'agent-buy-loadout__ability-dot'
+                  }
+                />
+              ))}
+            </div>
+            <div className="agent-buy-loadout__ability-pick__icon-wrap">
+              {iconSrc ? (
+                <img
+                  className="agent-buy-loadout__ability-pick__icon"
+                  src={iconSrc}
+                  alt=""
+                  draggable={false}
+                />
+              ) : null}
+            </div>
+            <div className="agent-buy-loadout__ability-pick__meta">
+              {full ? (
+                <span className="agent-buy-loadout__ability-pick__full">已满</span>
+              ) : null}
+              <span className="agent-buy-loadout__ability-pick__name">{ability.displayName}</span>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function AgentBuyLoadoutModal({
   open,
   onClose,
+  agentCatalogId,
   weaponLocale = 'zh',
 }: AgentBuyLoadoutModalProps) {
   const [equippedSidearmName, setEquippedSidearmName] = useState<string>('classic');
   const [equippedPrimaryName, setEquippedPrimaryName] = useState<string>('phantom');
   const [equippedArmorName, setEquippedArmorName] = useState<ArmorId>('light');
+
+  const abilitySlug = useMemo(
+    () => agentCatalogIdToAbilitySlug(agentCatalogId ?? 'sova'),
+    [agentCatalogId],
+  );
 
   return (
     <ConfigProvider theme={modalTheme}>
@@ -277,19 +366,7 @@ export function AgentBuyLoadoutModal({
 
           <div className="agent-buy-loadout__bottom">
             <div className="agent-buy-loadout__abilities-head">技能</div>
-            <div
-              className="agent-buy-loadout__grid agent-buy-loadout__grid--abilities"
-              role="group"
-              aria-label="技能栏位"
-            >
-              {Array.from({ length: 3 }, (_, i) => (
-                <div
-                  key={`ability-${i}`}
-                  className="agent-buy-loadout__cell agent-buy-loadout__cell--ability"
-                  aria-label={`技能 ${i + 1}`}
-                />
-              ))}
-            </div>
+            <AgentBuyLoadoutAbilities key={abilitySlug} agentSlug={abilitySlug} />
           </div>
         </div>
       </Modal>
