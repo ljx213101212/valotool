@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { ConfigProvider, Modal, theme } from 'antd';
 import { TACTICAL_DRAWER_Z_INDEX } from '@/features/tactical-panels/components/tacticalDrawerStyles';
 import { tacticalModalStyles } from '@/features/tactical-panels/components/tacticalModalStyles';
+import { SIDEARMS } from '@/features/weapons/config';
+import { getWeaponDisplayIconUrl } from '@/features/weapons/weaponDisplayIconUrls';
 import './AgentBuyLoadoutModal.less';
 
 const TACTICAL_MODAL_Z = TACTICAL_DRAWER_Z_INDEX + 50;
@@ -26,6 +29,8 @@ export type AgentBuyLoadoutModalProps = {
 };
 
 export function AgentBuyLoadoutModal({ open, onClose }: AgentBuyLoadoutModalProps) {
+  const [equippedSidearmName, setEquippedSidearmName] = useState<string>('classic');
+
   return (
     <ConfigProvider theme={modalTheme}>
       <Modal
@@ -50,13 +55,52 @@ export function AgentBuyLoadoutModal({ open, onClose }: AgentBuyLoadoutModalProp
                 role="group"
                 aria-label="短枪栏位"
               >
-                {Array.from({ length: 6 }, (_, i) => (
-                  <div
-                    key={`sidearm-${i}`}
-                    className="agent-buy-loadout__cell"
-                    aria-label={`短枪 ${i + 1}`}
-                  />
-                ))}
+                {SIDEARMS.map((w) => {
+                  const equipped = equippedSidearmName === w.name;
+                  const iconSrc = getWeaponDisplayIconUrl(w.displayIconMirror);
+                  return (
+                    <button
+                      key={w.name}
+                      type="button"
+                      className={
+                        equipped
+                          ? 'agent-buy-loadout__weapon-pick agent-buy-loadout__weapon-pick--equipped'
+                          : 'agent-buy-loadout__weapon-pick'
+                      }
+                      aria-pressed={equipped}
+                      aria-label={`${w.labelZh}${equipped ? '（已装备）' : ''}`}
+                      onClick={() => setEquippedSidearmName(w.name)}
+                    >
+                      <div className="agent-buy-loadout__weapon-pick__icon-wrap">
+                        {iconSrc ? (
+                          <img
+                            className="agent-buy-loadout__weapon-pick__icon"
+                            src={iconSrc}
+                            alt=""
+                            draggable={false}
+                          />
+                        ) : null}
+                      </div>
+                      <div className="agent-buy-loadout__weapon-pick__meta">
+                        <div className="agent-buy-loadout__weapon-pick__price-row">
+                          {equipped ? (
+                            <span className="agent-buy-loadout__weapon-pick__owned">已拥有</span>
+                          ) : (
+                            <>
+                              <span className="agent-buy-loadout__weapon-pick__credits" aria-hidden>
+                                ¤
+                              </span>
+                              <span className="agent-buy-loadout__weapon-pick__price-num">
+                                {w.price}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                        <div className="agent-buy-loadout__weapon-pick__name">{w.labelZh}</div>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
