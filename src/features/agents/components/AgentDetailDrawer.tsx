@@ -134,7 +134,11 @@ export function AgentDetailDrawer() {
             </button>
           </div>
 
-          <AgentBuyLoadoutModal open={buyLoadoutOpen} onClose={() => setBuyLoadoutOpen(false)} />
+          <AgentBuyLoadoutModal
+            open={buyLoadoutOpen}
+            onClose={() => setBuyLoadoutOpen(false)}
+            agentCatalogId={placement.agentId}
+          />
 
           <section className="agent-detail-drawer__kills" aria-labelledby="agent-kills-label">
             <h2 id="agent-kills-label" className="agent-detail-drawer__kills-title">

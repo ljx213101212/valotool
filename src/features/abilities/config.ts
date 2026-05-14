@@ -9,11 +9,13 @@ function abilityAsset(
   agentDir: string,
   slot: AbilitySlotName,
   displayName: string,
+  maxAmount: number = 2,
 ) {
   return {
     name: slot,
     displayName,
     displayIcon: `${agentDir}/${slot}.png`,
+    maxAmount,
   } as const;
 }
 
@@ -203,3 +205,34 @@ export type AgentAbilityEntry = (typeof ABILITIES_BY_AGENT)[AgentAbilitySlug][nu
 
 /** 与 API `slot`、资源文件名一致。 */
 export type AbilitySlot = AgentAbilityEntry['name'];
+
+/** 购买栏从左到右：Grenade → Ability1 → Ability2（不含 Ultimate / Passive）。 */
+export const BUY_ROW_ABILITY_ORDER = ['Grenade', 'Ability1', 'Ability2'] as const;
+export type BuyRowAbilitySlot = (typeof BUY_ROW_ABILITY_ORDER)[number];
+
+/** `agentsCatalog` 的 `id` 与 `ABILITIES_BY_AGENT` 目录 slug 不完全一致时在此映射。 */
+const CATALOG_AGENT_ID_TO_ABILITY_SLUG: Partial<Record<string, AgentAbilitySlug>> = {
+  'kay-o': 'kayo',
+};
+
+export function agentCatalogIdToAbilitySlug(catalogAgentId: string): AgentAbilitySlug {
+  const slug = CATALOG_AGENT_ID_TO_ABILITY_SLUG[catalogAgentId] ?? catalogAgentId;
+  if (slug in ABILITIES_BY_AGENT) {
+    return slug as AgentAbilitySlug;
+  }
+  return 'sova';
+}
+
+export function getAgentBuyRowAbilities(
+  slug: AgentAbilitySlug,
+): readonly [AgentAbilityEntry, AgentAbilityEntry, AgentAbilityEntry] {
+  const rows = ABILITIES_BY_AGENT[slug];
+  const bySlot = new Map<AbilitySlot, AgentAbilityEntry>(rows.map((r) => [r.name, r]));
+  const g = bySlot.get('Grenade');
+  const a1 = bySlot.get('Ability1');
+  const a2 = bySlot.get('Ability2');
+  if (!g || !a1 || !a2) {
+    throw new Error(`abilities config: missing buy-row slot for agent ${slug}`);
+  }
+  return [g, a1, a2];
+}

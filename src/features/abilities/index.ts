@@ -1,2 +1,11 @@
-/** 技能（abilities）域占位；实现后在此目录下按 components / hooks 等组织代码。 */
-export {};
+export {
+  ABILITIES_BY_AGENT,
+  agentCatalogIdToAbilitySlug,
+  BUY_ROW_ABILITY_ORDER,
+  getAgentBuyRowAbilities,
+  type AgentAbilityEntry,
+  type AgentAbilitySlug,
+  type AbilitySlot,
+  type BuyRowAbilitySlot,
+} from './config';
+export { getAbilityDisplayIconUrl } from './abilityDisplayIconUrls';
