@@ -1,6 +1,7 @@
 import type { DrawerProps } from 'antd';
 import { Drawer } from 'antd';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AgentBuyLoadoutModal } from '@/components/AgentBuyLoadoutModal';
 import { KillEventRow } from '@/components/KillEventRow';
 import { getAgentLabel } from '@/data/agentsCatalog';
 import { useUiOverlayStore } from '@/store/uiOverlayStore';
@@ -25,6 +26,8 @@ export function AgentDetailDrawer() {
   const seek = useTimelinePlaybackStore((s) => s.seek);
   const pausePlayback = useTimelinePlaybackStore((s) => s.pausePlayback);
   const maxTime = useTimelinePlaybackStore((s) => s.maxTime);
+
+  const [buyLoadoutOpen, setBuyLoadoutOpen] = useState(false);
 
   const placement = mapPlacements.find((p) => p.id === selectedPlacementId);
   const open = !!placement;
@@ -62,6 +65,11 @@ export function AgentDetailDrawer() {
     return () => popDrawerLayer();
   }, [open, pushDrawerLayer, popDrawerLayer]);
 
+  const closeDrawer = useCallback(() => {
+    setBuyLoadoutOpen(false);
+    setSelectedPlacementId(null);
+  }, [setSelectedPlacementId]);
+
   return (
     <Drawer
       title={
@@ -82,7 +90,7 @@ export function AgentDetailDrawer() {
       }
       placement="right"
       open={open}
-      onClose={() => setSelectedPlacementId(null)}
+      onClose={closeDrawer}
       width={320}
       rootClassName="agent-detail-drawer"
       styles={drawerStyles}
@@ -115,6 +123,18 @@ export function AgentDetailDrawer() {
               <dd className="agent-detail-drawer__placeholder">—</dd>
             </div>
           </dl>
+
+          <div className="agent-detail-drawer__buy-wrap">
+            <button
+              type="button"
+              className="agent-detail-drawer__buy-btn"
+              onClick={() => setBuyLoadoutOpen(true)}
+            >
+              购买装备
+            </button>
+          </div>
+
+          <AgentBuyLoadoutModal open={buyLoadoutOpen} onClose={() => setBuyLoadoutOpen(false)} />
 
           <section className="agent-detail-drawer__kills" aria-labelledby="agent-kills-label">
             <h2 id="agent-kills-label" className="agent-detail-drawer__kills-title">
