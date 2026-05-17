@@ -15,6 +15,7 @@ import './DndAppProvider.less';
 
 export function DndAppProvider({ children }: { children: ReactNode }) {
   const [dragAgentId, setDragAgentId] = useState<string | null>(null);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },

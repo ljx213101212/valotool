@@ -1,17 +1,38 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
+import type { AbilitySlot } from '@/features/abilities/config';
+import type { AbilityPlacement, AbilityPopoverAnchor } from '@/shared/types/ability';
 import type { MapAgentPlacement, MatchupSide } from '@/shared/types/matchup';
+import { nextAbilitySpawnPoint } from '@/shared/utils/abilitySpawnPosition';
 import { reconcileMapPlacements } from '@/shared/utils/reconcileMapPlacements';
 
 export type { MatchupSide, MapAgentPlacement } from '@/shared/types/matchup';
+
+export type SpawnAbilityInput = {
+  ownerPlacementId: string;
+  agentId: string;
+  abilitySlot: AbilitySlot;
+  x: number;
+  y: number;
+};
 
 interface MatchupState {
   attackAgentIds: string[];
   defenseAgentIds: string[];
   mapPlacements: MapAgentPlacement[];
+  abilityPlacements: AbilityPlacement[];
+  /** ⌘/Ctrl+点击特工后的技能 Popover（仅内存） */
+  abilityPopoverPlacementId: string | null;
+  abilityPopoverAnchor: AbilityPopoverAnchor | null;
   /** 地图上当前选中的特工 placement（仅内存，不参与 persist） */
   selectedPlacementId: string | null;
   setSelectedPlacementId: (id: string | null) => void;
+  openAbilityPopover: (placementId: string, anchor: AbilityPopoverAnchor) => void;
+  closeAbilityPopover: () => void;
+  spawnAbilityPlacement: (input: SpawnAbilityInput) => void;
+  spawnAbilityAtMapCenter: (
+    input: Omit<SpawnAbilityInput, 'x' | 'y'>
+  ) => void;
   /** 从右侧拖入地图时加入的阵营（与左侧「场景」进攻/防守视角无关） */
   dragDropTargetSide: MatchupSide;
   setDragDropTargetSide: (side: MatchupSide) => void;
@@ -23,6 +44,7 @@ interface MatchupState {
       Pick<MapAgentPlacement, 'x' | 'y' | 'facing' | 'eliminated' | 'eliminatedByPlacementId'>
     >
   ) => void;
+  patchAbilityPlacement: (id: string, patch: Pick<AbilityPlacement, 'x' | 'y'>) => void;
 }
 
 function pickSelectionAfterPlacements(
@@ -41,8 +63,57 @@ export const useMatchupStore = create<MatchupState>()(
       attackAgentIds: [],
       defenseAgentIds: [],
       mapPlacements: [],
+      abilityPlacements: [],
+      abilityPopoverPlacementId: null,
+      abilityPopoverAnchor: null,
       selectedPlacementId: null,
-      setSelectedPlacementId: (id) => set({ selectedPlacementId: id }),
+      setSelectedPlacementId: (id) =>
+        set({
+          selectedPlacementId: id,
+          abilityPopoverPlacementId: null,
+          abilityPopoverAnchor: null,
+        }),
+      openAbilityPopover: (placementId, anchor) =>
+        set({
+          abilityPopoverPlacementId: placementId,
+          abilityPopoverAnchor: anchor,
+        }),
+      closeAbilityPopover: () =>
+        set({
+          abilityPopoverPlacementId: null,
+          abilityPopoverAnchor: null,
+        }),
+      spawnAbilityPlacement: (input) =>
+        set((s) => ({
+          abilityPlacements: [
+            ...s.abilityPlacements,
+            {
+              id: crypto.randomUUID(),
+              ownerPlacementId: input.ownerPlacementId,
+              agentId: input.agentId,
+              abilitySlot: input.abilitySlot,
+              x: input.x,
+              y: input.y,
+            },
+          ],
+        })),
+      spawnAbilityAtMapCenter: (input) =>
+        set((s) => {
+          const { x, y } = nextAbilitySpawnPoint(s.abilityPlacements);
+          return {
+            abilityPlacements: [
+              ...s.abilityPlacements,
+              {
+                id: crypto.randomUUID(),
+                ownerPlacementId: input.ownerPlacementId,
+                agentId: input.agentId,
+                abilitySlot: input.abilitySlot,
+                x,
+                y,
+              },
+            ],
+          };
+        }),
       dragDropTargetSide: 'attack',
       setDragDropTargetSide: (side) => set({ dragDropTargetSide: side }),
 
@@ -94,6 +165,12 @@ export const useMatchupStore = create<MatchupState>()(
             p.id === id ? { ...p, ...patch } : p
           ),
         })),
+      patchAbilityPlacement: (id, patch) =>
+        set((s) => ({
+          abilityPlacements: s.abilityPlacements.map((p) =>
+            p.id === id ? { ...p, ...patch } : p
+          ),
+        })),
     }),
     {
       name: 'valorant-matchup',
@@ -102,13 +179,18 @@ export const useMatchupStore = create<MatchupState>()(
         defenseAgentIds: s.defenseAgentIds,
         dragDropTargetSide: s.dragDropTargetSide,
         mapPlacements: s.mapPlacements,
+        abilityPlacements: s.abilityPlacements,
       }),
       merge: (persisted, current) => {
         const p = persisted as
           | Partial<
               Pick<
                 MatchupState,
-                'attackAgentIds' | 'defenseAgentIds' | 'dragDropTargetSide' | 'mapPlacements'
+                | 'attackAgentIds'
+                | 'defenseAgentIds'
+                | 'dragDropTargetSide'
+                | 'mapPlacements'
+                | 'abilityPlacements'
               >
             >
           | undefined;
@@ -123,6 +205,7 @@ export const useMatchupStore = create<MatchupState>()(
           ? p.defenseAgentIds
           : current.defenseAgentIds;
         const rawPlacements = Array.isArray(p?.mapPlacements) ? p.mapPlacements : [];
+        const abilityPlacements = Array.isArray(p?.abilityPlacements) ? p.abilityPlacements : [];
         return {
           ...current,
           attackAgentIds,
@@ -133,6 +216,7 @@ export const useMatchupStore = create<MatchupState>()(
             defenseAgentIds,
             rawPlacements
           ),
+          abilityPlacements,
         };
       },
     }

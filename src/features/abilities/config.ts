@@ -210,6 +210,16 @@ export type AbilitySlot = AgentAbilityEntry['name'];
 export const BUY_ROW_ABILITY_ORDER = ['Grenade', 'Ability1', 'Ability2'] as const;
 export type BuyRowAbilitySlot = (typeof BUY_ROW_ABILITY_ORDER)[number];
 
+/** ⌘/Ctrl+点击特工后 Popover 内释放栏：C / Q / E / X，与游戏键位一致。 */
+export const DEPLOY_ABILITY_ROW = [
+  { keyLabel: 'C', slot: 'Grenade' as const, draggable: true },
+  { keyLabel: 'Q', slot: 'Ability1' as const, draggable: true },
+  { keyLabel: 'E', slot: 'Ability2' as const, draggable: true },
+  { keyLabel: 'X', slot: 'Ultimate' as const, draggable: false },
+] as const;
+
+export type DeployAbilityRowEntry = (typeof DEPLOY_ABILITY_ROW)[number];
+
 /** `agentsCatalog` 的 `id` 与 `ABILITIES_BY_AGENT` 目录 slug 不完全一致时在此映射。 */
 const CATALOG_AGENT_ID_TO_ABILITY_SLUG: Partial<Record<string, AgentAbilitySlug>> = {
   'kay-o': 'kayo',
