@@ -11,3 +11,5 @@ export {
   type DeployAbilityRowEntry,
 } from './config';
 export { getAbilityDisplayIconUrl } from './abilityDisplayIconUrls';
+export { getAbilityDisplayName } from './abilityDisplayName';
+export { AbilityDetailDrawer } from './components/AbilityDetailDrawer';

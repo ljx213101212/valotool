@@ -5,7 +5,9 @@ import { valorantMap } from '@/shared/data/valorantMap';
 import { MAP_DROP_ZONE_ID } from '@/shared/constants/dnd';
 import { useMapSelectionStore } from '@/shared/store/useMapSelectionStore';
 import { Layer, Line, Shape, Stage } from 'react-konva';
+import { AbilityDetailDrawer } from '@/features/abilities/components/AbilityDetailDrawer';
 import { AgentAbilityPopover } from '@/features/agents/components/AgentAbilityPopover';
+import { AbilityInstanceActionPopover } from '@/features/map/components/AbilityInstanceActionPopover';
 import { AgentDetailDrawer } from '@/features/agents/components/AgentDetailDrawer';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
 import { MapAbilityToken } from './MapAbilityToken';
@@ -18,27 +20,42 @@ const Map = () => {
   const abilityPlacements = useMatchupStore((s) => s.abilityPlacements);
   const selectedPlacementId = useMatchupStore((s) => s.selectedPlacementId);
   const setSelectedPlacementId = useMatchupStore((s) => s.setSelectedPlacementId);
+  const selectedAbilityPlacementId = useMatchupStore((s) => s.selectedAbilityPlacementId);
+  const setSelectedAbilityPlacementId = useMatchupStore((s) => s.setSelectedAbilityPlacementId);
   const abilityPopoverPlacementId = useMatchupStore((s) => s.abilityPopoverPlacementId);
   const abilityPopoverAnchor = useMatchupStore((s) => s.abilityPopoverAnchor);
   const openAbilityPopover = useMatchupStore((s) => s.openAbilityPopover);
   const closeAbilityPopover = useMatchupStore((s) => s.closeAbilityPopover);
+  const abilityInstancePopoverId = useMatchupStore((s) => s.abilityInstancePopoverId);
+  const abilityInstancePopoverAnchor = useMatchupStore((s) => s.abilityInstancePopoverAnchor);
+  const closeAbilityInstancePopover = useMatchupStore((s) => s.closeAbilityInstancePopover);
   const mapWidth = valorantMap.bounds.max.x - valorantMap.bounds.min.x + 100;
   const mapHeight = valorantMap.bounds.max.y - valorantMap.bounds.min.y + 100;
   const defense = side === 'defense';
   const stageWrapRef = useRef<HTMLDivElement>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
+  const agentAbilityPopoverRef = useRef<HTMLDivElement>(null);
+  const abilityInstancePopoverRef = useRef<HTMLDivElement>(null);
   const [mapTransformLocked, setMapTransformLocked] = useState(false);
 
   const { setNodeRef, isOver } = useDroppable({ id: MAP_DROP_ZONE_ID });
 
-  const popoverPlacement = abilityPopoverPlacementId
+  const agentPopoverPlacement = abilityPopoverPlacementId
     ? mapPlacements.find((p) => p.id === abilityPopoverPlacementId)
     : undefined;
+
+  const abilityInstancePopoverPlacement = abilityInstancePopoverId
+    ? abilityPlacements.find((p) => p.id === abilityInstancePopoverId)
+    : undefined;
+
+  const closeAllMapPopovers = useCallback(() => {
+    closeAbilityPopover();
+    closeAbilityInstancePopover();
+  }, [closeAbilityPopover, closeAbilityInstancePopover]);
 
   useEffect(() => {
     if (!abilityPopoverPlacementId) return;
     const onPointerDown = (e: PointerEvent) => {
-      const el = popoverRef.current;
+      const el = agentAbilityPopoverRef.current;
       if (el?.contains(e.target as Node)) return;
       closeAbilityPopover();
     };
@@ -47,13 +64,24 @@ const Map = () => {
   }, [abilityPopoverPlacementId, closeAbilityPopover]);
 
   useEffect(() => {
-    if (!abilityPopoverPlacementId) return;
+    if (!abilityInstancePopoverId) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const el = abilityInstancePopoverRef.current;
+      if (el?.contains(e.target as Node)) return;
+      closeAbilityInstancePopover();
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    return () => document.removeEventListener('pointerdown', onPointerDown, true);
+  }, [abilityInstancePopoverId, closeAbilityInstancePopover]);
+
+  useEffect(() => {
+    if (!abilityPopoverPlacementId && !abilityInstancePopoverId) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeAbilityPopover();
+      if (e.key === 'Escape') closeAllMapPopovers();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [abilityPopoverPlacementId, closeAbilityPopover]);
+  }, [abilityPopoverPlacementId, abilityInstancePopoverId, closeAllMapPopovers]);
 
   useEffect(() => {
     if (!abilityPopoverPlacementId) return;
@@ -63,9 +91,16 @@ const Map = () => {
     if (!stillThere) closeAbilityPopover();
   }, [abilityPopoverPlacementId, mapPlacements, closeAbilityPopover]);
 
+  useEffect(() => {
+    if (!abilityInstancePopoverId) return;
+    if (!abilityPlacements.some((p) => p.id === abilityInstancePopoverId)) {
+      closeAbilityInstancePopover();
+    }
+  }, [abilityInstancePopoverId, abilityPlacements, closeAbilityInstancePopover]);
+
   const handleMapTransform = useCallback(() => {
-    closeAbilityPopover();
-  }, [closeAbilityPopover]);
+    closeAllMapPopovers();
+  }, [closeAllMapPopovers]);
 
   useEffect(() => {
     if (!mapTransformLocked) return;
@@ -86,11 +121,21 @@ const Map = () => {
       className={`map-root${isOver ? ' map-root--drop-over' : ''}`}
     >
       <AgentDetailDrawer />
-      {popoverPlacement && abilityPopoverAnchor ? (
+      <AbilityDetailDrawer />
+      {agentPopoverPlacement && abilityPopoverAnchor ? (
         <AgentAbilityPopover
-          placement={popoverPlacement}
+          placement={agentPopoverPlacement}
           anchor={abilityPopoverAnchor}
-          popoverRef={popoverRef}
+          popoverRef={agentAbilityPopoverRef}
+        />
+      ) : null}
+      {abilityInstancePopoverPlacement &&
+      abilityInstancePopoverAnchor &&
+      abilityInstancePopoverPlacement.state === 'initial' ? (
+        <AbilityInstanceActionPopover
+          placement={abilityInstancePopoverPlacement}
+          anchor={abilityInstancePopoverAnchor}
+          popoverRef={abilityInstancePopoverRef}
         />
       ) : null}
       <TransformWrapper
@@ -185,6 +230,11 @@ const Map = () => {
                     key={ab.id}
                     placement={ab}
                     setMapTransformLocked={setMapTransformLocked}
+                    isSelected={selectedAbilityPlacementId === ab.id}
+                    onSelect={() => {
+                      closeAllMapPopovers();
+                      setSelectedAbilityPlacementId(ab.id);
+                    }}
                   />
                 ))}
               </Layer>
@@ -197,7 +247,7 @@ const Map = () => {
                     setMapTransformLocked={setMapTransformLocked}
                     isSelected={selectedPlacementId === p.id}
                     onSelect={() => {
-                      closeAbilityPopover();
+                      closeAllMapPopovers();
                       setSelectedPlacementId(p.id);
                     }}
                     onAbilityPopoverRequest={(anchor) => {

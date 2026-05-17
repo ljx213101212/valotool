@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { Circle, Group, Image } from 'react-konva';
 import { agentCatalogIdToAbilitySlug, ABILITIES_BY_AGENT } from '@/features/abilities';
@@ -19,20 +19,27 @@ function abilityIconPath(placement: AbilityPlacement): string | undefined {
 export function MapAbilityToken({
   placement,
   setMapTransformLocked,
+  isSelected,
+  onSelect,
 }: {
   placement: AbilityPlacement;
   setMapTransformLocked?: (locked: boolean) => void;
+  isSelected?: boolean;
+  onSelect?: () => void;
 }) {
   const owner = useMatchupStore((s) =>
     s.mapPlacements.find((p) => p.id === placement.ownerPlacementId)
   );
   const patchAbilityPlacement = useMatchupStore((s) => s.patchAbilityPlacement);
+  const openAbilityInstancePopover = useMatchupStore((s) => s.openAbilityInstancePopover);
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [dragBody, setDragBody] = useState(false);
   const [bodyDraft, setBodyDraft] = useState<{ x: number; y: number } | null>(null);
+  const bodyDragMovedRef = useRef(false);
   const iconPath = abilityIconPath(placement);
   const side = owner?.side ?? 'attack';
   const { accent } = tacticalSideMapTokenColors(side);
+  const isInitial = placement.state === 'initial';
 
   useEffect(() => {
     if (!iconPath) {
@@ -70,6 +77,23 @@ export function MapAbilityToken({
     if (el) el.style.cursor = cursor;
   };
 
+  const onTokenClick = useCallback(
+    (e: { cancelBubble: boolean; evt: PointerEvent | MouseEvent | TouchEvent }) => {
+      if (bodyDragMovedRef.current) return;
+      e.cancelBubble = true;
+      const pe = e.evt;
+      const mod = 'metaKey' in pe ? pe.metaKey || pe.ctrlKey : false;
+      if (mod && isInitial) {
+        const clientX = 'clientX' in pe ? pe.clientX : 0;
+        const clientY = 'clientY' in pe ? pe.clientY : 0;
+        openAbilityInstancePopover(placement.id, { clientX, clientY });
+        return;
+      }
+      onSelect?.();
+    },
+    [isInitial, onSelect, openAbilityInstancePopover, placement.id]
+  );
+
   const gx = dragBody && bodyDraft ? bodyDraft.x : placement.x;
   const gy = dragBody && bodyDraft ? bodyDraft.y : placement.y;
 
@@ -81,11 +105,13 @@ export function MapAbilityToken({
       onDragStart={(e) => {
         lockMapTransform();
         e.evt.stopPropagation();
+        bodyDragMovedRef.current = false;
         setDragBody(true);
         setBodyDraft({ x: placement.x, y: placement.y });
       }}
       onDragMove={(e) => {
         e.evt.stopPropagation();
+        bodyDragMovedRef.current = true;
         setBodyDraft({ x: e.target.x(), y: e.target.y() });
       }}
       onDragEnd={(e) => {
@@ -93,10 +119,31 @@ export function MapAbilityToken({
         patchAbilityPlacement(placement.id, { x: e.target.x(), y: e.target.y() });
         setDragBody(false);
         setBodyDraft(null);
+        window.setTimeout(() => {
+          bodyDragMovedRef.current = false;
+        }, 0);
       }}
       onMouseDown={onTokenPointerDown}
       onTouchStart={onTokenPointerDown}
     >
+      {isSelected ? (
+        <Circle
+          radius={MARKER_R + 4}
+          stroke="#ffffff"
+          strokeWidth={2}
+          listening={false}
+        />
+      ) : null}
+      {isInitial ? (
+        <Circle
+          radius={MARKER_R + 3}
+          stroke={accent}
+          strokeWidth={1.5}
+          dash={[4, 3]}
+          opacity={0.75}
+          listening={false}
+        />
+      ) : null}
       <Circle
         radius={MARKER_R}
         fill="rgba(15, 23, 42, 0.88)"
@@ -119,7 +166,8 @@ export function MapAbilityToken({
         fill="rgba(0,0,0,0.01)"
         listening
         hitStrokeWidth={12}
-        onMouseEnter={(e) => setStageCursor(e.target, 'grab')}
+        onClick={onTokenClick}
+        onMouseEnter={(e) => setStageCursor(e.target, 'pointer')}
         onMouseLeave={(e) => setStageCursor(e.target, '')}
       />
     </Group>
