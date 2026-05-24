@@ -53,11 +53,14 @@ export function MapHeroToken({
   setMapTransformLocked,
   isSelected,
   onSelect,
+  onAbilityPopoverRequest,
 }: {
   placement: MapAgentPlacement;
   setMapTransformLocked?: (locked: boolean) => void;
   isSelected?: boolean;
   onSelect?: () => void;
+  /** ⌘/Ctrl+点击且未淘汰时打开技能 Popover */
+  onAbilityPopoverRequest?: (anchor: { clientX: number; clientY: number }) => void;
 }) {
   const patchMapPlacement = useMatchupStore((s) => s.patchMapPlacement);
   const [img, setImg] = useState<HTMLImageElement | null>(null);
@@ -156,12 +159,21 @@ export function MapHeroToken({
   };
 
   const onSelectClick = useCallback(
-    (e: { cancelBubble: boolean }) => {
+    (e: { cancelBubble: boolean; evt: PointerEvent | MouseEvent | TouchEvent }) => {
       if (bodyDragMovedRef.current) return;
       e.cancelBubble = true;
+      const pe = e.evt;
+      const mod =
+        'metaKey' in pe ? pe.metaKey || pe.ctrlKey : false;
+      if (mod && !eliminated && onAbilityPopoverRequest) {
+        const clientX = 'clientX' in pe ? pe.clientX : 0;
+        const clientY = 'clientY' in pe ? pe.clientY : 0;
+        onAbilityPopoverRequest({ clientX, clientY });
+        return;
+      }
       onSelect?.();
     },
-    [onSelect]
+    [eliminated, onAbilityPopoverRequest, onSelect]
   );
 
   if (eliminated) {

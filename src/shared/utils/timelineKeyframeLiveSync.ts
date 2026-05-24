@@ -22,6 +22,7 @@ function syncKeyframeSnapshotIfPlayheadOnMarker(): void {
 
   const snapshot = captureTimelineKeyframeSnapshot();
   snapshot.killEvents = [...(hit.snapshot.killEvents ?? [])];
+  snapshot.abilityDeployEvents = [...(hit.snapshot.abilityDeployEvents ?? [])];
   if (keyframeSnapshotsEqual(snapshot, hit.snapshot)) return;
 
   useTimelineKeyframeStore.setState((s) => ({

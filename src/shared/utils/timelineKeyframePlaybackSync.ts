@@ -1,4 +1,5 @@
 import type { TimelineKeyframeEntry } from '@/shared/types/timelineKeyframe';
+import { syncLiveAbilityPlacementsForPlayhead } from '@/shared/utils/timelineAbilityPlayheadSync';
 import { applyTimelineKeyframeSnapshot } from '@/shared/utils/timelineKeyframeSnapshot';
 import { timelineTimesEqualStep } from '@/shared/utils/timelineQuantize';
 
@@ -10,6 +11,7 @@ export function applyKeyframeSnapshotIfOnMarker(
 ): void {
   const hit = keyframes.find((k) => timelineTimesEqualStep(k.time, playheadTime, maxTime));
   if (hit) applyTimelineKeyframeSnapshot(hit.snapshot);
+  syncLiveAbilityPlacementsForPlayhead(playheadTime);
 }
 
 /**
@@ -25,6 +27,10 @@ export function applyPlaybackKeyframeCrossings(
   const crossed = keyframes
     .filter((k) => prevSec < k.time && curSec >= k.time - 1e-9)
     .sort((a, b) => a.time - b.time);
-  if (!crossed.length) return;
+  if (!crossed.length) {
+    syncLiveAbilityPlacementsForPlayhead(curSec);
+    return;
+  }
   applyTimelineKeyframeSnapshot(crossed[crossed.length - 1].snapshot);
+  syncLiveAbilityPlacementsForPlayhead(curSec);
 }

@@ -1,46 +1,254 @@
-import { useDroppable } from "@dnd-kit/core";
-import { useEffect, useState } from "react";
-import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import { useDroppable } from '@dnd-kit/core';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
+import type Konva from 'konva';
 import { valorantMap } from '@/shared/data/valorantMap';
-import { MAP_DROP_ZONE_ID } from "@/shared/constants/dnd";
-import { useMapSelectionStore } from "@/shared/store/useMapSelectionStore";
-import { Layer, Line, Shape, Stage } from "react-konva";
-import { AgentDetailDrawer } from "@/features/agents/components/AgentDetailDrawer";
-import { useMatchupStore } from "@/shared/store/useMatchupStore";
-import { MapHeroToken } from "./MapHeroToken";
-import "./Map.less";
+import { MAP_DROP_ZONE_ID } from '@/shared/constants/dnd';
+import { useMapSelectionStore } from '@/shared/store/useMapSelectionStore';
+import { Layer, Line, Shape, Stage } from 'react-konva';
+import {
+  getSphericalSmokeRadius,
+  isSphericalSmokeAbility,
+} from '@/features/abilities/config';
+import { AbilityDetailDrawer } from '@/features/abilities/components/AbilityDetailDrawer';
+import { AgentAbilityPopover } from '@/features/agents/components/AgentAbilityPopover';
+import { AbilityInstanceActionPopover } from '@/features/map/components/AbilityInstanceActionPopover';
+import { AgentDetailDrawer } from '@/features/agents/components/AgentDetailDrawer';
+import { useMatchupStore } from '@/shared/store/useMatchupStore';
+import { useTimelinePlaybackStore } from '@/shared/store/timelinePlaybackStore';
+import { isSphericalSmokeVisibleAtPlayhead } from '@/shared/utils/timelineAbilityMutations';
+import { clientPointToMapStage } from '@/shared/utils/mapStagePointer';
+import { MapAbilityToken } from './MapAbilityToken';
+import { MapHeroToken } from './MapHeroToken';
+import { MapSphericalSmoke } from './MapSphericalSmoke';
+import './Map.less';
 
 const Map = () => {
   const side = useMapSelectionStore((s) => s.side);
   const mapPlacements = useMatchupStore((s) => s.mapPlacements);
+  const abilityPlacements = useMatchupStore((s) => s.abilityPlacements);
   const selectedPlacementId = useMatchupStore((s) => s.selectedPlacementId);
   const setSelectedPlacementId = useMatchupStore((s) => s.setSelectedPlacementId);
+  const selectedAbilityPlacementId = useMatchupStore((s) => s.selectedAbilityPlacementId);
+  const setSelectedAbilityPlacementId = useMatchupStore((s) => s.setSelectedAbilityPlacementId);
+  const abilityPopoverPlacementId = useMatchupStore((s) => s.abilityPopoverPlacementId);
+  const abilityPopoverAnchor = useMatchupStore((s) => s.abilityPopoverAnchor);
+  const openAbilityPopover = useMatchupStore((s) => s.openAbilityPopover);
+  const closeAbilityPopover = useMatchupStore((s) => s.closeAbilityPopover);
+  const abilityInstancePopoverId = useMatchupStore((s) => s.abilityInstancePopoverId);
+  const abilityInstancePopoverAnchor = useMatchupStore((s) => s.abilityInstancePopoverAnchor);
+  const openAbilityInstancePopover = useMatchupStore((s) => s.openAbilityInstancePopover);
+  const closeAbilityInstancePopover = useMatchupStore((s) => s.closeAbilityInstancePopover);
+  const sphericalSmokePlacementId = useMatchupStore((s) => s.sphericalSmokePlacementId);
+  const sphericalSmokePreview = useMatchupStore((s) => s.sphericalSmokePreview);
+  const updateSphericalSmokePreview = useMatchupStore((s) => s.updateSphericalSmokePreview);
+  const cancelSphericalSmokePlacement = useMatchupStore((s) => s.cancelSphericalSmokePlacement);
+  const confirmSphericalSmokePlacement = useMatchupStore((s) => s.confirmSphericalSmokePlacement);
+  const timelineCurrentTime = useTimelinePlaybackStore((s) => s.currentTime);
   const mapWidth = valorantMap.bounds.max.x - valorantMap.bounds.min.x + 100;
   const mapHeight = valorantMap.bounds.max.y - valorantMap.bounds.min.y + 100;
-  const defense = side === "defense";
+  const defense = side === 'defense';
+  const stageWrapRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<Konva.Stage | null>(null);
+  const agentAbilityPopoverRef = useRef<HTMLDivElement>(null);
+  const abilityInstancePopoverRef = useRef<HTMLDivElement>(null);
   const [mapTransformLocked, setMapTransformLocked] = useState(false);
 
+  const placingSphericalSmoke = !!sphericalSmokePlacementId && !!sphericalSmokePreview;
+
+  const sphericalSmokePlacement = useMemo(
+    () =>
+      sphericalSmokePlacementId
+        ? abilityPlacements.find((p) => p.id === sphericalSmokePlacementId)
+        : undefined,
+    [abilityPlacements, sphericalSmokePlacementId]
+  );
+
+  const sphericalSmokeSide = useMemo(() => {
+    if (!sphericalSmokePlacement) return 'attack' as const;
+    const owner = mapPlacements.find((p) => p.id === sphericalSmokePlacement.ownerPlacementId);
+    return owner?.side ?? 'attack';
+  }, [mapPlacements, sphericalSmokePlacement]);
+
+  const sphericalSmokeRadius = useMemo(() => {
+    if (!sphericalSmokePlacement) return 55;
+    return getSphericalSmokeRadius(
+      sphericalSmokePlacement.agentId,
+      sphericalSmokePlacement.abilitySlot
+    );
+  }, [sphericalSmokePlacement]);
+
   const { setNodeRef, isOver } = useDroppable({ id: MAP_DROP_ZONE_ID });
+
+  const agentPopoverPlacement = abilityPopoverPlacementId
+    ? mapPlacements.find((p) => p.id === abilityPopoverPlacementId)
+    : undefined;
+
+  const abilityInstancePopoverPlacement = abilityInstancePopoverId
+    ? abilityPlacements.find((p) => p.id === abilityInstancePopoverId)
+    : undefined;
+
+  const closeAllMapPopovers = useCallback(() => {
+    closeAbilityPopover();
+    closeAbilityInstancePopover();
+  }, [closeAbilityPopover, closeAbilityInstancePopover]);
+
+  useEffect(() => {
+    if (!abilityPopoverPlacementId) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const el = agentAbilityPopoverRef.current;
+      if (el?.contains(e.target as Node)) return;
+      closeAbilityPopover();
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    return () => document.removeEventListener('pointerdown', onPointerDown, true);
+  }, [abilityPopoverPlacementId, closeAbilityPopover]);
+
+  useEffect(() => {
+    if (!abilityInstancePopoverId) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const el = abilityInstancePopoverRef.current;
+      if (el?.contains(e.target as Node)) return;
+      closeAbilityInstancePopover();
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    return () => document.removeEventListener('pointerdown', onPointerDown, true);
+  }, [abilityInstancePopoverId, closeAbilityInstancePopover]);
+
+  useEffect(() => {
+    if (!abilityPopoverPlacementId && !abilityInstancePopoverId && !placingSphericalSmoke) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (placingSphericalSmoke) {
+        cancelSphericalSmokePlacement();
+        return;
+      }
+      closeAllMapPopovers();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [
+    abilityPopoverPlacementId,
+    abilityInstancePopoverId,
+    placingSphericalSmoke,
+    cancelSphericalSmokePlacement,
+    closeAllMapPopovers,
+  ]);
+
+  const syncSphericalSmokePreviewFromClient = useCallback(
+    (clientX: number, clientY: number) => {
+      const stage = stageRef.current;
+      if (!stage) return;
+      const pt = clientPointToMapStage(stage, clientX, clientY);
+      if (!pt) return;
+      updateSphericalSmokePreview(pt.x, pt.y);
+    },
+    [updateSphericalSmokePreview]
+  );
+
+  useEffect(() => {
+    if (!placingSphericalSmoke) return;
+    setMapTransformLocked(true);
+    const onMove = (e: PointerEvent) => {
+      syncSphericalSmokePreviewFromClient(e.clientX, e.clientY);
+    };
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      const stage = stageRef.current;
+      if (!stage) return;
+      const container = stage.container();
+      if (!container.contains(e.target as Node)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const pt = clientPointToMapStage(stage, e.clientX, e.clientY);
+      if (!pt) return;
+      confirmSphericalSmokePlacement(pt.x, pt.y);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerdown', onDown, true);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerdown', onDown, true);
+      setMapTransformLocked(false);
+    };
+  }, [
+    placingSphericalSmoke,
+    syncSphericalSmokePreviewFromClient,
+    confirmSphericalSmokePlacement,
+  ]);
+
+  useEffect(() => {
+    if (!abilityPopoverPlacementId) return;
+    const stillThere = mapPlacements.some(
+      (p) => p.id === abilityPopoverPlacementId && !p.eliminated
+    );
+    if (!stillThere) closeAbilityPopover();
+  }, [abilityPopoverPlacementId, mapPlacements, closeAbilityPopover]);
+
+  useEffect(() => {
+    if (!abilityInstancePopoverId) return;
+    if (!abilityPlacements.some((p) => p.id === abilityInstancePopoverId)) {
+      closeAbilityInstancePopover();
+    }
+  }, [abilityInstancePopoverId, abilityPlacements, closeAbilityInstancePopover]);
+
+  useEffect(() => {
+    if (!sphericalSmokePlacementId) return;
+    if (!abilityPlacements.some((p) => p.id === sphericalSmokePlacementId)) {
+      cancelSphericalSmokePlacement();
+    }
+  }, [sphericalSmokePlacementId, abilityPlacements, cancelSphericalSmokePlacement]);
+
+  useEffect(() => {
+    if (!placingSphericalSmoke) return;
+    const stage = stageRef.current;
+    const el = stage?.container();
+    if (!el) return;
+    const prev = el.style.cursor;
+    el.style.cursor = 'crosshair';
+    return () => {
+      el.style.cursor = prev;
+    };
+  }, [placingSphericalSmoke]);
+
+  const handleMapTransform = useCallback(() => {
+    closeAllMapPopovers();
+  }, [closeAllMapPopovers]);
 
   useEffect(() => {
     if (!mapTransformLocked) return;
     const release = () => setMapTransformLocked(false);
-    window.addEventListener("pointerup", release);
-    window.addEventListener("pointercancel", release);
-    window.addEventListener("blur", release);
+    window.addEventListener('pointerup', release);
+    window.addEventListener('pointercancel', release);
+    window.addEventListener('blur', release);
     return () => {
-      window.removeEventListener("pointerup", release);
-      window.removeEventListener("pointercancel", release);
-      window.removeEventListener("blur", release);
+      window.removeEventListener('pointerup', release);
+      window.removeEventListener('pointercancel', release);
+      window.removeEventListener('blur', release);
     };
   }, [mapTransformLocked]);
 
-    return (
+  return (
     <div
       ref={setNodeRef}
-      className={`map-root${isOver ? " map-root--drop-over" : ""}`}
+      className={`map-root${isOver ? ' map-root--drop-over' : ''}`}
     >
       <AgentDetailDrawer />
+      <AbilityDetailDrawer />
+      {agentPopoverPlacement && abilityPopoverAnchor ? (
+        <AgentAbilityPopover
+          placement={agentPopoverPlacement}
+          anchor={abilityPopoverAnchor}
+          popoverRef={agentAbilityPopoverRef}
+        />
+      ) : null}
+      {abilityInstancePopoverPlacement && abilityInstancePopoverAnchor ? (
+        <AbilityInstanceActionPopover
+          placement={abilityInstancePopoverPlacement}
+          anchor={abilityInstancePopoverAnchor}
+          popoverRef={abilityInstancePopoverRef}
+        />
+      ) : null}
       <TransformWrapper
         disabled={mapTransformLocked}
         initialScale={1}
@@ -48,9 +256,9 @@ const Map = () => {
         maxScale={2}
         centerOnInit
         limitToBounds
-        /* smooth=true 时 wheel.step 会乘以 |deltaY|（鼠标滚轮单次常≈100），0.1*100≈10 会一次顶满 min/max */
         smooth={false}
         wheel={{ step: 0.1 }}
+        onTransform={handleMapTransform}
       >
         <TransformComponent
           wrapperStyle={{
@@ -61,100 +269,146 @@ const Map = () => {
           }}
         >
           <div
-            className={defense ? "map-stage-wrap map-stage-wrap--defense" : "map-stage-wrap"}
+            ref={stageWrapRef}
+            className={defense ? 'map-stage-wrap map-stage-wrap--defense' : 'map-stage-wrap'}
             style={{ width: mapWidth, height: mapHeight }}
           >
-          <Stage
-            width={mapWidth}
-            height={mapHeight}
-            // onClick={handleMapClick}
-            // onTap={handleMapClick}
-          >
-            {/* 层1：可走地面 + 箱顶 */}
-            <Layer>
-              {valorantMap.walkableFloor.map((poly, idx) => (
-                <Shape
-                  key={`floor-${idx}`}
-                  sceneFunc={(ctx) => {
-                    ctx.beginPath();
-                    ctx.moveTo(poly[0].x, poly[0].y);
-                    poly.forEach((p) => ctx.lineTo(p.x, p.y));
-                    ctx.closePath();
-                    ctx.fillStyle = 'rgba(13, 41, 59, 0.35)';
-                    ctx.fill();
-                  }}
-                />
-              ))}
-              {valorantMap.boxWalkable.map((poly, idx) => (
-                <Shape
-                  key={`box-${idx}`}
-                  sceneFunc={(ctx) => {
-                    ctx.beginPath();
-                    ctx.moveTo(poly[0].x, poly[0].y);
-                    poly.forEach((p) => ctx.lineTo(p.x, p.y));
-                    ctx.closePath();
-                    ctx.fillStyle = 'rgba(13, 41, 59, 0.45)';
-                    ctx.fill();
-                    ctx.strokeStyle = 'rgba(28, 225, 207, 0.6)';
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-                  }}
-                />
-              ))}
-            </Layer>
+            <Stage ref={stageRef} width={mapWidth} height={mapHeight}>
+              <Layer>
+                {valorantMap.walkableFloor.map((poly, idx) => (
+                  <Shape
+                    key={`floor-${idx}`}
+                    sceneFunc={(ctx) => {
+                      ctx.beginPath();
+                      ctx.moveTo(poly[0].x, poly[0].y);
+                      poly.forEach((p) => ctx.lineTo(p.x, p.y));
+                      ctx.closePath();
+                      ctx.fillStyle = 'rgba(13, 41, 59, 0.35)';
+                      ctx.fill();
+                    }}
+                  />
+                ))}
+                {valorantMap.boxWalkable.map((poly, idx) => (
+                  <Shape
+                    key={`box-${idx}`}
+                    sceneFunc={(ctx) => {
+                      ctx.beginPath();
+                      ctx.moveTo(poly[0].x, poly[0].y);
+                      poly.forEach((p) => ctx.lineTo(p.x, p.y));
+                      ctx.closePath();
+                      ctx.fillStyle = 'rgba(13, 41, 59, 0.45)';
+                      ctx.fill();
+                      ctx.strokeStyle = 'rgba(28, 225, 207, 0.6)';
+                      ctx.lineWidth = 1;
+                      ctx.stroke();
+                    }}
+                  />
+                ))}
+              </Layer>
 
-            {/* 层2：包点逻辑区 */}
-            <Layer>
-              {valorantMap.areas.map((area) => (
-                <Shape
-                  key={area.id}
-                  sceneFunc={(ctx) => {
-                    ctx.beginPath();
-                    ctx.moveTo(area.polygon[0].x, area.polygon[0].y);
-                    area.polygon.forEach((p) => ctx.lineTo(p.x, p.y));
-                    ctx.closePath();
-                    ctx.fillStyle = 'rgba(0, 255, 255, 0.1)';
-                    ctx.fill();
-                    ctx.strokeStyle = '#0ff';
-                    ctx.stroke();
-                  }}
-                />
-              ))}
-            </Layer>
+              <Layer>
+                {valorantMap.areas.map((area) => (
+                  <Shape
+                    key={area.id}
+                    sceneFunc={(ctx) => {
+                      ctx.beginPath();
+                      ctx.moveTo(area.polygon[0].x, area.polygon[0].y);
+                      area.polygon.forEach((p) => ctx.lineTo(p.x, p.y));
+                      ctx.closePath();
+                      ctx.fillStyle = 'rgba(0, 255, 255, 0.1)';
+                      ctx.fill();
+                      ctx.strokeStyle = '#0ff';
+                      ctx.stroke();
+                    }}
+                  />
+                ))}
+              </Layer>
 
-            {/* 层3：墙体（遮挡物） */}
-            <Layer>
-              {valorantMap.walls.map((wall) => (
-                <Line
-                  key={wall.id}
-                  points={[wall.line[0].x, wall.line[0].y, wall.line[1].x, wall.line[1].y]}
-                  stroke="#fff"
-                  strokeWidth={3}
-                />
-              ))}
-            </Layer>
+              <Layer>
+                {valorantMap.walls.map((wall) => (
+                  <Line
+                    key={wall.id}
+                    points={[wall.line[0].x, wall.line[0].y, wall.line[1].x, wall.line[1].y]}
+                    stroke="#fff"
+                    strokeWidth={3}
+                  />
+                ))}
+              </Layer>
 
-            {/* 层4：阵容特工（头像 + 视野尖角 + 朝向拖柄） */}
-            <Layer>
-              {mapPlacements.map((p) => (
-                <MapHeroToken
-                  key={p.id}
-                  placement={p}
-                  setMapTransformLocked={setMapTransformLocked}
-                  isSelected={selectedPlacementId === p.id}
-                  onSelect={() => setSelectedPlacementId(p.id)}
-                />
-              ))}
-            </Layer>
+              <Layer>
+                {abilityPlacements.map((ab) => {
+                  if (
+                    !isSphericalSmokeAbility(ab.agentId, ab.abilitySlot) ||
+                    !isSphericalSmokeVisibleAtPlayhead(ab, timelineCurrentTime)
+                  ) {
+                    return null;
+                  }
+                  const owner = mapPlacements.find((p) => p.id === ab.ownerPlacementId);
+                  const side = owner?.side ?? 'attack';
+                  const radius = getSphericalSmokeRadius(ab.agentId, ab.abilitySlot);
+                  return (
+                    <MapSphericalSmoke
+                      key={`smoke-${ab.id}`}
+                      x={ab.x}
+                      y={ab.y}
+                      radius={radius}
+                      side={side}
+                      onCmdClick={(anchor) => {
+                        closeAllMapPopovers();
+                        openAbilityInstancePopover(ab.id, anchor);
+                      }}
+                    />
+                  );
+                })}
+                {placingSphericalSmoke && sphericalSmokePreview ? (
+                  <MapSphericalSmoke
+                    x={sphericalSmokePreview.x}
+                    y={sphericalSmokePreview.y}
+                    radius={sphericalSmokeRadius}
+                    side={sphericalSmokeSide}
+                    preview
+                  />
+                ) : null}
+              </Layer>
 
-            {/* 层5：视野范围 */}
-            
-          </Stage>
+              <Layer>
+                {abilityPlacements.map((ab) => (
+                  <MapAbilityToken
+                    key={ab.id}
+                    placement={ab}
+                    setMapTransformLocked={setMapTransformLocked}
+                    isSelected={selectedAbilityPlacementId === ab.id}
+                    onSelect={() => {
+                      closeAllMapPopovers();
+                      setSelectedAbilityPlacementId(ab.id);
+                    }}
+                  />
+                ))}
+              </Layer>
+
+              <Layer>
+                {mapPlacements.map((p) => (
+                  <MapHeroToken
+                    key={p.id}
+                    placement={p}
+                    setMapTransformLocked={setMapTransformLocked}
+                    isSelected={selectedPlacementId === p.id}
+                    onSelect={() => {
+                      closeAllMapPopovers();
+                      setSelectedPlacementId(p.id);
+                    }}
+                    onAbilityPopoverRequest={(anchor) => {
+                      openAbilityPopover(p.id, anchor);
+                    }}
+                  />
+                ))}
+              </Layer>
+            </Stage>
           </div>
         </TransformComponent>
       </TransformWrapper>
     </div>
-  )
-}
+  );
+};
 
 export default Map;

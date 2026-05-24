@@ -6,6 +6,7 @@ import {
   RollbackOutlined,
 } from '@ant-design/icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AbilityDeployEventRow } from '@/features/keyframes/components/AbilityDeployEventRow';
 import { KillEventRow } from '@/features/tactical-panels/components/KillEventRow';
 import { getAgentLabel } from '@/shared/data/agentsCatalog';
 import { TACTICAL_DRAWER_Z_INDEX, tacticalDrawerStyles } from '@/features/tactical-panels/components/tacticalDrawerStyles';
@@ -29,6 +30,9 @@ export function KeyframeDetailDrawer() {
   const removeKeyframeById = useTimelineKeyframeStore((s) => s.removeKeyframeById);
   const appendKillToKeyframe = useTimelineKeyframeStore((s) => s.appendKillToKeyframe);
   const popKillFromKeyframe = useTimelineKeyframeStore((s) => s.popKillFromKeyframe);
+  const purgeAbilityPlacementFromTimeline = useTimelineKeyframeStore(
+    (s) => s.purgeAbilityPlacementFromTimeline
+  );
   const pushDrawerLayer = useUiOverlayStore((s) => s.pushDrawerLayer);
   const popDrawerLayer = useUiOverlayStore((s) => s.popDrawerLayer);
 
@@ -83,6 +87,8 @@ export function KeyframeDetailDrawer() {
   }, [snap, killerId]);
 
   const killCount = snap?.killEvents?.length ?? 0;
+  const abilityDeployEvents = snap?.abilityDeployEvents ?? [];
+  const abilityDeployCount = abilityDeployEvents.length;
 
   const openAddKillModal = useCallback(() => {
     setKillerId(null);
@@ -110,6 +116,14 @@ export function KeyframeDetailDrawer() {
     const ok = popKillFromKeyframe(entry.id);
     if (!ok) message.info('当前关键帧没有可撤销的击杀');
   }, [entry, popKillFromKeyframe]);
+
+  const onDeleteAbilityDeploy = useCallback(
+    (abilityPlacementId: string) => {
+      purgeAbilityPlacementFromTimeline(abilityPlacementId);
+      message.success('已删除该技能');
+    },
+    [purgeAbilityPlacementFromTimeline]
+  );
 
   const onDeleteKeyframe = useCallback(() => {
     setDeleteOpen(true);
@@ -254,6 +268,35 @@ export function KeyframeDetailDrawer() {
               </p>
             </Modal>
           </ConfigProvider>
+
+          <section className="keyframe-detail-drawer__section keyframe-detail-drawer__section--abilities">
+            <div className="keyframe-detail-drawer__kill-section-head">
+              <h2 className="keyframe-detail-drawer__kill-section-title">
+                技能施放
+                <span className="keyframe-detail-drawer__kill-count">{abilityDeployCount}</span>
+              </h2>
+            </div>
+            {abilityDeployCount === 0 ? (
+              <p className="keyframe-detail-drawer__empty">本关键帧无技能施放记录</p>
+            ) : (
+              <ul className="keyframe-detail-drawer__ability-list" role="list">
+                {abilityDeployEvents.map((ev, i) => {
+                  const owner = snap.matchup.mapPlacements.find(
+                    (p) => p.id === ev.ownerPlacementId
+                  );
+                  return (
+                    <AbilityDeployEventRow
+                      key={`${ev.abilityPlacementId}-${ev.phase}-${i}`}
+                      displayIndex={i + 1}
+                      event={ev}
+                      owner={owner ?? null}
+                      onDelete={() => onDeleteAbilityDeploy(ev.abilityPlacementId)}
+                    />
+                  );
+                })}
+              </ul>
+            )}
+          </section>
 
           <section className="keyframe-detail-drawer__section keyframe-detail-drawer__section--kills">
             <div className="keyframe-detail-drawer__kill-section-head">

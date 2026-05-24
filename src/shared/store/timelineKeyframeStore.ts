@@ -1,8 +1,17 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { TimelineKeyframeEntry } from '@/shared/types/timelineKeyframe';
+import type { TimelineAbilityDeployEvent } from '@/shared/types/timelineAbility';
+import type { TimelineKeyframeEntry, TimelineKeyframeSnapshot } from '@/shared/types/timelineKeyframe';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
-import { captureTimelineKeyframeSnapshot } from '@/shared/utils/timelineKeyframeSnapshot';
+import {
+  applyTimelineKeyframeSnapshot,
+  captureTimelineKeyframeSnapshot,
+} from '@/shared/utils/timelineKeyframeSnapshot';
+import {
+  removePlacementFromSnapshot,
+  snapshotWithAbilityDeployAppended,
+} from '@/shared/utils/timelineAbilityMutations';
+import { syncLiveAbilityPlacementsForPlayhead } from '@/shared/utils/timelineAbilityPlayheadSync';
 import {
   canRecordKillInPlacements,
   reviveVictimsFromKillEvents,
@@ -39,6 +48,10 @@ export type TimelineKeyframeState = {
   ) => boolean;
   /** 撤销该关键帧内最后一次击杀；成功返回 true */
   popKillFromKeyframe: (keyframeId: string) => boolean;
+  /** 在指定时间写入/合并关键帧并追加一条技能施放记录 */
+  recordAbilityDeployAtTime: (timeSeconds: number, event: TimelineAbilityDeployEvent) => void;
+  /** 从时间轴移除技能实例及其在所有关键帧中的施放记录 */
+  purgeAbilityPlacementFromTimeline: (abilityPlacementId: string) => void;
   /** 拖拽修改关键帧时间戳（100ms 网格，冲突则忽略） */
   moveKeyframeTime: (id: string, newTimeSeconds: number) => void;
   seekToPrevKeyframe: () => void;
@@ -49,6 +62,44 @@ export type TimelineKeyframeState = {
 
 function sortedKeyframes(entries: TimelineKeyframeEntry[]): TimelineKeyframeEntry[] {
   return [...entries].sort((a, b) => a.time - b.time);
+}
+
+function preserveKeyframeEventFields(
+  snapshot: TimelineKeyframeSnapshot,
+  existing: TimelineKeyframeEntry | undefined,
+): void {
+  if (!existing) return;
+  snapshot.killEvents = [...(existing.snapshot.killEvents ?? [])];
+  snapshot.abilityDeployEvents = [...(existing.snapshot.abilityDeployEvents ?? [])];
+  snapshot.matchup.abilityPlacements = structuredClone(
+    existing.snapshot.matchup.abilityPlacements ?? snapshot.matchup.abilityPlacements ?? []
+  );
+}
+
+function mergeKeyframeSnapshotAtTime(
+  keyframes: TimelineKeyframeEntry[],
+  t: number,
+  maxTime: number,
+  build: (existing: TimelineKeyframeEntry | undefined) => TimelineKeyframeSnapshot,
+): TimelineKeyframeEntry[] {
+  const existingAtT = keyframes.find((k) => timelineTimesEqualStep(k.time, t, maxTime));
+  const rest = keyframes.filter((k) => !timelineTimesEqualStep(k.time, t, maxTime));
+  const snapshot = build(existingAtT);
+  return sortedKeyframes([
+    ...rest,
+    {
+      id: existingAtT?.id ?? crypto.randomUUID(),
+      time: t,
+      snapshot,
+    },
+  ]);
+}
+
+function applySnapshotToLiveIfAtPlayhead(t: number, snapshot: TimelineKeyframeSnapshot): void {
+  const { currentTime, maxTime } = useTimelinePlaybackStore.getState();
+  if (!timelineTimesEqualStep(currentTime, t, maxTime)) return;
+  applyTimelineKeyframeSnapshot(snapshot);
+  syncLiveAbilityPlacementsForPlayhead(currentTime);
 }
 
 /** 播放头落在被删关键帧的同一刻度时，回滚该帧内击杀对当前地图落位的影响 */
@@ -75,24 +126,13 @@ export const useTimelineKeyframeStore = create<TimelineKeyframeState>()(
       addKeyframeAtCurrentTime: () => {
         const { currentTime, maxTime } = useTimelinePlaybackStore.getState();
         const t = quantizeTimelineSeconds(currentTime, maxTime);
-        set((s) => {
-          const existingAtT = s.keyframes.find((k) => timelineTimesEqualStep(k.time, t, maxTime));
-          const snapshot = captureTimelineKeyframeSnapshot();
-          if (existingAtT) {
-            snapshot.killEvents = [...(existingAtT.snapshot.killEvents ?? [])];
-          }
-          const rest = s.keyframes.filter((k) => !timelineTimesEqualStep(k.time, t, maxTime));
-          return {
-            keyframes: sortedKeyframes([
-              ...rest,
-              {
-                id: existingAtT?.id ?? crypto.randomUUID(),
-                time: t,
-                snapshot,
-              },
-            ]),
-          };
-        });
+        set((s) => ({
+          keyframes: mergeKeyframeSnapshotAtTime(s.keyframes, t, maxTime, (existingAtT) => {
+            const snapshot = captureTimelineKeyframeSnapshot();
+            preserveKeyframeEventFields(snapshot, existingAtT);
+            return snapshot;
+          }),
+        }));
       },
 
       recordKillAtPlayhead: (killerPlacementId: string, victimPlacementId: string) => {
@@ -103,24 +143,15 @@ export const useTimelineKeyframeStore = create<TimelineKeyframeState>()(
           return false;
         }
 
-        set((s) => {
-          const existingAtT = s.keyframes.find((k) => timelineTimesEqualStep(k.time, t, maxTime));
-          const prevKills = existingAtT?.snapshot.killEvents ?? [];
-          const base = captureTimelineKeyframeSnapshot();
-          base.killEvents = [...prevKills];
-          const snapshot = snapshotWithKillAppended(base, killerPlacementId, victimPlacementId);
-          const rest = s.keyframes.filter((k) => !timelineTimesEqualStep(k.time, t, maxTime));
-          return {
-            keyframes: sortedKeyframes([
-              ...rest,
-              {
-                id: existingAtT?.id ?? crypto.randomUUID(),
-                time: t,
-                snapshot,
-              },
-            ]),
-          };
-        });
+        set((s) => ({
+          keyframes: mergeKeyframeSnapshotAtTime(s.keyframes, t, maxTime, (existingAtT) => {
+            const base = captureTimelineKeyframeSnapshot();
+            preserveKeyframeEventFields(base, existingAtT);
+            const prevKills = existingAtT?.snapshot.killEvents ?? base.killEvents ?? [];
+            base.killEvents = [...prevKills];
+            return snapshotWithKillAppended(base, killerPlacementId, victimPlacementId);
+          }),
+        }));
 
         const snap = useTimelineKeyframeStore
           .getState()
@@ -128,6 +159,7 @@ export const useTimelineKeyframeStore = create<TimelineKeyframeState>()(
         if (snap) {
           useMatchupStore.setState({
             mapPlacements: snap.matchup.mapPlacements,
+            abilityPlacements: structuredClone(snap.matchup.abilityPlacements ?? []),
           });
         }
         return true;
@@ -171,9 +203,71 @@ export const useTimelineKeyframeStore = create<TimelineKeyframeState>()(
           ),
         }));
         if (timelineTimesEqualStep(currentTime, entry.time, maxTime)) {
-          useMatchupStore.setState({ mapPlacements: newSnap.matchup.mapPlacements });
+          useMatchupStore.setState({
+            mapPlacements: newSnap.matchup.mapPlacements,
+            abilityPlacements: structuredClone(newSnap.matchup.abilityPlacements ?? []),
+          });
         }
         return true;
+      },
+
+      recordAbilityDeployAtTime: (timeSeconds, event) => {
+        const maxTime = useTimelinePlaybackStore.getState().maxTime;
+        const t = quantizeTimelineSeconds(timeSeconds, maxTime);
+        let builtSnapshot: TimelineKeyframeSnapshot | null = null;
+        set((s) => {
+          const next = mergeKeyframeSnapshotAtTime(s.keyframes, t, maxTime, (existingAtT) => {
+            const base = captureTimelineKeyframeSnapshot();
+            preserveKeyframeEventFields(base, existingAtT);
+            const snap = snapshotWithAbilityDeployAppended(base, event, t);
+            builtSnapshot = snap;
+            return snap;
+          });
+          return { keyframes: next };
+        });
+        if (builtSnapshot) applySnapshotToLiveIfAtPlayhead(t, builtSnapshot);
+      },
+
+      purgeAbilityPlacementFromTimeline: (abilityPlacementId) => {
+        const maxTime = useTimelinePlaybackStore.getState().maxTime;
+        const { currentTime } = useTimelinePlaybackStore.getState();
+        let snapshotAtPlayhead: TimelineKeyframeSnapshot | null = null;
+        set((s) => {
+          const next = s.keyframes.map((k) => ({
+            ...k,
+            snapshot: removePlacementFromSnapshot(k.snapshot, abilityPlacementId),
+          }));
+          const hit = next.find((k) => timelineTimesEqualStep(k.time, currentTime, maxTime));
+          if (hit) snapshotAtPlayhead = hit.snapshot;
+          return { keyframes: next };
+        });
+        useMatchupStore.setState((s) => ({
+          abilityPlacements: s.abilityPlacements.filter((p) => p.id !== abilityPlacementId),
+          sphericalSmokePlacementId:
+            s.sphericalSmokePlacementId === abilityPlacementId
+              ? null
+              : s.sphericalSmokePlacementId,
+          sphericalSmokePreview:
+            s.sphericalSmokePlacementId === abilityPlacementId
+              ? null
+              : s.sphericalSmokePreview,
+          selectedAbilityPlacementId:
+            s.selectedAbilityPlacementId === abilityPlacementId
+              ? null
+              : s.selectedAbilityPlacementId,
+          abilityInstancePopoverId:
+            s.abilityInstancePopoverId === abilityPlacementId
+              ? null
+              : s.abilityInstancePopoverId,
+          abilityInstancePopoverAnchor:
+            s.abilityInstancePopoverId === abilityPlacementId
+              ? null
+              : s.abilityInstancePopoverAnchor,
+        }));
+        if (snapshotAtPlayhead) {
+          applyTimelineKeyframeSnapshot(snapshotAtPlayhead);
+          syncLiveAbilityPlacementsForPlayhead(currentTime);
+        }
       },
 
       popKillFromKeyframe: (keyframeId) => {
@@ -195,7 +289,10 @@ export const useTimelineKeyframeStore = create<TimelineKeyframeState>()(
           ),
         }));
         if (timelineTimesEqualStep(currentTime, entry.time, maxTime)) {
-          useMatchupStore.setState({ mapPlacements: newSnap.matchup.mapPlacements });
+          useMatchupStore.setState({
+            mapPlacements: newSnap.matchup.mapPlacements,
+            abilityPlacements: structuredClone(newSnap.matchup.abilityPlacements ?? []),
+          });
         }
         return true;
       },

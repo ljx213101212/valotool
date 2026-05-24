@@ -1,17 +1,63 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
+import type { AbilitySlot } from '@/features/abilities/config';
+import {
+  getSphericalSmokeDurationSec,
+  isSphericalSmokeAbility,
+} from '@/features/abilities/config';
+import { useTimelineKeyframeStore } from '@/shared/store/timelineKeyframeStore';
+import { useTimelinePlaybackStore } from '@/shared/store/timelinePlaybackStore';
+import { buildAbilityDeployEvent } from '@/shared/utils/timelineAbilityMutations';
+import { syncLiveAbilityPlacementsForPlayhead } from '@/shared/utils/timelineAbilityPlayheadSync';
+import { quantizeTimelineSeconds } from '@/shared/utils/timelineQuantize';
+import type { AbilityPlacement, AbilityPopoverAnchor } from '@/shared/types/ability';
 import type { MapAgentPlacement, MatchupSide } from '@/shared/types/matchup';
+import { nextAbilitySpawnPoint } from '@/shared/utils/abilitySpawnPosition';
+import { normalizeAbilityPlacements } from '@/shared/utils/normalizeAbilityPlacements';
 import { reconcileMapPlacements } from '@/shared/utils/reconcileMapPlacements';
 
 export type { MatchupSide, MapAgentPlacement } from '@/shared/types/matchup';
+
+export type SpawnAbilityInput = {
+  ownerPlacementId: string;
+  agentId: string;
+  abilitySlot: AbilitySlot;
+  x: number;
+  y: number;
+};
 
 interface MatchupState {
   attackAgentIds: string[];
   defenseAgentIds: string[];
   mapPlacements: MapAgentPlacement[];
+  abilityPlacements: AbilityPlacement[];
+  /** ⌘/Ctrl+点击特工后的部署技能 Popover（仅内存） */
+  abilityPopoverPlacementId: string | null;
+  abilityPopoverAnchor: AbilityPopoverAnchor | null;
+  /** ⌘/Ctrl+点击地图上技能实例后的操作 Popover（仅内存） */
+  abilityInstancePopoverId: string | null;
+  abilityInstancePopoverAnchor: AbilityPopoverAnchor | null;
+  /** 球型烟雾放置预览（仅内存） */
+  sphericalSmokePlacementId: string | null;
+  sphericalSmokePreview: { x: number; y: number } | null;
   /** 地图上当前选中的特工 placement（仅内存，不参与 persist） */
   selectedPlacementId: string | null;
   setSelectedPlacementId: (id: string | null) => void;
+  /** 地图上当前选中的技能实例（仅内存，不参与 persist） */
+  selectedAbilityPlacementId: string | null;
+  setSelectedAbilityPlacementId: (id: string | null) => void;
+  openAbilityPopover: (placementId: string, anchor: AbilityPopoverAnchor) => void;
+  closeAbilityPopover: () => void;
+  openAbilityInstancePopover: (abilityId: string, anchor: AbilityPopoverAnchor) => void;
+  closeAbilityInstancePopover: () => void;
+  beginSphericalSmokePlacement: (abilityPlacementId: string) => void;
+  updateSphericalSmokePreview: (x: number, y: number) => void;
+  cancelSphericalSmokePlacement: () => void;
+  confirmSphericalSmokePlacement: (x: number, y: number) => void;
+  spawnAbilityPlacement: (input: SpawnAbilityInput) => void;
+  spawnAbilityAtMapCenter: (
+    input: Omit<SpawnAbilityInput, 'x' | 'y'>
+  ) => void;
   /** 从右侧拖入地图时加入的阵营（与左侧「场景」进攻/防守视角无关） */
   dragDropTargetSide: MatchupSide;
   setDragDropTargetSide: (side: MatchupSide) => void;
@@ -23,6 +69,13 @@ interface MatchupState {
       Pick<MapAgentPlacement, 'x' | 'y' | 'facing' | 'eliminated' | 'eliminatedByPlacementId'>
     >
   ) => void;
+  patchAbilityPlacement: (
+    id: string,
+    patch: Partial<Pick<AbilityPlacement, 'x' | 'y' | 'state'>>
+  ) => void;
+  removeAbilityPlacement: (id: string) => void;
+  /** 移除技能并归还技能点给施放者（归还逻辑待 buy-loadout 模块实现） */
+  recallAbilityPlacement: (id: string) => void;
 }
 
 function pickSelectionAfterPlacements(
@@ -34,6 +87,15 @@ function pickSelectionAfterPlacements(
     : null;
 }
 
+function pickAbilitySelectionAfterPlacements(
+  prevSelected: string | null,
+  abilityPlacements: AbilityPlacement[]
+): string | null {
+  return prevSelected && abilityPlacements.some((p) => p.id === prevSelected)
+    ? prevSelected
+    : null;
+}
+
 export const useMatchupStore = create<MatchupState>()(
   devtools(
     persist(
@@ -41,8 +103,157 @@ export const useMatchupStore = create<MatchupState>()(
       attackAgentIds: [],
       defenseAgentIds: [],
       mapPlacements: [],
+      abilityPlacements: [],
+      abilityPopoverPlacementId: null,
+      abilityPopoverAnchor: null,
+      abilityInstancePopoverId: null,
+      abilityInstancePopoverAnchor: null,
+      sphericalSmokePlacementId: null,
+      sphericalSmokePreview: null,
       selectedPlacementId: null,
-      setSelectedPlacementId: (id) => set({ selectedPlacementId: id }),
+      selectedAbilityPlacementId: null,
+      setSelectedPlacementId: (id) =>
+        set({
+          selectedPlacementId: id,
+          selectedAbilityPlacementId: null,
+          abilityPopoverPlacementId: null,
+          abilityPopoverAnchor: null,
+          abilityInstancePopoverId: null,
+          abilityInstancePopoverAnchor: null,
+        }),
+      setSelectedAbilityPlacementId: (id) =>
+        set({
+          selectedAbilityPlacementId: id,
+          selectedPlacementId: null,
+          abilityPopoverPlacementId: null,
+          abilityPopoverAnchor: null,
+          abilityInstancePopoverId: null,
+          abilityInstancePopoverAnchor: null,
+        }),
+      openAbilityPopover: (placementId, anchor) =>
+        set({
+          abilityPopoverPlacementId: placementId,
+          abilityPopoverAnchor: anchor,
+          abilityInstancePopoverId: null,
+          abilityInstancePopoverAnchor: null,
+        }),
+      closeAbilityPopover: () =>
+        set({
+          abilityPopoverPlacementId: null,
+          abilityPopoverAnchor: null,
+        }),
+      openAbilityInstancePopover: (abilityId, anchor) =>
+        set({
+          abilityInstancePopoverId: abilityId,
+          abilityInstancePopoverAnchor: anchor,
+          abilityPopoverPlacementId: null,
+          abilityPopoverAnchor: null,
+        }),
+      closeAbilityInstancePopover: () =>
+        set({
+          abilityInstancePopoverId: null,
+          abilityInstancePopoverAnchor: null,
+        }),
+      beginSphericalSmokePlacement: (abilityPlacementId) =>
+        set((s) => {
+          const placement = s.abilityPlacements.find((p) => p.id === abilityPlacementId);
+          if (
+            !placement ||
+            placement.state !== 'initial' ||
+            !isSphericalSmokeAbility(placement.agentId, placement.abilitySlot)
+          ) {
+            return s;
+          }
+          return {
+            sphericalSmokePlacementId: abilityPlacementId,
+            sphericalSmokePreview: { x: placement.x, y: placement.y },
+            abilityInstancePopoverId: null,
+            abilityInstancePopoverAnchor: null,
+            abilityPopoverPlacementId: null,
+            abilityPopoverAnchor: null,
+          };
+        }),
+      updateSphericalSmokePreview: (x, y) =>
+        set((s) =>
+          s.sphericalSmokePlacementId
+            ? { sphericalSmokePreview: { x, y } }
+            : s
+        ),
+      cancelSphericalSmokePlacement: () =>
+        set({
+          sphericalSmokePlacementId: null,
+          sphericalSmokePreview: null,
+        }),
+      confirmSphericalSmokePlacement: (x, y) => {
+        const id = useMatchupStore.getState().sphericalSmokePlacementId;
+        if (!id) return;
+        const target = useMatchupStore.getState().abilityPlacements.find((p) => p.id === id);
+        if (!target || !isSphericalSmokeAbility(target.agentId, target.abilitySlot)) {
+          useMatchupStore.setState({
+            sphericalSmokePlacementId: null,
+            sphericalSmokePreview: null,
+          });
+          return;
+        }
+        const { currentTime, maxTime } = useTimelinePlaybackStore.getState();
+        const startT = quantizeTimelineSeconds(currentTime, maxTime);
+        const duration = getSphericalSmokeDurationSec(target.agentId, target.abilitySlot);
+        const endT = quantizeTimelineSeconds(Math.min(startT + duration, maxTime), maxTime);
+        const updated = {
+          ...target,
+          x,
+          y,
+          state: 'active' as const,
+          activeAt: startT,
+          expiresAt: endT,
+        };
+        useMatchupStore.setState((s) => ({
+          abilityPlacements: s.abilityPlacements.map((p) => (p.id === id ? updated : p)),
+          sphericalSmokePlacementId: null,
+          sphericalSmokePreview: null,
+        }));
+        const startEvent = buildAbilityDeployEvent(updated, 'start');
+        const endEvent = buildAbilityDeployEvent(updated, 'end');
+        useTimelineKeyframeStore.getState().recordAbilityDeployAtTime(startT, startEvent);
+        useTimelineKeyframeStore.getState().recordAbilityDeployAtTime(endT, endEvent);
+        syncLiveAbilityPlacementsForPlayhead(currentTime);
+      },
+      spawnAbilityPlacement: (input) =>
+        set((s) => ({
+          abilityPlacements: [
+            ...s.abilityPlacements,
+            {
+              id: crypto.randomUUID(),
+              ownerPlacementId: input.ownerPlacementId,
+              agentId: input.agentId,
+              abilitySlot: input.abilitySlot,
+              x: input.x,
+              y: input.y,
+              state: 'initial',
+              placedAt: Date.now(),
+            },
+          ],
+        })),
+      spawnAbilityAtMapCenter: (input) =>
+        set((s) => {
+          const { x, y } = nextAbilitySpawnPoint(s.abilityPlacements);
+          const placedAt = Date.now();
+          return {
+            abilityPlacements: [
+              ...s.abilityPlacements,
+              {
+                id: crypto.randomUUID(),
+                ownerPlacementId: input.ownerPlacementId,
+                agentId: input.agentId,
+                abilitySlot: input.abilitySlot,
+                x,
+                y,
+                state: 'initial' as const,
+                placedAt,
+              },
+            ],
+          };
+        }),
       dragDropTargetSide: 'attack',
       setDragDropTargetSide: (side) => set({ dragDropTargetSide: side }),
 
@@ -94,6 +305,21 @@ export const useMatchupStore = create<MatchupState>()(
             p.id === id ? { ...p, ...patch } : p
           ),
         })),
+      patchAbilityPlacement: (id, patch) =>
+        set((s) => ({
+          abilityPlacements: s.abilityPlacements.map((p) =>
+            p.id === id ? { ...p, ...patch } : p
+          ),
+        })),
+      removeAbilityPlacement: (id) => {
+        useTimelineKeyframeStore.getState().purgeAbilityPlacementFromTimeline(id);
+      },
+      recallAbilityPlacement: (id) => {
+        const target = useMatchupStore.getState().abilityPlacements.find((p) => p.id === id);
+        if (!target) return;
+        // TODO(buy-loadout): 将 target.abilitySlot 技能点退还给 target.ownerPlacementId
+        useTimelineKeyframeStore.getState().purgeAbilityPlacementFromTimeline(id);
+      },
     }),
     {
       name: 'valorant-matchup',
@@ -102,13 +328,18 @@ export const useMatchupStore = create<MatchupState>()(
         defenseAgentIds: s.defenseAgentIds,
         dragDropTargetSide: s.dragDropTargetSide,
         mapPlacements: s.mapPlacements,
+        abilityPlacements: s.abilityPlacements,
       }),
       merge: (persisted, current) => {
         const p = persisted as
           | Partial<
               Pick<
                 MatchupState,
-                'attackAgentIds' | 'defenseAgentIds' | 'dragDropTargetSide' | 'mapPlacements'
+                | 'attackAgentIds'
+                | 'defenseAgentIds'
+                | 'dragDropTargetSide'
+                | 'mapPlacements'
+                | 'abilityPlacements'
               >
             >
           | undefined;
@@ -123,6 +354,7 @@ export const useMatchupStore = create<MatchupState>()(
           ? p.defenseAgentIds
           : current.defenseAgentIds;
         const rawPlacements = Array.isArray(p?.mapPlacements) ? p.mapPlacements : [];
+        const abilityPlacements = normalizeAbilityPlacements(p?.abilityPlacements);
         return {
           ...current,
           attackAgentIds,
@@ -133,6 +365,7 @@ export const useMatchupStore = create<MatchupState>()(
             defenseAgentIds,
             rawPlacements
           ),
+          abilityPlacements,
         };
       },
     }
