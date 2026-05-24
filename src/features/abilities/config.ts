@@ -258,11 +258,21 @@ export type AbilityEffectMeta = {
   smokeDurationSec?: number;
 };
 
-const DEFAULT_SMOKE_RADIUS = 55;
-const DEFAULT_SMOKE_DURATION_SEC = 12;
+/** 未单独配置时的回退（与 Omen 暗影之罩标定一致） */
+const DEFAULT_SMOKE_RADIUS = 25;
+const DEFAULT_SMOKE_DURATION_SEC = 15;
+
+/** `specs/ability/smoke.md`：Omen Dark Cover 半径 4.10m 对应地图半径 25 */
+const SMOKE_OMEN_RADIUS_METERS = 4.1;
+const SMOKE_OMEN_MAP_RADIUS = 25;
+
+/** 按游戏内半径（米）相对 Omen 等比换算为地图坐标半径 */
+function smokeMapRadiusFromMeters(radiusMeters: number): number {
+  return Math.round((radiusMeters / SMOKE_OMEN_RADIUS_METERS) * SMOKE_OMEN_MAP_RADIUS);
+}
 
 /**
- * 技能效果元数据（按 agent slug + slot）。球型烟雾等在此迭代配置。
+ * 技能效果元数据（按 agent slug + slot）。球型烟雾半径/时长见 `specs/ability/smoke.md`。
  */
 export const ABILITY_EFFECT_META: Partial<
   Record<AgentAbilitySlug, Partial<Record<AbilitySlot, AbilityEffectMeta>>>
@@ -270,49 +280,49 @@ export const ABILITY_EFFECT_META: Partial<
   astra: {
     Ability2: {
       effectKinds: ['smoke-sphere'],
-      smokeRadius: DEFAULT_SMOKE_RADIUS,
-      smokeDurationSec: 15,
+      smokeRadius: smokeMapRadiusFromMeters(4.75),
+      smokeDurationSec: 14.25,
     },
   },
   brimstone: {
     Ability2: {
       effectKinds: ['smoke-sphere'],
-      smokeRadius: DEFAULT_SMOKE_RADIUS,
-      smokeDurationSec: 19,
+      smokeRadius: smokeMapRadiusFromMeters(4.15),
+      smokeDurationSec: 19.25,
     },
   },
   clove: {
     Ability2: {
       effectKinds: ['smoke-sphere'],
-      smokeRadius: DEFAULT_SMOKE_RADIUS,
-      smokeDurationSec: 14,
+      smokeRadius: smokeMapRadiusFromMeters(4.0),
+      smokeDurationSec: 12.25,
     },
   },
   harbor: {
     Ability2: {
       effectKinds: ['smoke-sphere'],
-      smokeRadius: DEFAULT_SMOKE_RADIUS,
-      smokeDurationSec: 14,
+      smokeRadius: smokeMapRadiusFromMeters(4.5),
+      smokeDurationSec: 15,
     },
   },
   jett: {
     Grenade: {
       effectKinds: ['smoke-sphere'],
-      smokeRadius: DEFAULT_SMOKE_RADIUS,
+      smokeRadius: smokeMapRadiusFromMeters(3.35),
       smokeDurationSec: 2.5,
     },
   },
   omen: {
     Ability2: {
       effectKinds: ['smoke-sphere'],
-      smokeRadius: DEFAULT_SMOKE_RADIUS,
+      smokeRadius: SMOKE_OMEN_MAP_RADIUS,
       smokeDurationSec: 15,
     },
   },
   viper: {
     Ability1: {
       effectKinds: ['smoke-sphere'],
-      smokeRadius: DEFAULT_SMOKE_RADIUS,
+      smokeRadius: smokeMapRadiusFromMeters(4.5),
       smokeDurationSec: 12,
     },
   },
