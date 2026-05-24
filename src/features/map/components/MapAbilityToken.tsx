@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { Circle, Group, Image } from 'react-konva';
-import { agentCatalogIdToAbilitySlug, ABILITIES_BY_AGENT } from '@/features/abilities';
+import {
+  agentCatalogIdToAbilitySlug,
+  ABILITIES_BY_AGENT,
+  isSphericalSmokeAbility,
+} from '@/features/abilities';
 import { getAbilityDisplayIconUrl } from '@/features/abilities/abilityDisplayIconUrls';
 import { tacticalSideMapTokenColors } from '@/shared/constants/tacticalSideColors';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
@@ -40,6 +44,9 @@ export function MapAbilityToken({
   const side = owner?.side ?? 'attack';
   const { accent } = tacticalSideMapTokenColors(side);
   const isInitial = placement.state === 'initial';
+  const hideToken =
+    isSphericalSmokeAbility(placement.agentId, placement.abilitySlot) &&
+    (placement.state === 'active' || placement.state === 'expired');
 
   useEffect(() => {
     if (!iconPath) {
@@ -96,6 +103,8 @@ export function MapAbilityToken({
 
   const gx = dragBody && bodyDraft ? bodyDraft.x : placement.x;
   const gy = dragBody && bodyDraft ? bodyDraft.y : placement.y;
+
+  if (hideToken) return null;
 
   return (
     <Group

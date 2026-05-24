@@ -1,3 +1,5 @@
+import type { AbilityPlacement } from '@/shared/types/ability';
+import type { TimelineAbilityDeployEvent } from '@/shared/types/timelineAbility';
 import type { MapAgentPlacement, MatchupSide } from '@/shared/types/matchup';
 import type { TacticalSide } from '@/shared/store/useMapSelectionStore';
 
@@ -14,6 +16,8 @@ export type TimelineKeyframeSnapshot = {
     defenseAgentIds: string[];
     dragDropTargetSide: MatchupSide;
     mapPlacements: MapAgentPlacement[];
+    /** 与 `useMatchupStore.abilityPlacements` 对齐；缺省按空数组（旧数据兼容） */
+    abilityPlacements: AbilityPlacement[];
   };
   mapSelection: {
     selectedMapId: string;
@@ -21,6 +25,8 @@ export type TimelineKeyframeSnapshot = {
   };
   /** 与 `matchup.mapPlacements` 中淘汰状态一致；缺省按空数组处理（旧数据兼容） */
   killEvents: TimelineKillEvent[];
+  /** 本刻度发生的技能施放/结束；缺省按空数组（旧数据兼容） */
+  abilityDeployEvents: TimelineAbilityDeployEvent[];
 };
 
 export type TimelineKeyframeEntry = {

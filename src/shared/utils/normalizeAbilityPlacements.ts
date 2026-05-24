@@ -1,6 +1,6 @@
 import type { AbilityPlacement, AbilityPlacementState } from '@/shared/types/ability';
 
-const VALID_STATES = new Set<AbilityPlacementState>(['initial']);
+const VALID_STATES = new Set<AbilityPlacementState>(['initial', 'active', 'expired']);
 
 export function normalizeAbilityPlacements(
   raw: unknown
@@ -26,6 +26,9 @@ export function normalizeAbilityPlacements(
         : 'initial';
     const placedAt =
       typeof p.placedAt === 'number' && Number.isFinite(p.placedAt) ? p.placedAt : Date.now();
+    const activeAt = typeof p.activeAt === 'number' && Number.isFinite(p.activeAt) ? p.activeAt : undefined;
+    const expiresAt =
+      typeof p.expiresAt === 'number' && Number.isFinite(p.expiresAt) ? p.expiresAt : undefined;
     out.push({
       id: p.id,
       ownerPlacementId: p.ownerPlacementId,
@@ -35,6 +38,8 @@ export function normalizeAbilityPlacements(
       y: p.y,
       state,
       placedAt,
+      ...(activeAt != null ? { activeAt } : {}),
+      ...(expiresAt != null ? { expiresAt } : {}),
     });
   }
   return out;

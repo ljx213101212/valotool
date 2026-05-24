@@ -246,3 +246,100 @@ export function getAgentBuyRowAbilities(
   }
   return [g, a1, a2];
 }
+
+/** 技能效果类型（可多选，后续补充位移/闪光等） */
+export type AbilityEffectKind = 'smoke-sphere';
+
+export type AbilityEffectMeta = {
+  effectKinds: readonly AbilityEffectKind[];
+  /** 球型烟雾半径（地图坐标，与特工 token 同系） */
+  smokeRadius?: number;
+  /** 球型烟雾存续时间（秒，与时间轴一致） */
+  smokeDurationSec?: number;
+};
+
+const DEFAULT_SMOKE_RADIUS = 55;
+const DEFAULT_SMOKE_DURATION_SEC = 12;
+
+/**
+ * 技能效果元数据（按 agent slug + slot）。球型烟雾等在此迭代配置。
+ */
+export const ABILITY_EFFECT_META: Partial<
+  Record<AgentAbilitySlug, Partial<Record<AbilitySlot, AbilityEffectMeta>>>
+> = {
+  astra: {
+    Ability2: {
+      effectKinds: ['smoke-sphere'],
+      smokeRadius: DEFAULT_SMOKE_RADIUS,
+      smokeDurationSec: 15,
+    },
+  },
+  brimstone: {
+    Ability2: {
+      effectKinds: ['smoke-sphere'],
+      smokeRadius: DEFAULT_SMOKE_RADIUS,
+      smokeDurationSec: 19,
+    },
+  },
+  clove: {
+    Ability2: {
+      effectKinds: ['smoke-sphere'],
+      smokeRadius: DEFAULT_SMOKE_RADIUS,
+      smokeDurationSec: 14,
+    },
+  },
+  harbor: {
+    Ability2: {
+      effectKinds: ['smoke-sphere'],
+      smokeRadius: DEFAULT_SMOKE_RADIUS,
+      smokeDurationSec: 14,
+    },
+  },
+  jett: {
+    Grenade: {
+      effectKinds: ['smoke-sphere'],
+      smokeRadius: DEFAULT_SMOKE_RADIUS,
+      smokeDurationSec: 2.5,
+    },
+  },
+  omen: {
+    Ability2: {
+      effectKinds: ['smoke-sphere'],
+      smokeRadius: DEFAULT_SMOKE_RADIUS,
+      smokeDurationSec: 15,
+    },
+  },
+  viper: {
+    Ability1: {
+      effectKinds: ['smoke-sphere'],
+      smokeRadius: DEFAULT_SMOKE_RADIUS,
+      smokeDurationSec: 12,
+    },
+  },
+};
+
+export function getAbilityEffectMeta(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): AbilityEffectMeta | undefined {
+  const slug = agentCatalogIdToAbilitySlug(agentCatalogId);
+  return ABILITY_EFFECT_META[slug]?.[abilitySlot];
+}
+
+export function isSphericalSmokeAbility(agentCatalogId: string, abilitySlot: AbilitySlot): boolean {
+  const meta = getAbilityEffectMeta(agentCatalogId, abilitySlot);
+  return meta?.effectKinds.includes('smoke-sphere') ?? false;
+}
+
+export function getSphericalSmokeRadius(agentCatalogId: string, abilitySlot: AbilitySlot): number {
+  return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.smokeRadius ?? DEFAULT_SMOKE_RADIUS;
+}
+
+export function getSphericalSmokeDurationSec(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): number {
+  return (
+    getAbilityEffectMeta(agentCatalogId, abilitySlot)?.smokeDurationSec ?? DEFAULT_SMOKE_DURATION_SEC
+  );
+}

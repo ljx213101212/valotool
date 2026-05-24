@@ -12,12 +12,14 @@ export function captureTimelineKeyframeSnapshot(): TimelineKeyframeSnapshot {
       defenseAgentIds: [...m.defenseAgentIds],
       dragDropTargetSide: m.dragDropTargetSide,
       mapPlacements: structuredClone(m.mapPlacements),
+      abilityPlacements: structuredClone(m.abilityPlacements),
     },
     mapSelection: {
       selectedMapId: mapSel.selectedMapId,
       side: mapSel.side,
     },
     killEvents: [],
+    abilityDeployEvents: [],
   };
 }
 
@@ -33,7 +35,9 @@ export function applyTimelineKeyframeSnapshot(snapshot: TimelineKeyframeSnapshot
     defenseAgentIds: [...matchup.defenseAgentIds],
     mapPlacements,
     dragDropTargetSide: matchup.dragDropTargetSide,
+    abilityPlacements: structuredClone(matchup.abilityPlacements ?? []),
     selectedPlacementId: null,
+    selectedAbilityPlacementId: null,
   });
   useMapSelectionStore.setState({
     selectedMapId: mapSelection.selectedMapId,

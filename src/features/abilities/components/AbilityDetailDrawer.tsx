@@ -3,6 +3,8 @@ import { Drawer } from 'antd';
 import { useCallback, useEffect } from 'react';
 import { AgentMapTokenChip } from '@/features/agents/components/AgentMapTokenChip';
 import { getAbilityDisplayName } from '@/features/abilities/abilityDisplayName';
+import { formatTimelineQuantized } from '@/shared/utils/timelineQuantize';
+import { useTimelinePlaybackStore } from '@/shared/store/timelinePlaybackStore';
 import { getAgentLabel } from '@/shared/data/agentsCatalog';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
 import { useUiOverlayStore } from '@/shared/store/uiOverlayStore';
@@ -29,6 +31,7 @@ export function AbilityDetailDrawer() {
   const setSelectedAbilityPlacementId = useMatchupStore((s) => s.setSelectedAbilityPlacementId);
   const abilityPlacements = useMatchupStore((s) => s.abilityPlacements);
   const mapPlacements = useMatchupStore((s) => s.mapPlacements);
+  const maxTime = useTimelinePlaybackStore((s) => s.maxTime);
   const pushDrawerLayer = useUiOverlayStore((s) => s.pushDrawerLayer);
   const popDrawerLayer = useUiOverlayStore((s) => s.popDrawerLayer);
 
@@ -111,8 +114,22 @@ export function AbilityDetailDrawer() {
           </div>
           <div className="ability-detail-drawer__row">
             <dt>技能施放时间</dt>
-            <dd>{formatPlacedAt(placement.placedAt)}</dd>
+            <dd>
+              {placement.activeAt != null
+                ? formatTimelineQuantized(placement.activeAt, maxTime)
+                : formatPlacedAt(placement.placedAt)}
+            </dd>
           </div>
+          {placement.activeAt != null && placement.expiresAt != null ? (
+            <div className="ability-detail-drawer__row">
+              <dt>烟雾存续</dt>
+              <dd>
+                {formatTimelineQuantized(placement.activeAt, maxTime)}
+                {' — '}
+                {formatTimelineQuantized(placement.expiresAt, maxTime)}
+              </dd>
+            </div>
+          ) : null}
           <div className="ability-detail-drawer__row">
             <dt>技能影响范围</dt>
             <dd className="ability-detail-drawer__placeholder">—</dd>
