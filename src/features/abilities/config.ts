@@ -248,14 +248,22 @@ export function getAgentBuyRowAbilities(
 }
 
 /** 技能效果类型（可多选，后续补充位移/闪光等） */
-export type AbilityEffectKind = 'smoke-sphere';
+export type AbilityEffectKind = 'smoke-sphere' | 'smoke-line-fixed-dual';
 
 export type AbilityEffectMeta = {
   effectKinds: readonly AbilityEffectKind[];
   /** 球型烟雾半径（地图坐标，与特工 token 同系） */
   smokeRadius?: number;
-  /** 球型烟雾存续时间（秒，与时间轴一致） */
+  /** 烟雾存续时间（秒，与时间轴一致） */
   smokeDurationSec?: number;
+  /** 固定双线烟：单条车道长度（地图坐标） */
+  smokeLineLength?: number;
+  /** 固定双线烟：两条车道中心线间距（地图坐标） */
+  smokeLineSpacing?: number;
+  /** 固定双线烟：描边宽度 */
+  smokeLineStrokeWidth?: number;
+  /** 固定双线烟：霓虹等自定义颜色（不随阵营变化） */
+  smokeLineColor?: string;
 };
 
 /** 未单独配置时的回退（与 Omen 暗影之罩标定一致） */
@@ -266,10 +274,17 @@ const DEFAULT_SMOKE_DURATION_SEC = 15;
 const SMOKE_OMEN_RADIUS_METERS = 4.1;
 const SMOKE_OMEN_MAP_RADIUS = 25;
 
-/** 按游戏内半径（米）相对 Omen 等比换算为地图坐标半径 */
-function smokeMapRadiusFromMeters(radiusMeters: number): number {
-  return Math.round((radiusMeters / SMOKE_OMEN_RADIUS_METERS) * SMOKE_OMEN_MAP_RADIUS);
+/** 按游戏内米制相对 Omen 4.10m↔25 等比换算为地图坐标 */
+export function smokeMapUnitsFromMeters(meters: number): number {
+  return Math.round((meters / SMOKE_OMEN_RADIUS_METERS) * SMOKE_OMEN_MAP_RADIUS);
 }
+
+function smokeMapRadiusFromMeters(radiusMeters: number): number {
+  return smokeMapUnitsFromMeters(radiusMeters);
+}
+
+/** 霓虹高速通道：头发蓝（`specs/ability/spec.md`） */
+export const NEON_FAST_LANE_SMOKE_COLOR = '#3ee8ff';
 
 /**
  * 技能效果元数据（按 agent slug + slot）。球型烟雾半径/时长见 `specs/ability/smoke.md`。
@@ -326,6 +341,18 @@ export const ABILITY_EFFECT_META: Partial<
       smokeDurationSec: 12,
     },
   },
+  neon: {
+    Grenade: {
+      effectKinds: ['smoke-line-fixed-dual'],
+      smokeDurationSec: 6,
+      /** `smoke.md`：向前延伸约 50m */
+      smokeLineLength: smokeMapUnitsFromMeters(50),
+      /** 两道平行光墙间距（米制估值，可实测微调） */
+      smokeLineSpacing: smokeMapUnitsFromMeters(4),
+      smokeLineStrokeWidth: 10,
+      smokeLineColor: NEON_FAST_LANE_SMOKE_COLOR,
+    },
+  },
 };
 
 export function getAbilityEffectMeta(
@@ -341,6 +368,50 @@ export function isSphericalSmokeAbility(agentCatalogId: string, abilitySlot: Abi
   return meta?.effectKinds.includes('smoke-sphere') ?? false;
 }
 
+export function isFixedDualLineSmokeAbility(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): boolean {
+  const meta = getAbilityEffectMeta(agentCatalogId, abilitySlot);
+  return meta?.effectKinds.includes('smoke-line-fixed-dual') ?? false;
+}
+
+/** 预备期可进入释放流程的烟雾类技能 */
+export function isReleasePlacementSmokeAbility(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): boolean {
+  return isSphericalSmokeAbility(agentCatalogId, abilitySlot) || isFixedDualLineSmokeAbility(agentCatalogId, abilitySlot);
+}
+
+export function getFixedDualLineSmokeLength(agentCatalogId: string, abilitySlot: AbilitySlot): number {
+  return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.smokeLineLength ?? smokeMapUnitsFromMeters(50);
+}
+
+export function getFixedDualLineSmokeSpacing(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): number {
+  return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.smokeLineSpacing ?? smokeMapUnitsFromMeters(4);
+}
+
+export function getFixedDualLineSmokeStrokeWidth(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): number {
+  return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.smokeLineStrokeWidth ?? 10;
+}
+
+export function getFixedDualLineSmokeColor(agentCatalogId: string, abilitySlot: AbilitySlot): string {
+  return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.smokeLineColor ?? NEON_FAST_LANE_SMOKE_COLOR;
+}
+
+export function getSmokeDurationSec(agentCatalogId: string, abilitySlot: AbilitySlot): number {
+  return (
+    getAbilityEffectMeta(agentCatalogId, abilitySlot)?.smokeDurationSec ?? DEFAULT_SMOKE_DURATION_SEC
+  );
+}
+
 export function getSphericalSmokeRadius(agentCatalogId: string, abilitySlot: AbilitySlot): number {
   return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.smokeRadius ?? DEFAULT_SMOKE_RADIUS;
 }
@@ -349,7 +420,5 @@ export function getSphericalSmokeDurationSec(
   agentCatalogId: string,
   abilitySlot: AbilitySlot,
 ): number {
-  return (
-    getAbilityEffectMeta(agentCatalogId, abilitySlot)?.smokeDurationSec ?? DEFAULT_SMOKE_DURATION_SEC
-  );
+  return getSmokeDurationSec(agentCatalogId, abilitySlot);
 }

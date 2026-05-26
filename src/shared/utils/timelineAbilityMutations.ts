@@ -70,7 +70,8 @@ export function snapshotWithAbilityDeployAppended(
   };
 }
 
-export function isSphericalSmokeVisibleAtPlayhead(
+/** 已施放烟雾（球型 / 线型）在当前播放头是否应显示 */
+export function isDeployedSmokeVisibleAtPlayhead(
   placement: AbilityPlacement,
   playheadSec: number,
 ): boolean {
@@ -79,6 +80,9 @@ export function isSphericalSmokeVisibleAtPlayhead(
   if (placement.expiresAt != null && playheadSec >= placement.expiresAt - PLAYHEAD_EPS) return false;
   return placement.state === 'active';
 }
+
+/** @deprecated 使用 isDeployedSmokeVisibleAtPlayhead */
+export const isSphericalSmokeVisibleAtPlayhead = isDeployedSmokeVisibleAtPlayhead;
 
 /** 根据播放头与 activeAt/expiresAt 推导应展示的状态（用于关键帧之间 scrub） */
 export function resolveAbilityStateAtPlayhead(

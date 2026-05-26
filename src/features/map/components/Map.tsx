@@ -7,7 +7,12 @@ import { MAP_DROP_ZONE_ID } from '@/shared/constants/dnd';
 import { useMapSelectionStore } from '@/shared/store/useMapSelectionStore';
 import { Layer, Line, Shape, Stage } from 'react-konva';
 import {
+  getFixedDualLineSmokeColor,
+  getFixedDualLineSmokeLength,
+  getFixedDualLineSmokeSpacing,
+  getFixedDualLineSmokeStrokeWidth,
   getSphericalSmokeRadius,
+  isFixedDualLineSmokeAbility,
   isSphericalSmokeAbility,
 } from '@/features/abilities/config';
 import { AbilityDetailDrawer } from '@/features/abilities/components/AbilityDetailDrawer';
@@ -16,9 +21,11 @@ import { AbilityInstanceActionPopover } from '@/features/map/components/AbilityI
 import { AgentDetailDrawer } from '@/features/agents/components/AgentDetailDrawer';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
 import { useTimelinePlaybackStore } from '@/shared/store/timelinePlaybackStore';
-import { isSphericalSmokeVisibleAtPlayhead } from '@/shared/utils/timelineAbilityMutations';
+import { isDeployedSmokeVisibleAtPlayhead } from '@/shared/utils/timelineAbilityMutations';
 import { clientPointToMapStage } from '@/shared/utils/mapStagePointer';
+import { lineSmokeFromPlacement } from '@/shared/utils/lineSmokeGeometry';
 import { MapAbilityToken } from './MapAbilityToken';
+import { MapFixedDualLineSmoke } from './MapFixedDualLineSmoke';
 import { MapHeroToken } from './MapHeroToken';
 import { MapSphericalSmoke } from './MapSphericalSmoke';
 import './Map.less';
@@ -44,6 +51,15 @@ const Map = () => {
   const updateSphericalSmokePreview = useMatchupStore((s) => s.updateSphericalSmokePreview);
   const cancelSphericalSmokePlacement = useMatchupStore((s) => s.cancelSphericalSmokePlacement);
   const confirmSphericalSmokePlacement = useMatchupStore((s) => s.confirmSphericalSmokePlacement);
+  const fixedDualLineSmokePlacementId = useMatchupStore((s) => s.fixedDualLineSmokePlacementId);
+  const fixedDualLineSmokePreview = useMatchupStore((s) => s.fixedDualLineSmokePreview);
+  const updateFixedDualLineSmokePreview = useMatchupStore((s) => s.updateFixedDualLineSmokePreview);
+  const cancelFixedDualLineSmokePlacement = useMatchupStore(
+    (s) => s.cancelFixedDualLineSmokePlacement
+  );
+  const confirmFixedDualLineSmokePlacement = useMatchupStore(
+    (s) => s.confirmFixedDualLineSmokePlacement
+  );
   const timelineCurrentTime = useTimelinePlaybackStore((s) => s.currentTime);
   const mapWidth = valorantMap.bounds.max.x - valorantMap.bounds.min.x + 100;
   const mapHeight = valorantMap.bounds.max.y - valorantMap.bounds.min.y + 100;
@@ -55,6 +71,9 @@ const Map = () => {
   const [mapTransformLocked, setMapTransformLocked] = useState(false);
 
   const placingSphericalSmoke = !!sphericalSmokePlacementId && !!sphericalSmokePreview;
+  const placingFixedDualLineSmoke =
+    !!fixedDualLineSmokePlacementId && !!fixedDualLineSmokePreview;
+  const placingSmoke = placingSphericalSmoke || placingFixedDualLineSmoke;
 
   const sphericalSmokePlacement = useMemo(
     () =>
@@ -77,6 +96,25 @@ const Map = () => {
       sphericalSmokePlacement.abilitySlot
     );
   }, [sphericalSmokePlacement]);
+
+  const fixedDualLineSmokePlacement = useMemo(
+    () =>
+      fixedDualLineSmokePlacementId
+        ? abilityPlacements.find((p) => p.id === fixedDualLineSmokePlacementId)
+        : undefined,
+    [abilityPlacements, fixedDualLineSmokePlacementId]
+  );
+
+  const fixedDualLineMeta = useMemo(() => {
+    if (!fixedDualLineSmokePlacement) return null;
+    const { agentId, abilitySlot } = fixedDualLineSmokePlacement;
+    return {
+      length: getFixedDualLineSmokeLength(agentId, abilitySlot),
+      spacing: getFixedDualLineSmokeSpacing(agentId, abilitySlot),
+      strokeWidth: getFixedDualLineSmokeStrokeWidth(agentId, abilitySlot),
+      color: getFixedDualLineSmokeColor(agentId, abilitySlot),
+    };
+  }, [fixedDualLineSmokePlacement]);
 
   const { setNodeRef, isOver } = useDroppable({ id: MAP_DROP_ZONE_ID });
 
@@ -116,11 +154,15 @@ const Map = () => {
   }, [abilityInstancePopoverId, closeAbilityInstancePopover]);
 
   useEffect(() => {
-    if (!abilityPopoverPlacementId && !abilityInstancePopoverId && !placingSphericalSmoke) return;
+    if (!abilityPopoverPlacementId && !abilityInstancePopoverId && !placingSmoke) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
       if (placingSphericalSmoke) {
         cancelSphericalSmokePlacement();
+        return;
+      }
+      if (placingFixedDualLineSmoke) {
+        cancelFixedDualLineSmokePlacement();
         return;
       }
       closeAllMapPopovers();
@@ -130,8 +172,11 @@ const Map = () => {
   }, [
     abilityPopoverPlacementId,
     abilityInstancePopoverId,
+    placingSmoke,
     placingSphericalSmoke,
+    placingFixedDualLineSmoke,
     cancelSphericalSmokePlacement,
+    cancelFixedDualLineSmokePlacement,
     closeAllMapPopovers,
   ]);
 
@@ -144,6 +189,28 @@ const Map = () => {
       updateSphericalSmokePreview(pt.x, pt.y);
     },
     [updateSphericalSmokePreview]
+  );
+
+  const syncFixedDualLinePreviewFromClient = useCallback(
+    (clientX: number, clientY: number) => {
+      const stage = stageRef.current;
+      if (!stage || !fixedDualLineSmokePlacement) return;
+      const pt = clientPointToMapStage(stage, clientX, clientY);
+      if (!pt) return;
+      const owner = mapPlacements.find(
+        (p) => p.id === fixedDualLineSmokePlacement.ownerPlacementId
+      );
+      const facing = owner
+        ? Math.atan2(pt.y - owner.y, pt.x - owner.x)
+        : fixedDualLineSmokePreview?.facing ?? 0;
+      updateFixedDualLineSmokePreview(pt.x, pt.y, facing);
+    },
+    [
+      fixedDualLineSmokePlacement,
+      fixedDualLineSmokePreview?.facing,
+      mapPlacements,
+      updateFixedDualLineSmokePreview,
+    ]
   );
 
   useEffect(() => {
@@ -178,6 +245,46 @@ const Map = () => {
   ]);
 
   useEffect(() => {
+    if (!placingFixedDualLineSmoke) return;
+    setMapTransformLocked(true);
+    const onMove = (e: PointerEvent) => {
+      syncFixedDualLinePreviewFromClient(e.clientX, e.clientY);
+    };
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      const stage = stageRef.current;
+      if (!stage) return;
+      const container = stage.container();
+      if (!container.contains(e.target as Node)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const pt = clientPointToMapStage(stage, e.clientX, e.clientY);
+      if (!pt || !fixedDualLineSmokePlacement) return;
+      const owner = mapPlacements.find(
+        (p) => p.id === fixedDualLineSmokePlacement.ownerPlacementId
+      );
+      const facing = owner
+        ? Math.atan2(pt.y - owner.y, pt.x - owner.x)
+        : (fixedDualLineSmokePreview?.facing ?? 0);
+      confirmFixedDualLineSmokePlacement(pt.x, pt.y, facing);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerdown', onDown, true);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerdown', onDown, true);
+      setMapTransformLocked(false);
+    };
+  }, [
+    placingFixedDualLineSmoke,
+    fixedDualLineSmokePlacement,
+    fixedDualLineSmokePreview?.facing,
+    mapPlacements,
+    syncFixedDualLinePreviewFromClient,
+    confirmFixedDualLineSmokePlacement,
+  ]);
+
+  useEffect(() => {
     if (!abilityPopoverPlacementId) return;
     const stillThere = mapPlacements.some(
       (p) => p.id === abilityPopoverPlacementId && !p.eliminated
@@ -200,7 +307,14 @@ const Map = () => {
   }, [sphericalSmokePlacementId, abilityPlacements, cancelSphericalSmokePlacement]);
 
   useEffect(() => {
-    if (!placingSphericalSmoke) return;
+    if (!fixedDualLineSmokePlacementId) return;
+    if (!abilityPlacements.some((p) => p.id === fixedDualLineSmokePlacementId)) {
+      cancelFixedDualLineSmokePlacement();
+    }
+  }, [fixedDualLineSmokePlacementId, abilityPlacements, cancelFixedDualLineSmokePlacement]);
+
+  useEffect(() => {
+    if (!placingSmoke) return;
     const stage = stageRef.current;
     const el = stage?.container();
     if (!el) return;
@@ -209,7 +323,7 @@ const Map = () => {
     return () => {
       el.style.cursor = prev;
     };
-  }, [placingSphericalSmoke]);
+  }, [placingSmoke]);
 
   const handleMapTransform = useCallback(() => {
     closeAllMapPopovers();
@@ -337,28 +451,48 @@ const Map = () => {
 
               <Layer>
                 {abilityPlacements.map((ab) => {
-                  if (
-                    !isSphericalSmokeAbility(ab.agentId, ab.abilitySlot) ||
-                    !isSphericalSmokeVisibleAtPlayhead(ab, timelineCurrentTime)
-                  ) {
+                  if (!isDeployedSmokeVisibleAtPlayhead(ab, timelineCurrentTime)) {
                     return null;
                   }
-                  const owner = mapPlacements.find((p) => p.id === ab.ownerPlacementId);
-                  const side = owner?.side ?? 'attack';
-                  const radius = getSphericalSmokeRadius(ab.agentId, ab.abilitySlot);
-                  return (
-                    <MapSphericalSmoke
-                      key={`smoke-${ab.id}`}
-                      x={ab.x}
-                      y={ab.y}
-                      radius={radius}
-                      side={side}
-                      onCmdClick={(anchor) => {
-                        closeAllMapPopovers();
-                        openAbilityInstancePopover(ab.id, anchor);
-                      }}
-                    />
-                  );
+                  if (isSphericalSmokeAbility(ab.agentId, ab.abilitySlot)) {
+                    const owner = mapPlacements.find((p) => p.id === ab.ownerPlacementId);
+                    const side = owner?.side ?? 'attack';
+                    const radius = getSphericalSmokeRadius(ab.agentId, ab.abilitySlot);
+                    return (
+                      <MapSphericalSmoke
+                        key={`smoke-sphere-${ab.id}`}
+                        x={ab.x}
+                        y={ab.y}
+                        radius={radius}
+                        side={side}
+                        onCmdClick={(anchor) => {
+                          closeAllMapPopovers();
+                          openAbilityInstancePopover(ab.id, anchor);
+                        }}
+                      />
+                    );
+                  }
+                  if (isFixedDualLineSmokeAbility(ab.agentId, ab.abilitySlot)) {
+                    const geom = lineSmokeFromPlacement(ab);
+                    if (!geom) return null;
+                    return (
+                      <MapFixedDualLineSmoke
+                        key={`smoke-line-${ab.id}`}
+                        cx={geom.cx}
+                        cy={geom.cy}
+                        facing={geom.facing}
+                        length={getFixedDualLineSmokeLength(ab.agentId, ab.abilitySlot)}
+                        spacing={getFixedDualLineSmokeSpacing(ab.agentId, ab.abilitySlot)}
+                        strokeWidth={getFixedDualLineSmokeStrokeWidth(ab.agentId, ab.abilitySlot)}
+                        color={getFixedDualLineSmokeColor(ab.agentId, ab.abilitySlot)}
+                        onCmdClick={(anchor) => {
+                          closeAllMapPopovers();
+                          openAbilityInstancePopover(ab.id, anchor);
+                        }}
+                      />
+                    );
+                  }
+                  return null;
                 })}
                 {placingSphericalSmoke && sphericalSmokePreview ? (
                   <MapSphericalSmoke
@@ -366,6 +500,20 @@ const Map = () => {
                     y={sphericalSmokePreview.y}
                     radius={sphericalSmokeRadius}
                     side={sphericalSmokeSide}
+                    preview
+                  />
+                ) : null}
+                {placingFixedDualLineSmoke &&
+                fixedDualLineSmokePreview &&
+                fixedDualLineMeta ? (
+                  <MapFixedDualLineSmoke
+                    cx={fixedDualLineSmokePreview.cx}
+                    cy={fixedDualLineSmokePreview.cy}
+                    facing={fixedDualLineSmokePreview.facing}
+                    length={fixedDualLineMeta.length}
+                    spacing={fixedDualLineMeta.spacing}
+                    strokeWidth={fixedDualLineMeta.strokeWidth}
+                    color={fixedDualLineMeta.color}
                     preview
                   />
                 ) : null}

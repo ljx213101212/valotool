@@ -1,7 +1,11 @@
 import { type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { getAbilityDisplayName } from '@/features/abilities/abilityDisplayName';
-import { isSphericalSmokeAbility } from '@/features/abilities/config';
+import {
+  isFixedDualLineSmokeAbility,
+  isReleasePlacementSmokeAbility,
+  isSphericalSmokeAbility,
+} from '@/features/abilities/config';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
 import type { AbilityPlacement, AbilityPopoverAnchor } from '@/shared/types/ability';
 import './AbilityInstanceActionPopover.less';
@@ -25,9 +29,14 @@ export function AbilityInstancePreparationPopover({
   const removeAbilityPlacement = useMatchupStore((s) => s.removeAbilityPlacement);
   const recallAbilityPlacement = useMatchupStore((s) => s.recallAbilityPlacement);
   const beginSphericalSmokePlacement = useMatchupStore((s) => s.beginSphericalSmokePlacement);
+  const beginFixedDualLineSmokePlacement = useMatchupStore(
+    (s) => s.beginFixedDualLineSmokePlacement
+  );
 
-  const canActivate =
-    isSphericalSmokeAbility(placement.agentId, placement.abilitySlot);
+  const canActivate = isReleasePlacementSmokeAbility(
+    placement.agentId,
+    placement.abilitySlot
+  );
 
   const left = anchor.clientX + POPOVER_OFFSET_X;
   const top = anchor.clientY + POPOVER_OFFSET_Y;
@@ -45,7 +54,11 @@ export function AbilityInstancePreparationPopover({
 
   const onActivate = () => {
     if (!canActivate) return;
-    beginSphericalSmokePlacement(placement.id);
+    if (isSphericalSmokeAbility(placement.agentId, placement.abilitySlot)) {
+      beginSphericalSmokePlacement(placement.id);
+    } else if (isFixedDualLineSmokeAbility(placement.agentId, placement.abilitySlot)) {
+      beginFixedDualLineSmokePlacement(placement.id);
+    }
     closeAbilityInstancePopover();
   };
 

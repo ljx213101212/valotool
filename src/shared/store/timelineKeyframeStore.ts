@@ -251,6 +251,14 @@ export const useTimelineKeyframeStore = create<TimelineKeyframeState>()(
             s.sphericalSmokePlacementId === abilityPlacementId
               ? null
               : s.sphericalSmokePreview,
+          fixedDualLineSmokePlacementId:
+            s.fixedDualLineSmokePlacementId === abilityPlacementId
+              ? null
+              : s.fixedDualLineSmokePlacementId,
+          fixedDualLineSmokePreview:
+            s.fixedDualLineSmokePlacementId === abilityPlacementId
+              ? null
+              : s.fixedDualLineSmokePreview,
           selectedAbilityPlacementId:
             s.selectedAbilityPlacementId === abilityPlacementId
               ? null

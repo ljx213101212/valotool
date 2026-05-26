@@ -4,7 +4,7 @@ import { Circle, Group, Image } from 'react-konva';
 import {
   agentCatalogIdToAbilitySlug,
   ABILITIES_BY_AGENT,
-  isSphericalSmokeAbility,
+  isReleasePlacementSmokeAbility,
 } from '@/features/abilities';
 import { getAbilityDisplayIconUrl } from '@/features/abilities/abilityDisplayIconUrls';
 import { tacticalSideMapTokenColors } from '@/shared/constants/tacticalSideColors';
@@ -45,7 +45,7 @@ export function MapAbilityToken({
   const { accent } = tacticalSideMapTokenColors(side);
   const isInitial = placement.state === 'initial';
   const hideToken =
-    isSphericalSmokeAbility(placement.agentId, placement.abilitySlot) &&
+    isReleasePlacementSmokeAbility(placement.agentId, placement.abilitySlot) &&
     (placement.state === 'active' || placement.state === 'expired');
 
   useEffect(() => {

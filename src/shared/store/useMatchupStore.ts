@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import type { AbilitySlot } from '@/features/abilities/config';
 import {
-  getSphericalSmokeDurationSec,
+  getSmokeDurationSec,
+  isFixedDualLineSmokeAbility,
   isSphericalSmokeAbility,
 } from '@/features/abilities/config';
 import { useTimelineKeyframeStore } from '@/shared/store/timelineKeyframeStore';
@@ -40,6 +41,9 @@ interface MatchupState {
   /** 球型烟雾放置预览（仅内存） */
   sphericalSmokePlacementId: string | null;
   sphericalSmokePreview: { x: number; y: number } | null;
+  /** 固定双线烟放置预览（仅内存） */
+  fixedDualLineSmokePlacementId: string | null;
+  fixedDualLineSmokePreview: { cx: number; cy: number; facing: number } | null;
   /** 地图上当前选中的特工 placement（仅内存，不参与 persist） */
   selectedPlacementId: string | null;
   setSelectedPlacementId: (id: string | null) => void;
@@ -54,6 +58,10 @@ interface MatchupState {
   updateSphericalSmokePreview: (x: number, y: number) => void;
   cancelSphericalSmokePlacement: () => void;
   confirmSphericalSmokePlacement: (x: number, y: number) => void;
+  beginFixedDualLineSmokePlacement: (abilityPlacementId: string) => void;
+  updateFixedDualLineSmokePreview: (cx: number, cy: number, facing: number) => void;
+  cancelFixedDualLineSmokePlacement: () => void;
+  confirmFixedDualLineSmokePlacement: (cx: number, cy: number, facing: number) => void;
   spawnAbilityPlacement: (input: SpawnAbilityInput) => void;
   spawnAbilityAtMapCenter: (
     input: Omit<SpawnAbilityInput, 'x' | 'y'>
@@ -71,7 +79,7 @@ interface MatchupState {
   ) => void;
   patchAbilityPlacement: (
     id: string,
-    patch: Partial<Pick<AbilityPlacement, 'x' | 'y' | 'state'>>
+    patch: Partial<Pick<AbilityPlacement, 'x' | 'y' | 'state' | 'lineSmoke'>>
   ) => void;
   removeAbilityPlacement: (id: string) => void;
   /** 移除技能并归还技能点给施放者（归还逻辑待 buy-loadout 模块实现） */
@@ -110,6 +118,8 @@ export const useMatchupStore = create<MatchupState>()(
       abilityInstancePopoverAnchor: null,
       sphericalSmokePlacementId: null,
       sphericalSmokePreview: null,
+      fixedDualLineSmokePlacementId: null,
+      fixedDualLineSmokePreview: null,
       selectedPlacementId: null,
       selectedAbilityPlacementId: null,
       setSelectedPlacementId: (id) =>
@@ -167,6 +177,8 @@ export const useMatchupStore = create<MatchupState>()(
           return {
             sphericalSmokePlacementId: abilityPlacementId,
             sphericalSmokePreview: { x: placement.x, y: placement.y },
+            fixedDualLineSmokePlacementId: null,
+            fixedDualLineSmokePreview: null,
             abilityInstancePopoverId: null,
             abilityInstancePopoverAnchor: null,
             abilityPopoverPlacementId: null,
@@ -184,6 +196,42 @@ export const useMatchupStore = create<MatchupState>()(
           sphericalSmokePlacementId: null,
           sphericalSmokePreview: null,
         }),
+      beginFixedDualLineSmokePlacement: (abilityPlacementId) =>
+        set((s) => {
+          const placement = s.abilityPlacements.find((p) => p.id === abilityPlacementId);
+          if (
+            !placement ||
+            placement.state !== 'initial' ||
+            !isFixedDualLineSmokeAbility(placement.agentId, placement.abilitySlot)
+          ) {
+            return s;
+          }
+          const owner = s.mapPlacements.find((p) => p.id === placement.ownerPlacementId);
+          const facing = owner
+            ? Math.atan2(placement.y - owner.y, placement.x - owner.x)
+            : 0;
+          return {
+            fixedDualLineSmokePlacementId: abilityPlacementId,
+            fixedDualLineSmokePreview: { cx: placement.x, cy: placement.y, facing },
+            sphericalSmokePlacementId: null,
+            sphericalSmokePreview: null,
+            abilityInstancePopoverId: null,
+            abilityInstancePopoverAnchor: null,
+            abilityPopoverPlacementId: null,
+            abilityPopoverAnchor: null,
+          };
+        }),
+      updateFixedDualLineSmokePreview: (cx, cy, facing) =>
+        set((s) =>
+          s.fixedDualLineSmokePlacementId
+            ? { fixedDualLineSmokePreview: { cx, cy, facing } }
+            : s
+        ),
+      cancelFixedDualLineSmokePlacement: () =>
+        set({
+          fixedDualLineSmokePlacementId: null,
+          fixedDualLineSmokePreview: null,
+        }),
       confirmSphericalSmokePlacement: (x, y) => {
         const id = useMatchupStore.getState().sphericalSmokePlacementId;
         if (!id) return;
@@ -197,7 +245,7 @@ export const useMatchupStore = create<MatchupState>()(
         }
         const { currentTime, maxTime } = useTimelinePlaybackStore.getState();
         const startT = quantizeTimelineSeconds(currentTime, maxTime);
-        const duration = getSphericalSmokeDurationSec(target.agentId, target.abilitySlot);
+        const duration = getSmokeDurationSec(target.agentId, target.abilitySlot);
         const endT = quantizeTimelineSeconds(Math.min(startT + duration, maxTime), maxTime);
         const updated = {
           ...target,
@@ -211,6 +259,42 @@ export const useMatchupStore = create<MatchupState>()(
           abilityPlacements: s.abilityPlacements.map((p) => (p.id === id ? updated : p)),
           sphericalSmokePlacementId: null,
           sphericalSmokePreview: null,
+        }));
+        const startEvent = buildAbilityDeployEvent(updated, 'start');
+        const endEvent = buildAbilityDeployEvent(updated, 'end');
+        useTimelineKeyframeStore.getState().recordAbilityDeployAtTime(startT, startEvent);
+        useTimelineKeyframeStore.getState().recordAbilityDeployAtTime(endT, endEvent);
+        syncLiveAbilityPlacementsForPlayhead(currentTime);
+      },
+      confirmFixedDualLineSmokePlacement: (cx, cy, facing) => {
+        const id = useMatchupStore.getState().fixedDualLineSmokePlacementId;
+        if (!id) return;
+        const target = useMatchupStore.getState().abilityPlacements.find((p) => p.id === id);
+        if (!target || !isFixedDualLineSmokeAbility(target.agentId, target.abilitySlot)) {
+          useMatchupStore.setState({
+            fixedDualLineSmokePlacementId: null,
+            fixedDualLineSmokePreview: null,
+          });
+          return;
+        }
+        const { currentTime, maxTime } = useTimelinePlaybackStore.getState();
+        const startT = quantizeTimelineSeconds(currentTime, maxTime);
+        const duration = getSmokeDurationSec(target.agentId, target.abilitySlot);
+        const endT = quantizeTimelineSeconds(Math.min(startT + duration, maxTime), maxTime);
+        const lineSmoke = { cx, cy, facing };
+        const updated = {
+          ...target,
+          x: cx,
+          y: cy,
+          state: 'active' as const,
+          activeAt: startT,
+          expiresAt: endT,
+          lineSmoke,
+        };
+        useMatchupStore.setState((s) => ({
+          abilityPlacements: s.abilityPlacements.map((p) => (p.id === id ? updated : p)),
+          fixedDualLineSmokePlacementId: null,
+          fixedDualLineSmokePreview: null,
         }));
         const startEvent = buildAbilityDeployEvent(updated, 'start');
         const endEvent = buildAbilityDeployEvent(updated, 'end');
