@@ -2,7 +2,9 @@ import { type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { getAbilityDisplayName } from '@/features/abilities/abilityDisplayName';
 import {
+  isDrawableCurveSmokeAbility,
   isFixedDualLineSmokeAbility,
+  isFixedSingleLineSmokeAbility,
   isReleasePlacementSmokeAbility,
   isSphericalSmokeAbility,
 } from '@/features/abilities/config';
@@ -32,6 +34,10 @@ export function AbilityInstancePreparationPopover({
   const beginFixedDualLineSmokePlacement = useMatchupStore(
     (s) => s.beginFixedDualLineSmokePlacement
   );
+  const beginFixedSingleLineSmokePlacement = useMatchupStore(
+    (s) => s.beginFixedSingleLineSmokePlacement
+  );
+  const beginCurveSmokePlacement = useMatchupStore((s) => s.beginCurveSmokePlacement);
 
   const canActivate = isReleasePlacementSmokeAbility(
     placement.agentId,
@@ -58,6 +64,10 @@ export function AbilityInstancePreparationPopover({
       beginSphericalSmokePlacement(placement.id);
     } else if (isFixedDualLineSmokeAbility(placement.agentId, placement.abilitySlot)) {
       beginFixedDualLineSmokePlacement(placement.id);
+    } else if (isFixedSingleLineSmokeAbility(placement.agentId, placement.abilitySlot)) {
+      beginFixedSingleLineSmokePlacement(placement.id);
+    } else if (isDrawableCurveSmokeAbility(placement.agentId, placement.abilitySlot)) {
+      beginCurveSmokePlacement(placement.id);
     }
     closeAbilityInstancePopover();
   };
@@ -78,7 +88,7 @@ export function AbilityInstancePreparationPopover({
         disabled={!canActivate}
         title={
           canActivate
-            ? '进入释放期：在地图上选择具体施放位置（Esc 取消）'
+            ? '进入释放期：在地图上绘制或放置（Esc 取消）'
             : '该技能暂不支持此释放形式'
         }
         onClick={onActivate}

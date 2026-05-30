@@ -1,4 +1,5 @@
 import type { AbilitySlot } from '@/features/abilities/config';
+import type { CurveSmokeGeometry } from '@/shared/types/curveSmoke';
 import type { LineSmokeGeometry } from '@/shared/types/lineSmoke';
 
 /** 地图上技能实例的生命周期状态 */
@@ -22,6 +23,8 @@ export type AbilityPlacement = {
   expiresAt?: number;
   /** 固定双线烟（如霓虹高速通道） */
   lineSmoke?: LineSmokeGeometry;
+  /** 可画曲线烟（如火墙、水墙） */
+  curveSmoke?: CurveSmokeGeometry;
 };
 
 export type AbilityPopoverAnchor = {

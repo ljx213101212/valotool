@@ -11,21 +11,44 @@ import {
   getFixedDualLineSmokeLength,
   getFixedDualLineSmokeSpacing,
   getFixedDualLineSmokeStrokeWidth,
+  getDrawableCurveMaxLength,
+  getFixedSingleLineSmokeLength,
+  getLineSmokeColor,
+  getLineSmokeStrokeWidth,
   getSphericalSmokeRadius,
+  getSphericalSmokeVariant,
+  isDrawableCurveSmokeAbility,
   isFixedDualLineSmokeAbility,
+  isFixedSingleLineSmokeAbility,
   isSphericalSmokeAbility,
+  smokeMapUnitsFromMeters,
 } from '@/features/abilities/config';
+import {
+  formatSmokeCatalogForLog,
+  listLineSmokeCatalog,
+  listSphereSmokeCatalog,
+  type SmokeCatalogEntry,
+} from '@/features/abilities/smokeCatalog';
 import { AbilityDetailDrawer } from '@/features/abilities/components/AbilityDetailDrawer';
 import { AgentAbilityPopover } from '@/features/agents/components/AgentAbilityPopover';
 import { AbilityInstanceActionPopover } from '@/features/map/components/AbilityInstanceActionPopover';
 import { AgentDetailDrawer } from '@/features/agents/components/AgentDetailDrawer';
+import { message } from 'antd';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
+import { nextAbilitySpawnPoint } from '@/shared/utils/abilitySpawnPosition';
 import { useTimelinePlaybackStore } from '@/shared/store/timelinePlaybackStore';
 import { isDeployedSmokeVisibleAtPlayhead } from '@/shared/utils/timelineAbilityMutations';
 import { clientPointToMapStage } from '@/shared/utils/mapStagePointer';
+import {
+  appendCurvePoint,
+  curveSmokeFromPlacement,
+  isValidCurveSmokePoints,
+} from '@/shared/utils/curveSmokeGeometry';
 import { lineSmokeFromPlacement } from '@/shared/utils/lineSmokeGeometry';
 import { MapAbilityToken } from './MapAbilityToken';
+import { MapCurveSmoke } from './MapCurveSmoke';
 import { MapFixedDualLineSmoke } from './MapFixedDualLineSmoke';
+import { MapFixedSingleLineSmoke } from './MapFixedSingleLineSmoke';
 import { MapHeroToken } from './MapHeroToken';
 import { MapSphericalSmoke } from './MapSphericalSmoke';
 import './Map.less';
@@ -60,6 +83,26 @@ const Map = () => {
   const confirmFixedDualLineSmokePlacement = useMatchupStore(
     (s) => s.confirmFixedDualLineSmokePlacement
   );
+  const fixedSingleLineSmokePlacementId = useMatchupStore(
+    (s) => s.fixedSingleLineSmokePlacementId
+  );
+  const fixedSingleLineSmokePreview = useMatchupStore((s) => s.fixedSingleLineSmokePreview);
+  const updateFixedSingleLineSmokePreview = useMatchupStore(
+    (s) => s.updateFixedSingleLineSmokePreview
+  );
+  const cancelFixedSingleLineSmokePlacement = useMatchupStore(
+    (s) => s.cancelFixedSingleLineSmokePlacement
+  );
+  const confirmFixedSingleLineSmokePlacement = useMatchupStore(
+    (s) => s.confirmFixedSingleLineSmokePlacement
+  );
+  const curveSmokePlacementId = useMatchupStore((s) => s.curveSmokePlacementId);
+  const curveSmokePreviewPoints = useMatchupStore((s) => s.curveSmokePreviewPoints);
+  const setCurveSmokePreviewPoints = useMatchupStore((s) => s.setCurveSmokePreviewPoints);
+  const cancelCurveSmokePlacement = useMatchupStore((s) => s.cancelCurveSmokePlacement);
+  const confirmCurveSmokePlacement = useMatchupStore((s) => s.confirmCurveSmokePlacement);
+  const spawnAbilityPlacement = useMatchupStore((s) => s.spawnAbilityPlacement);
+  const curveDrawingRef = useRef(false);
   const timelineCurrentTime = useTimelinePlaybackStore((s) => s.currentTime);
   const mapWidth = valorantMap.bounds.max.x - valorantMap.bounds.min.x + 100;
   const mapHeight = valorantMap.bounds.max.y - valorantMap.bounds.min.y + 100;
@@ -73,7 +116,14 @@ const Map = () => {
   const placingSphericalSmoke = !!sphericalSmokePlacementId && !!sphericalSmokePreview;
   const placingFixedDualLineSmoke =
     !!fixedDualLineSmokePlacementId && !!fixedDualLineSmokePreview;
-  const placingSmoke = placingSphericalSmoke || placingFixedDualLineSmoke;
+  const placingFixedSingleLineSmoke =
+    !!fixedSingleLineSmokePlacementId && !!fixedSingleLineSmokePreview;
+  const placingCurveSmoke = !!curveSmokePlacementId;
+  const placingSmoke =
+    placingSphericalSmoke ||
+    placingFixedDualLineSmoke ||
+    placingFixedSingleLineSmoke ||
+    placingCurveSmoke;
 
   const sphericalSmokePlacement = useMemo(
     () =>
@@ -115,6 +165,50 @@ const Map = () => {
       color: getFixedDualLineSmokeColor(agentId, abilitySlot),
     };
   }, [fixedDualLineSmokePlacement]);
+
+  const fixedSingleLineSmokePlacement = useMemo(
+    () =>
+      fixedSingleLineSmokePlacementId
+        ? abilityPlacements.find((p) => p.id === fixedSingleLineSmokePlacementId)
+        : undefined,
+    [abilityPlacements, fixedSingleLineSmokePlacementId]
+  );
+
+  const fixedSingleLineMeta = useMemo(() => {
+    if (!fixedSingleLineSmokePlacement) return null;
+    const { agentId, abilitySlot } = fixedSingleLineSmokePlacement;
+    return {
+      length: getFixedSingleLineSmokeLength(agentId, abilitySlot),
+      strokeWidth: getLineSmokeStrokeWidth(agentId, abilitySlot),
+      color: getLineSmokeColor(agentId, abilitySlot),
+    };
+  }, [fixedSingleLineSmokePlacement]);
+
+  const curveSmokePlacement = useMemo(
+    () =>
+      curveSmokePlacementId
+        ? abilityPlacements.find((p) => p.id === curveSmokePlacementId)
+        : undefined,
+    [abilityPlacements, curveSmokePlacementId]
+  );
+
+  const curveSmokeMeta = useMemo(() => {
+    if (!curveSmokePlacement) return null;
+    const { agentId, abilitySlot } = curveSmokePlacement;
+    return {
+      strokeWidth: getLineSmokeStrokeWidth(agentId, abilitySlot),
+      color: getLineSmokeColor(agentId, abilitySlot),
+      maxLength: getDrawableCurveMaxLength(agentId, abilitySlot),
+    };
+  }, [curveSmokePlacement]);
+
+  const sphericalSmokeVariant = useMemo(() => {
+    if (!sphericalSmokePlacement) return 'default' as const;
+    return getSphericalSmokeVariant(
+      sphericalSmokePlacement.agentId,
+      sphericalSmokePlacement.abilitySlot
+    );
+  }, [sphericalSmokePlacement]);
 
   const { setNodeRef, isOver } = useDroppable({ id: MAP_DROP_ZONE_ID });
 
@@ -165,6 +259,15 @@ const Map = () => {
         cancelFixedDualLineSmokePlacement();
         return;
       }
+      if (placingFixedSingleLineSmoke) {
+        cancelFixedSingleLineSmokePlacement();
+        return;
+      }
+      if (placingCurveSmoke) {
+        curveDrawingRef.current = false;
+        cancelCurveSmokePlacement();
+        return;
+      }
       closeAllMapPopovers();
     };
     window.addEventListener('keydown', onKey);
@@ -175,8 +278,12 @@ const Map = () => {
     placingSmoke,
     placingSphericalSmoke,
     placingFixedDualLineSmoke,
+    placingFixedSingleLineSmoke,
+    placingCurveSmoke,
     cancelSphericalSmokePlacement,
     cancelFixedDualLineSmokePlacement,
+    cancelFixedSingleLineSmokePlacement,
+    cancelCurveSmokePlacement,
     closeAllMapPopovers,
   ]);
 
@@ -210,6 +317,28 @@ const Map = () => {
       fixedDualLineSmokePreview?.facing,
       mapPlacements,
       updateFixedDualLineSmokePreview,
+    ]
+  );
+
+  const syncFixedSingleLinePreviewFromClient = useCallback(
+    (clientX: number, clientY: number) => {
+      const stage = stageRef.current;
+      if (!stage || !fixedSingleLineSmokePlacement) return;
+      const pt = clientPointToMapStage(stage, clientX, clientY);
+      if (!pt) return;
+      const owner = mapPlacements.find(
+        (p) => p.id === fixedSingleLineSmokePlacement.ownerPlacementId
+      );
+      const facing = owner
+        ? Math.atan2(pt.y - owner.y, pt.x - owner.x)
+        : (fixedSingleLineSmokePreview?.facing ?? 0);
+      updateFixedSingleLineSmokePreview(pt.x, pt.y, facing);
+    },
+    [
+      fixedSingleLineSmokePlacement,
+      fixedSingleLineSmokePreview?.facing,
+      mapPlacements,
+      updateFixedSingleLineSmokePreview,
     ]
   );
 
@@ -285,6 +414,111 @@ const Map = () => {
   ]);
 
   useEffect(() => {
+    if (!placingFixedSingleLineSmoke) return;
+    setMapTransformLocked(true);
+    const onMove = (e: PointerEvent) => {
+      syncFixedSingleLinePreviewFromClient(e.clientX, e.clientY);
+    };
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      const stage = stageRef.current;
+      if (!stage) return;
+      const container = stage.container();
+      if (!container.contains(e.target as Node)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const pt = clientPointToMapStage(stage, e.clientX, e.clientY);
+      if (!pt || !fixedSingleLineSmokePlacement) return;
+      const owner = mapPlacements.find(
+        (p) => p.id === fixedSingleLineSmokePlacement.ownerPlacementId
+      );
+      const facing = owner
+        ? Math.atan2(pt.y - owner.y, pt.x - owner.x)
+        : (fixedSingleLineSmokePreview?.facing ?? 0);
+      confirmFixedSingleLineSmokePlacement(pt.x, pt.y, facing);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerdown', onDown, true);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerdown', onDown, true);
+      setMapTransformLocked(false);
+    };
+  }, [
+    placingFixedSingleLineSmoke,
+    fixedSingleLineSmokePlacement,
+    fixedSingleLineSmokePreview?.facing,
+    mapPlacements,
+    syncFixedSingleLinePreviewFromClient,
+    confirmFixedSingleLineSmokePlacement,
+  ]);
+
+  useEffect(() => {
+    if (!placingCurveSmoke) return;
+    setMapTransformLocked(true);
+    curveDrawingRef.current = false;
+
+    const stagePoint = (clientX: number, clientY: number) => {
+      const stage = stageRef.current;
+      if (!stage) return null;
+      return clientPointToMapStage(stage, clientX, clientY);
+    };
+
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      const stage = stageRef.current;
+      if (!stage) return;
+      const container = stage.container();
+      if (!container.contains(e.target as Node)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const pt = stagePoint(e.clientX, e.clientY);
+      if (!pt) return;
+      curveDrawingRef.current = true;
+      setCurveSmokePreviewPoints([pt.x, pt.y]);
+    };
+
+    const maxLength = curveSmokeMeta?.maxLength ?? smokeMapUnitsFromMeters(18);
+
+    const onMove = (e: PointerEvent) => {
+      if (!curveDrawingRef.current || (e.buttons & 1) === 0) return;
+      const pt = stagePoint(e.clientX, e.clientY);
+      if (!pt) return;
+      const prev = useMatchupStore.getState().curveSmokePreviewPoints;
+      setCurveSmokePreviewPoints(appendCurvePoint(prev, pt.x, pt.y, maxLength));
+    };
+
+    const onUp = (e: PointerEvent) => {
+      if (!curveDrawingRef.current) return;
+      curveDrawingRef.current = false;
+      const points = useMatchupStore.getState().curveSmokePreviewPoints;
+      if (isValidCurveSmokePoints(points)) {
+        confirmCurveSmokePlacement(points);
+      } else {
+        setCurveSmokePreviewPoints([]);
+      }
+    };
+
+    window.addEventListener('pointerdown', onDown, true);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    return () => {
+      window.removeEventListener('pointerdown', onDown, true);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      curveDrawingRef.current = false;
+      setMapTransformLocked(false);
+    };
+  }, [
+    placingCurveSmoke,
+    curveSmokeMeta?.maxLength,
+    setCurveSmokePreviewPoints,
+    confirmCurveSmokePlacement,
+  ]);
+
+  useEffect(() => {
     if (!abilityPopoverPlacementId) return;
     const stillThere = mapPlacements.some(
       (p) => p.id === abilityPopoverPlacementId && !p.eliminated
@@ -312,6 +546,20 @@ const Map = () => {
       cancelFixedDualLineSmokePlacement();
     }
   }, [fixedDualLineSmokePlacementId, abilityPlacements, cancelFixedDualLineSmokePlacement]);
+
+  useEffect(() => {
+    if (!fixedSingleLineSmokePlacementId) return;
+    if (!abilityPlacements.some((p) => p.id === fixedSingleLineSmokePlacementId)) {
+      cancelFixedSingleLineSmokePlacement();
+    }
+  }, [fixedSingleLineSmokePlacementId, abilityPlacements, cancelFixedSingleLineSmokePlacement]);
+
+  useEffect(() => {
+    if (!curveSmokePlacementId) return;
+    if (!abilityPlacements.some((p) => p.id === curveSmokePlacementId)) {
+      cancelCurveSmokePlacement();
+    }
+  }, [curveSmokePlacementId, abilityPlacements, cancelCurveSmokePlacement]);
 
   useEffect(() => {
     if (!placingSmoke) return;
@@ -342,11 +590,87 @@ const Map = () => {
     };
   }, [mapTransformLocked]);
 
+  const handleClearLocalStorage = useCallback(() => {
+    if (!window.confirm('清空 localStorage 并刷新页面？')) return;
+    localStorage.clear();
+    window.location.reload();
+  }, []);
+
+  const spawnSmokeCatalogOnMap = useCallback(
+    (label: string, entries: SmokeCatalogEntry[]) => {
+      const owner = mapPlacements.find((p) => !p.eliminated) ?? mapPlacements[0];
+      if (!owner) {
+        message.warning('请先在地图上放置至少一名特工');
+        return;
+      }
+      let existing = useMatchupStore.getState().abilityPlacements;
+      for (const entry of entries) {
+        const { x, y } = nextAbilitySpawnPoint(existing);
+        spawnAbilityPlacement({
+          ownerPlacementId: owner.id,
+          agentId: entry.agentSlug,
+          abilitySlot: entry.slot,
+          x,
+          y,
+        });
+        existing = useMatchupStore.getState().abilityPlacements;
+      }
+      console.group(`[valotool] ${label}（${entries.length}）`);
+      console.table(
+        entries.map((e) => ({
+          agent: e.agentSlug,
+          slot: e.slot,
+          name: e.displayName,
+          kinds: e.effectKinds.join(', '),
+        })),
+      );
+      console.log(formatSmokeCatalogForLog(entries));
+      console.groupEnd();
+      message.success(`已放置 ${entries.length} 个${label}（预备期 token）`);
+    },
+    [mapPlacements, spawnAbilityPlacement],
+  );
+
+  const handleListLineSmokeCatalog = useCallback(() => {
+    spawnSmokeCatalogOnMap('线烟道具', listLineSmokeCatalog());
+  }, [spawnSmokeCatalogOnMap]);
+
+  const handleListSphereSmokeCatalog = useCallback(() => {
+    spawnSmokeCatalogOnMap('球烟道具', listSphereSmokeCatalog());
+  }, [spawnSmokeCatalogOnMap]);
+
   return (
     <div
       ref={setNodeRef}
       className={`map-root${isOver ? ' map-root--drop-over' : ''}`}
     >
+      {import.meta.env.DEV ? (
+        <div className="map-debug-toolbar" role="toolbar" aria-label="地图调试">
+          <button
+            type="button"
+            className="map-debug-toolbar__btn map-debug-toolbar__btn--line"
+            onClick={handleListLineSmokeCatalog}
+            title="在控制台列出并于地图放置所有已配置的线烟技能 token"
+          >
+            线烟道具
+          </button>
+          <button
+            type="button"
+            className="map-debug-toolbar__btn map-debug-toolbar__btn--sphere"
+            onClick={handleListSphereSmokeCatalog}
+            title="在控制台列出并于地图放置所有已配置的球烟技能 token"
+          >
+            球烟道具
+          </button>
+          <button
+            type="button"
+            className="map-debug-toolbar__btn map-debug-toolbar__btn--danger"
+            onClick={handleClearLocalStorage}
+          >
+            Clear LS
+          </button>
+        </div>
+      ) : null}
       <AgentDetailDrawer />
       <AbilityDetailDrawer />
       {agentPopoverPlacement && abilityPopoverAnchor ? (
@@ -458,6 +782,7 @@ const Map = () => {
                     const owner = mapPlacements.find((p) => p.id === ab.ownerPlacementId);
                     const side = owner?.side ?? 'attack';
                     const radius = getSphericalSmokeRadius(ab.agentId, ab.abilitySlot);
+                    const variant = getSphericalSmokeVariant(ab.agentId, ab.abilitySlot);
                     return (
                       <MapSphericalSmoke
                         key={`smoke-sphere-${ab.id}`}
@@ -465,6 +790,7 @@ const Map = () => {
                         y={ab.y}
                         radius={radius}
                         side={side}
+                        variant={variant}
                         onCmdClick={(anchor) => {
                           closeAllMapPopovers();
                           openAbilityInstancePopover(ab.id, anchor);
@@ -492,6 +818,41 @@ const Map = () => {
                       />
                     );
                   }
+                  if (isFixedSingleLineSmokeAbility(ab.agentId, ab.abilitySlot)) {
+                    const geom = lineSmokeFromPlacement(ab);
+                    if (!geom) return null;
+                    return (
+                      <MapFixedSingleLineSmoke
+                        key={`smoke-line-single-${ab.id}`}
+                        cx={geom.cx}
+                        cy={geom.cy}
+                        facing={geom.facing}
+                        length={getFixedSingleLineSmokeLength(ab.agentId, ab.abilitySlot)}
+                        strokeWidth={getLineSmokeStrokeWidth(ab.agentId, ab.abilitySlot)}
+                        color={getLineSmokeColor(ab.agentId, ab.abilitySlot)}
+                        onCmdClick={(anchor) => {
+                          closeAllMapPopovers();
+                          openAbilityInstancePopover(ab.id, anchor);
+                        }}
+                      />
+                    );
+                  }
+                  if (isDrawableCurveSmokeAbility(ab.agentId, ab.abilitySlot)) {
+                    const curve = curveSmokeFromPlacement(ab);
+                    if (!curve) return null;
+                    return (
+                      <MapCurveSmoke
+                        key={`smoke-curve-${ab.id}`}
+                        points={curve.points}
+                        strokeWidth={getLineSmokeStrokeWidth(ab.agentId, ab.abilitySlot)}
+                        color={getLineSmokeColor(ab.agentId, ab.abilitySlot)}
+                        onCmdClick={(anchor) => {
+                          closeAllMapPopovers();
+                          openAbilityInstancePopover(ab.id, anchor);
+                        }}
+                      />
+                    );
+                  }
                   return null;
                 })}
                 {placingSphericalSmoke && sphericalSmokePreview ? (
@@ -500,6 +861,7 @@ const Map = () => {
                     y={sphericalSmokePreview.y}
                     radius={sphericalSmokeRadius}
                     side={sphericalSmokeSide}
+                    variant={sphericalSmokeVariant}
                     preview
                   />
                 ) : null}
@@ -514,6 +876,29 @@ const Map = () => {
                     spacing={fixedDualLineMeta.spacing}
                     strokeWidth={fixedDualLineMeta.strokeWidth}
                     color={fixedDualLineMeta.color}
+                    preview
+                  />
+                ) : null}
+                {placingFixedSingleLineSmoke &&
+                fixedSingleLineSmokePreview &&
+                fixedSingleLineMeta ? (
+                  <MapFixedSingleLineSmoke
+                    cx={fixedSingleLineSmokePreview.cx}
+                    cy={fixedSingleLineSmokePreview.cy}
+                    facing={fixedSingleLineSmokePreview.facing}
+                    length={fixedSingleLineMeta.length}
+                    strokeWidth={fixedSingleLineMeta.strokeWidth}
+                    color={fixedSingleLineMeta.color}
+                    preview
+                  />
+                ) : null}
+                {placingCurveSmoke &&
+                curveSmokePreviewPoints.length >= 2 &&
+                curveSmokeMeta ? (
+                  <MapCurveSmoke
+                    points={curveSmokePreviewPoints}
+                    strokeWidth={curveSmokeMeta.strokeWidth}
+                    color={curveSmokeMeta.color}
                     preview
                   />
                 ) : null}

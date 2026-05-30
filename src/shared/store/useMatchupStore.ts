@@ -2,10 +2,18 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import type { AbilitySlot } from '@/features/abilities/config';
 import {
+  getDrawableCurveMaxLength,
   getSmokeDurationSec,
+  isDrawableCurveSmokeAbility,
   isFixedDualLineSmokeAbility,
+  isFixedSingleLineSmokeAbility,
   isSphericalSmokeAbility,
 } from '@/features/abilities/config';
+import {
+  clampCurvePointsToMaxLength,
+  curveSmokeAnchor,
+  isValidCurveSmokePoints,
+} from '@/shared/utils/curveSmokeGeometry';
 import { useTimelineKeyframeStore } from '@/shared/store/timelineKeyframeStore';
 import { useTimelinePlaybackStore } from '@/shared/store/timelinePlaybackStore';
 import { buildAbilityDeployEvent } from '@/shared/utils/timelineAbilityMutations';
@@ -44,6 +52,12 @@ interface MatchupState {
   /** 固定双线烟放置预览（仅内存） */
   fixedDualLineSmokePlacementId: string | null;
   fixedDualLineSmokePreview: { cx: number; cy: number; facing: number } | null;
+  /** 固定单线烟放置预览（仅内存，朝向锁定施放者） */
+  fixedSingleLineSmokePlacementId: string | null;
+  fixedSingleLineSmokePreview: { cx: number; cy: number; facing: number } | null;
+  /** 可画曲线烟（仅内存） */
+  curveSmokePlacementId: string | null;
+  curveSmokePreviewPoints: number[];
   /** 地图上当前选中的特工 placement（仅内存，不参与 persist） */
   selectedPlacementId: string | null;
   setSelectedPlacementId: (id: string | null) => void;
@@ -62,6 +76,14 @@ interface MatchupState {
   updateFixedDualLineSmokePreview: (cx: number, cy: number, facing: number) => void;
   cancelFixedDualLineSmokePlacement: () => void;
   confirmFixedDualLineSmokePlacement: (cx: number, cy: number, facing: number) => void;
+  beginFixedSingleLineSmokePlacement: (abilityPlacementId: string) => void;
+  updateFixedSingleLineSmokePreview: (cx: number, cy: number, facing: number) => void;
+  cancelFixedSingleLineSmokePlacement: () => void;
+  confirmFixedSingleLineSmokePlacement: (cx: number, cy: number, facing: number) => void;
+  beginCurveSmokePlacement: (abilityPlacementId: string) => void;
+  setCurveSmokePreviewPoints: (points: number[]) => void;
+  cancelCurveSmokePlacement: () => void;
+  confirmCurveSmokePlacement: (points: number[]) => void;
   spawnAbilityPlacement: (input: SpawnAbilityInput) => void;
   spawnAbilityAtMapCenter: (
     input: Omit<SpawnAbilityInput, 'x' | 'y'>
@@ -79,7 +101,7 @@ interface MatchupState {
   ) => void;
   patchAbilityPlacement: (
     id: string,
-    patch: Partial<Pick<AbilityPlacement, 'x' | 'y' | 'state' | 'lineSmoke'>>
+    patch: Partial<Pick<AbilityPlacement, 'x' | 'y' | 'state' | 'lineSmoke' | 'curveSmoke'>>
   ) => void;
   removeAbilityPlacement: (id: string) => void;
   /** 移除技能并归还技能点给施放者（归还逻辑待 buy-loadout 模块实现） */
@@ -120,6 +142,10 @@ export const useMatchupStore = create<MatchupState>()(
       sphericalSmokePreview: null,
       fixedDualLineSmokePlacementId: null,
       fixedDualLineSmokePreview: null,
+      fixedSingleLineSmokePlacementId: null,
+      fixedSingleLineSmokePreview: null,
+      curveSmokePlacementId: null,
+      curveSmokePreviewPoints: [],
       selectedPlacementId: null,
       selectedAbilityPlacementId: null,
       setSelectedPlacementId: (id) =>
@@ -179,6 +205,10 @@ export const useMatchupStore = create<MatchupState>()(
             sphericalSmokePreview: { x: placement.x, y: placement.y },
             fixedDualLineSmokePlacementId: null,
             fixedDualLineSmokePreview: null,
+            fixedSingleLineSmokePlacementId: null,
+            fixedSingleLineSmokePreview: null,
+            curveSmokePlacementId: null,
+            curveSmokePreviewPoints: [],
             abilityInstancePopoverId: null,
             abilityInstancePopoverAnchor: null,
             abilityPopoverPlacementId: null,
@@ -215,6 +245,10 @@ export const useMatchupStore = create<MatchupState>()(
             fixedDualLineSmokePreview: { cx: placement.x, cy: placement.y, facing },
             sphericalSmokePlacementId: null,
             sphericalSmokePreview: null,
+            fixedSingleLineSmokePlacementId: null,
+            fixedSingleLineSmokePreview: null,
+            curveSmokePlacementId: null,
+            curveSmokePreviewPoints: [],
             abilityInstancePopoverId: null,
             abilityInstancePopoverAnchor: null,
             abilityPopoverPlacementId: null,
@@ -231,6 +265,78 @@ export const useMatchupStore = create<MatchupState>()(
         set({
           fixedDualLineSmokePlacementId: null,
           fixedDualLineSmokePreview: null,
+        }),
+      beginFixedSingleLineSmokePlacement: (abilityPlacementId) =>
+        set((s) => {
+          const placement = s.abilityPlacements.find((p) => p.id === abilityPlacementId);
+          if (
+            !placement ||
+            placement.state !== 'initial' ||
+            !isFixedSingleLineSmokeAbility(placement.agentId, placement.abilitySlot)
+          ) {
+            return s;
+          }
+          const owner = s.mapPlacements.find((p) => p.id === placement.ownerPlacementId);
+          const facing = owner
+            ? Math.atan2(placement.y - owner.y, placement.x - owner.x)
+            : 0;
+          return {
+            fixedSingleLineSmokePlacementId: abilityPlacementId,
+            fixedSingleLineSmokePreview: { cx: placement.x, cy: placement.y, facing },
+            sphericalSmokePlacementId: null,
+            sphericalSmokePreview: null,
+            fixedDualLineSmokePlacementId: null,
+            fixedDualLineSmokePreview: null,
+            curveSmokePlacementId: null,
+            curveSmokePreviewPoints: [],
+            abilityInstancePopoverId: null,
+            abilityInstancePopoverAnchor: null,
+            abilityPopoverPlacementId: null,
+            abilityPopoverAnchor: null,
+          };
+        }),
+      updateFixedSingleLineSmokePreview: (cx, cy, facing) =>
+        set((s) =>
+          s.fixedSingleLineSmokePlacementId
+            ? { fixedSingleLineSmokePreview: { cx, cy, facing } }
+            : s
+        ),
+      cancelFixedSingleLineSmokePlacement: () =>
+        set({
+          fixedSingleLineSmokePlacementId: null,
+          fixedSingleLineSmokePreview: null,
+        }),
+      beginCurveSmokePlacement: (abilityPlacementId) =>
+        set((s) => {
+          const placement = s.abilityPlacements.find((p) => p.id === abilityPlacementId);
+          if (
+            !placement ||
+            placement.state !== 'initial' ||
+            !isDrawableCurveSmokeAbility(placement.agentId, placement.abilitySlot)
+          ) {
+            return s;
+          }
+          return {
+            curveSmokePlacementId: abilityPlacementId,
+            curveSmokePreviewPoints: [],
+            sphericalSmokePlacementId: null,
+            sphericalSmokePreview: null,
+            fixedDualLineSmokePlacementId: null,
+            fixedDualLineSmokePreview: null,
+            fixedSingleLineSmokePlacementId: null,
+            fixedSingleLineSmokePreview: null,
+            abilityInstancePopoverId: null,
+            abilityInstancePopoverAnchor: null,
+            abilityPopoverPlacementId: null,
+            abilityPopoverAnchor: null,
+          };
+        }),
+      setCurveSmokePreviewPoints: (points) =>
+        set((s) => (s.curveSmokePlacementId ? { curveSmokePreviewPoints: points } : s)),
+      cancelCurveSmokePlacement: () =>
+        set({
+          curveSmokePlacementId: null,
+          curveSmokePreviewPoints: [],
         }),
       confirmSphericalSmokePlacement: (x, y) => {
         const id = useMatchupStore.getState().sphericalSmokePlacementId;
@@ -295,6 +401,81 @@ export const useMatchupStore = create<MatchupState>()(
           abilityPlacements: s.abilityPlacements.map((p) => (p.id === id ? updated : p)),
           fixedDualLineSmokePlacementId: null,
           fixedDualLineSmokePreview: null,
+        }));
+        const startEvent = buildAbilityDeployEvent(updated, 'start');
+        const endEvent = buildAbilityDeployEvent(updated, 'end');
+        useTimelineKeyframeStore.getState().recordAbilityDeployAtTime(startT, startEvent);
+        useTimelineKeyframeStore.getState().recordAbilityDeployAtTime(endT, endEvent);
+        syncLiveAbilityPlacementsForPlayhead(currentTime);
+      },
+      confirmFixedSingleLineSmokePlacement: (cx, cy, facing) => {
+        const id = useMatchupStore.getState().fixedSingleLineSmokePlacementId;
+        if (!id) return;
+        const target = useMatchupStore.getState().abilityPlacements.find((p) => p.id === id);
+        if (!target || !isFixedSingleLineSmokeAbility(target.agentId, target.abilitySlot)) {
+          useMatchupStore.setState({
+            fixedSingleLineSmokePlacementId: null,
+            fixedSingleLineSmokePreview: null,
+          });
+          return;
+        }
+        const { currentTime, maxTime } = useTimelinePlaybackStore.getState();
+        const startT = quantizeTimelineSeconds(currentTime, maxTime);
+        const duration = getSmokeDurationSec(target.agentId, target.abilitySlot);
+        const endT = quantizeTimelineSeconds(Math.min(startT + duration, maxTime), maxTime);
+        const lineSmoke = { cx, cy, facing };
+        const updated = {
+          ...target,
+          x: cx,
+          y: cy,
+          state: 'active' as const,
+          activeAt: startT,
+          expiresAt: endT,
+          lineSmoke,
+        };
+        useMatchupStore.setState((s) => ({
+          abilityPlacements: s.abilityPlacements.map((p) => (p.id === id ? updated : p)),
+          fixedSingleLineSmokePlacementId: null,
+          fixedSingleLineSmokePreview: null,
+        }));
+        const startEvent = buildAbilityDeployEvent(updated, 'start');
+        const endEvent = buildAbilityDeployEvent(updated, 'end');
+        useTimelineKeyframeStore.getState().recordAbilityDeployAtTime(startT, startEvent);
+        useTimelineKeyframeStore.getState().recordAbilityDeployAtTime(endT, endEvent);
+        syncLiveAbilityPlacementsForPlayhead(currentTime);
+      },
+      confirmCurveSmokePlacement: (points) => {
+        const id = useMatchupStore.getState().curveSmokePlacementId;
+        if (!id || !isValidCurveSmokePoints(points)) return;
+        const target = useMatchupStore.getState().abilityPlacements.find((p) => p.id === id);
+        if (!target || !isDrawableCurveSmokeAbility(target.agentId, target.abilitySlot)) {
+          useMatchupStore.setState({
+            curveSmokePlacementId: null,
+            curveSmokePreviewPoints: [],
+          });
+          return;
+        }
+        const maxLen = getDrawableCurveMaxLength(target.agentId, target.abilitySlot);
+        const clamped = clampCurvePointsToMaxLength(points, maxLen);
+        if (!isValidCurveSmokePoints(clamped)) return;
+        const { currentTime, maxTime } = useTimelinePlaybackStore.getState();
+        const startT = quantizeTimelineSeconds(currentTime, maxTime);
+        const duration = getSmokeDurationSec(target.agentId, target.abilitySlot);
+        const endT = quantizeTimelineSeconds(Math.min(startT + duration, maxTime), maxTime);
+        const anchor = curveSmokeAnchor(clamped);
+        const updated = {
+          ...target,
+          x: anchor.x,
+          y: anchor.y,
+          state: 'active' as const,
+          activeAt: startT,
+          expiresAt: endT,
+          curveSmoke: { points: [...clamped] },
+        };
+        useMatchupStore.setState((s) => ({
+          abilityPlacements: s.abilityPlacements.map((p) => (p.id === id ? updated : p)),
+          curveSmokePlacementId: null,
+          curveSmokePreviewPoints: [],
         }));
         const startEvent = buildAbilityDeployEvent(updated, 'start');
         const endEvent = buildAbilityDeployEvent(updated, 'end');

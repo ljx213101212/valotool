@@ -1,4 +1,5 @@
 .map-root {
+  position: relative;
   width: 100%;
   min-height: 100%;
   height: 100%;
@@ -7,6 +8,51 @@
   transition:
     box-shadow 0.15s ease,
     outline-color 0.15s ease;
+}
+
+.map-debug-toolbar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  max-width: 168px;
+  pointer-events: auto;
+}
+
+.map-debug-toolbar__btn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(15, 25, 35, 0.9);
+  font: 11px/1.3 ui-monospace, monospace;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    filter: brightness(1.15);
+  }
+}
+
+.map-debug-toolbar__btn--danger {
+  border: 1px solid rgba(248, 113, 113, 0.6);
+  color: #fca5a5;
+
+  &:hover {
+    background: rgba(127, 29, 29, 0.5);
+  }
+}
+
+.map-debug-toolbar__btn--line {
+  border: 1px solid rgba(56, 189, 248, 0.55);
+  color: #7dd3fc;
+}
+
+.map-debug-toolbar__btn--sphere {
+  border: 1px solid rgba(163, 163, 163, 0.55);
+  color: #d4d4d4;
 }
 
 .map-root--drop-over {

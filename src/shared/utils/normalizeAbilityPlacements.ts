@@ -1,5 +1,6 @@
 import type { AbilityPlacement, AbilityPlacementState } from '@/shared/types/ability';
 import type { LineSmokeGeometry } from '@/shared/types/lineSmoke';
+import type { CurveSmokeGeometry } from '@/shared/types/curveSmoke';
 
 const VALID_STATES = new Set<AbilityPlacementState>(['initial', 'active', 'expired']);
 
@@ -17,6 +18,16 @@ function normalizeLineSmoke(raw: unknown): LineSmokeGeometry | undefined {
     return undefined;
   }
   return { cx: ls.cx, cy: ls.cy, facing: ls.facing };
+}
+
+function normalizeCurveSmoke(raw: unknown): CurveSmokeGeometry | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const cs = raw as Partial<CurveSmokeGeometry>;
+  if (!Array.isArray(cs.points) || cs.points.length < 4) return undefined;
+  if (!cs.points.every((n) => typeof n === 'number' && Number.isFinite(n))) {
+    return undefined;
+  }
+  return { points: cs.points };
 }
 
 export function normalizeAbilityPlacements(
@@ -47,6 +58,20 @@ export function normalizeAbilityPlacements(
     const expiresAt =
       typeof p.expiresAt === 'number' && Number.isFinite(p.expiresAt) ? p.expiresAt : undefined;
     const lineSmoke = normalizeLineSmoke(p.lineSmoke);
+    const curveSmoke = normalizeCurveSmoke(p.curveSmoke);
+    const legacyWall = p as { wallSmoke?: { cx?: number; cy?: number; facing?: number } };
+    const wallAsLine =
+      !lineSmoke &&
+      legacyWall.wallSmoke &&
+      typeof legacyWall.wallSmoke.cx === 'number' &&
+      typeof legacyWall.wallSmoke.cy === 'number' &&
+      typeof legacyWall.wallSmoke.facing === 'number'
+        ? {
+            cx: legacyWall.wallSmoke.cx,
+            cy: legacyWall.wallSmoke.cy,
+            facing: legacyWall.wallSmoke.facing,
+          }
+        : undefined;
     out.push({
       id: p.id,
       ownerPlacementId: p.ownerPlacementId,
@@ -58,7 +83,8 @@ export function normalizeAbilityPlacements(
       placedAt,
       ...(activeAt != null ? { activeAt } : {}),
       ...(expiresAt != null ? { expiresAt } : {}),
-      ...(lineSmoke ? { lineSmoke } : {}),
+      ...(lineSmoke ? { lineSmoke } : wallAsLine ? { lineSmoke: wallAsLine } : {}),
+      ...(curveSmoke ? { curveSmoke } : {}),
     });
   }
   return out;

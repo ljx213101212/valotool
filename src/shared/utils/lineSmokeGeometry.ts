@@ -40,3 +40,21 @@ export function lineSmokeFromPlacement(
   if (placement.lineSmoke) return placement.lineSmoke;
   return null;
 }
+
+/** 可转向单墙线段端点（以中心沿 facing ±半长） */
+export function computeWallSegment(
+  cx: number,
+  cy: number,
+  facing: number,
+  length: number,
+): [number, number, number, number] {
+  const halfLen = length / 2;
+  const dirX = Math.cos(facing);
+  const dirY = Math.sin(facing);
+  return [
+    cx - dirX * halfLen,
+    cy - dirY * halfLen,
+    cx + dirX * halfLen,
+    cy + dirY * halfLen,
+  ];
+}
