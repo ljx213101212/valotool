@@ -90,6 +90,15 @@ interface MatchupState {
   /** 炸药包放置预览（从预备期 token 激活） */
   blastPackPlacementId: string | null;
   blastPackPreview: { x: number; y: number } | null;
+  /** 炸药包放置预览（从 Raze 头像技能 popover 直接触发） */
+  blastPackPlacementDraft: {
+    ownerPlacementId: string;
+    agentId: string;
+    abilitySlot: AbilitySlot;
+    range: number;
+    previewX: number;
+    previewY: number;
+  } | null;
   /** 地图上当前选中的特工 placement（仅内存，不参与 persist） */
   selectedPlacementId: string | null;
   setSelectedPlacementId: (id: string | null) => void;
@@ -121,6 +130,9 @@ interface MatchupState {
   cancelDirectMovementPlacement: () => void;
   confirmDirectMovementPlacement: (targetX: number, targetY: number) => void;
   beginBlastPackPlacement: (abilityPlacementId: string) => void;
+  beginBlastPackPlacementFromAgent: (
+    input: Omit<SpawnAbilityInput, 'x' | 'y'>
+  ) => void;
   updateBlastPackPreview: (targetX: number, targetY: number) => void;
   cancelBlastPackPlacement: () => void;
   confirmBlastPackPlacement: (targetX: number, targetY: number) => void;
@@ -214,6 +226,7 @@ export const useMatchupStore = create<MatchupState>()(
       anchorMovementPlacementDraft: null,
       blastPackPlacementId: null,
       blastPackPreview: null,
+      blastPackPlacementDraft: null,
       selectedPlacementId: null,
       selectedAbilityPlacementId: null,
       setSelectedPlacementId: (id) =>
@@ -282,6 +295,7 @@ export const useMatchupStore = create<MatchupState>()(
             anchorMovementPlacementDraft: null,
             blastPackPlacementId: null,
             blastPackPreview: null,
+            blastPackPlacementDraft: null,
             abilityInstancePopoverId: null,
             abilityInstancePopoverAnchor: null,
             abilityPopoverPlacementId: null,
@@ -327,6 +341,7 @@ export const useMatchupStore = create<MatchupState>()(
             anchorMovementPlacementDraft: null,
             blastPackPlacementId: null,
             blastPackPreview: null,
+            blastPackPlacementDraft: null,
             abilityInstancePopoverId: null,
             abilityInstancePopoverAnchor: null,
             abilityPopoverPlacementId: null,
@@ -372,6 +387,7 @@ export const useMatchupStore = create<MatchupState>()(
             anchorMovementPlacementDraft: null,
             blastPackPlacementId: null,
             blastPackPreview: null,
+            blastPackPlacementDraft: null,
             abilityInstancePopoverId: null,
             abilityInstancePopoverAnchor: null,
             abilityPopoverPlacementId: null,
@@ -413,6 +429,7 @@ export const useMatchupStore = create<MatchupState>()(
             anchorMovementPlacementDraft: null,
             blastPackPlacementId: null,
             blastPackPreview: null,
+            blastPackPlacementDraft: null,
             abilityInstancePopoverId: null,
             abilityInstancePopoverAnchor: null,
             abilityPopoverPlacementId: null,
@@ -608,6 +625,7 @@ export const useMatchupStore = create<MatchupState>()(
             anchorMovementPlacementDraft: null,
             blastPackPlacementId: null,
             blastPackPreview: null,
+            blastPackPlacementDraft: null,
             abilityInstancePopoverId: null,
             abilityInstancePopoverAnchor: null,
             abilityPopoverPlacementId: null,
@@ -735,6 +753,46 @@ export const useMatchupStore = create<MatchupState>()(
             directMovementPlacementId: null,
             directMovementPreview: null,
             anchorMovementPlacementDraft: null,
+            blastPackPlacementDraft: null,
+            abilityInstancePopoverId: null,
+            abilityInstancePopoverAnchor: null,
+            abilityPopoverPlacementId: null,
+            abilityPopoverAnchor: null,
+          };
+        }),
+      beginBlastPackPlacementFromAgent: (input) =>
+        set((s) => {
+          const owner = s.mapPlacements.find((p) => p.id === input.ownerPlacementId);
+          if (
+            !owner ||
+            owner.eliminated ||
+            !isBlastPackMovementAbility(input.agentId, input.abilitySlot)
+          ) {
+            return s;
+          }
+          const range = getMovementRange(input.agentId, input.abilitySlot);
+          return {
+            blastPackPlacementDraft: {
+              ownerPlacementId: input.ownerPlacementId,
+              agentId: input.agentId,
+              abilitySlot: input.abilitySlot,
+              range,
+              previewX: owner.x,
+              previewY: owner.y,
+            },
+            sphericalSmokePlacementId: null,
+            sphericalSmokePreview: null,
+            fixedDualLineSmokePlacementId: null,
+            fixedDualLineSmokePreview: null,
+            fixedSingleLineSmokePlacementId: null,
+            fixedSingleLineSmokePreview: null,
+            curveSmokePlacementId: null,
+            curveSmokePreviewPoints: [],
+            directMovementPlacementId: null,
+            directMovementPreview: null,
+            anchorMovementPlacementDraft: null,
+            blastPackPlacementId: null,
+            blastPackPreview: null,
             abilityInstancePopoverId: null,
             abilityInstancePopoverAnchor: null,
             abilityPopoverPlacementId: null,
@@ -743,6 +801,19 @@ export const useMatchupStore = create<MatchupState>()(
         }),
       updateBlastPackPreview: (targetX, targetY) =>
         set((s) => {
+          if (s.blastPackPlacementDraft) {
+            const draft = s.blastPackPlacementDraft;
+            const owner = s.mapPlacements.find((p) => p.id === draft.ownerPlacementId);
+            if (!owner) return s;
+            const target = clampPointToMovementRange(owner.x, owner.y, targetX, targetY, draft.range);
+            return {
+              blastPackPlacementDraft: {
+                ...draft,
+                previewX: target.x,
+                previewY: target.y,
+              },
+            };
+          }
           if (!s.blastPackPlacementId) return s;
           const placement = s.abilityPlacements.find((p) => p.id === s.blastPackPlacementId);
           const owner = placement
@@ -757,11 +828,43 @@ export const useMatchupStore = create<MatchupState>()(
         set({
           blastPackPlacementId: null,
           blastPackPreview: null,
+          blastPackPlacementDraft: null,
         }),
       confirmBlastPackPlacement: (targetX, targetY) => {
-        const { blastPackPlacementId } = useMatchupStore.getState();
-        if (!blastPackPlacementId) return;
         const state = useMatchupStore.getState();
+        const draft = state.blastPackPlacementDraft;
+        if (draft) {
+          const owner = state.mapPlacements.find((p) => p.id === draft.ownerPlacementId);
+          if (!owner) {
+            useMatchupStore.setState({ blastPackPlacementDraft: null });
+            return;
+          }
+          const end = clampPointToMovementRange(owner.x, owner.y, targetX, targetY, draft.range);
+          useMatchupStore.setState((s) => ({
+            abilityPlacements: [
+              ...s.abilityPlacements,
+              {
+                id: crypto.randomUUID(),
+                ownerPlacementId: draft.ownerPlacementId,
+                agentId: draft.agentId,
+                abilitySlot: draft.abilitySlot,
+                x: end.x,
+                y: end.y,
+                state: 'active' as const,
+                placedAt: Date.now(),
+                anchorMovement: {
+                  kind: 'blast-pack' as const,
+                  status: 'armed' as const,
+                  radius: BLAST_PACK_IMPACT_RADIUS,
+                },
+              },
+            ],
+            blastPackPlacementDraft: null,
+          }));
+          return;
+        }
+        const { blastPackPlacementId } = state;
+        if (!blastPackPlacementId) return;
         const target = state.abilityPlacements.find((p) => p.id === blastPackPlacementId);
         const owner = target
           ? state.mapPlacements.find((p) => p.id === target.ownerPlacementId)
@@ -789,6 +892,7 @@ export const useMatchupStore = create<MatchupState>()(
           ),
           blastPackPlacementId: null,
           blastPackPreview: null,
+          blastPackPlacementDraft: null,
         }));
       },
       beginAnchorMovementPlacement: (input) =>
@@ -921,6 +1025,10 @@ export const useMatchupStore = create<MatchupState>()(
         }
         if (isStaticAnchorMovementAbility(input.agentId, input.abilitySlot)) {
           useMatchupStore.getState().beginAnchorMovementPlacement(input);
+          return;
+        }
+        if (isBlastPackMovementAbility(input.agentId, input.abilitySlot)) {
+          useMatchupStore.getState().beginBlastPackPlacementFromAgent(input);
           return;
         }
         useMatchupStore.getState().spawnAbilityAtMapCenter(input);

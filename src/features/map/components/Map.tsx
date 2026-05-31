@@ -121,6 +121,7 @@ const Map = () => {
   const confirmAnchorMovementPlacement = useMatchupStore((s) => s.confirmAnchorMovementPlacement);
   const blastPackPlacementId = useMatchupStore((s) => s.blastPackPlacementId);
   const blastPackPreview = useMatchupStore((s) => s.blastPackPreview);
+  const blastPackPlacementDraft = useMatchupStore((s) => s.blastPackPlacementDraft);
   const updateBlastPackPreview = useMatchupStore((s) => s.updateBlastPackPreview);
   const cancelBlastPackPlacement = useMatchupStore((s) => s.cancelBlastPackPlacement);
   const confirmBlastPackPlacement = useMatchupStore((s) => s.confirmBlastPackPlacement);
@@ -145,7 +146,8 @@ const Map = () => {
   const placingCurveSmoke = !!curveSmokePlacementId;
   const placingDirectMovement = !!directMovementPlacementId && !!directMovementPreview;
   const placingAnchorMovement = !!anchorMovementPlacementDraft;
-  const placingBlastPack = !!blastPackPlacementId && !!blastPackPreview;
+  const placingBlastPack =
+    !!blastPackPlacementDraft || (!!blastPackPlacementId && !!blastPackPreview);
   const placingSmoke =
     placingSphericalSmoke ||
     placingFixedDualLineSmoke ||
@@ -260,9 +262,22 @@ const Map = () => {
   );
 
   const blastPackOwner = useMemo(() => {
+    if (blastPackPlacementDraft) {
+      return mapPlacements.find((p) => p.id === blastPackPlacementDraft.ownerPlacementId);
+    }
     if (!blastPackPlacement) return undefined;
     return mapPlacements.find((p) => p.id === blastPackPlacement.ownerPlacementId);
-  }, [blastPackPlacement, mapPlacements]);
+  }, [blastPackPlacement, blastPackPlacementDraft, mapPlacements]);
+
+  const blastPackPreviewPoint = blastPackPlacementDraft
+    ? { x: blastPackPlacementDraft.previewX, y: blastPackPlacementDraft.previewY }
+    : blastPackPreview;
+
+  const blastPackPlacementRange =
+    blastPackPlacementDraft?.range ??
+    (blastPackPlacement
+      ? getMovementRange(blastPackPlacement.agentId, blastPackPlacement.abilitySlot)
+      : 0);
 
   const sphericalSmokeVariant = useMemo(() => {
     if (!sphericalSmokePlacement) return 'default' as const;
@@ -1208,12 +1223,12 @@ const Map = () => {
                     />
                   </>
                 ) : null}
-                {placingBlastPack && blastPackPreview && blastPackOwner && blastPackPlacement ? (
+                {placingBlastPack && blastPackPreviewPoint && blastPackOwner ? (
                   <>
                     <Circle
                       x={blastPackOwner.x}
                       y={blastPackOwner.y}
-                      radius={getMovementRange(blastPackPlacement.agentId, blastPackPlacement.abilitySlot)}
+                      radius={blastPackPlacementRange}
                       stroke="rgba(248, 113, 113, 0.72)"
                       strokeWidth={2}
                       dash={[7, 6]}
@@ -1221,8 +1236,8 @@ const Map = () => {
                       listening={false}
                     />
                     <Circle
-                      x={blastPackPreview.x}
-                      y={blastPackPreview.y}
+                      x={blastPackPreviewPoint.x}
+                      y={blastPackPreviewPoint.y}
                       radius={12}
                       stroke="rgba(248, 113, 113, 0.95)"
                       strokeWidth={2}
