@@ -1,5 +1,5 @@
 import type { AbilityPlacement } from '@/shared/types/ability';
-import type { DirectMovementGeometry } from '@/shared/types/movement';
+import type { DirectMovementGeometry, MovementDisplacement } from '@/shared/types/movement';
 
 export function clampPointToMovementRange(
   startX: number,
@@ -27,4 +27,12 @@ export function directMovementFromPlacement(
   placement: AbilityPlacement,
 ): DirectMovementGeometry | null {
   return placement.directMovement ?? null;
+}
+
+export function movementDisplacementsFromPlacement(
+  placement: AbilityPlacement,
+): MovementDisplacement[] {
+  const movement = directMovementFromPlacement(placement);
+  if (!movement) return [];
+  return movement.impactedPlacements?.length ? movement.impactedPlacements : [movement];
 }

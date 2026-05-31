@@ -42,6 +42,7 @@ import { isDeployedAbilityVisibleAtPlayhead } from '@/shared/utils/timelineAbili
 import { clientPointToMapStage } from '@/shared/utils/mapStagePointer';
 import {
   directMovementFromPlacement,
+  movementDisplacementsFromPlacement,
 } from '@/shared/utils/directMovementGeometry';
 import { timelineTimesEqualStep } from '@/shared/utils/timelineQuantize';
 import {
@@ -1022,21 +1023,27 @@ const Map = () => {
                     ) {
                       return null;
                     }
-                    const owner = mapPlacements.find((p) => p.id === ab.ownerPlacementId);
-                    return (
-                      <MapDirectMovement
-                        key={`movement-direct-${ab.id}`}
-                        startX={movement.startX}
-                        startY={movement.startY}
-                        endX={movement.endX}
-                        endY={movement.endY}
-                        side={owner?.side ?? 'attack'}
-                        onCmdClick={(anchor) => {
-                          closeAllMapPopovers();
-                          openAbilityInstancePopover(ab.id, anchor);
-                        }}
-                      />
-                    );
+                    const displacements = movementDisplacementsFromPlacement(ab);
+                    return displacements.map((entry, index) => {
+                      const impacted = entry.placementId
+                        ? mapPlacements.find((p) => p.id === entry.placementId)
+                        : undefined;
+                      const owner = mapPlacements.find((p) => p.id === ab.ownerPlacementId);
+                      return (
+                        <MapDirectMovement
+                          key={`movement-direct-${ab.id}-${entry.placementId ?? index}`}
+                          startX={entry.startX}
+                          startY={entry.startY}
+                          endX={entry.endX}
+                          endY={entry.endY}
+                          side={impacted?.side ?? owner?.side ?? 'attack'}
+                          onCmdClick={(anchor) => {
+                            closeAllMapPopovers();
+                            openAbilityInstancePopover(ab.id, anchor);
+                          }}
+                        />
+                      );
+                    });
                   }
                   if (!isDeployedAbilityVisibleAtPlayhead(ab, timelineCurrentTime)) {
                     return null;

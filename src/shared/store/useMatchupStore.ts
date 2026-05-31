@@ -14,6 +14,7 @@ import {
   isFixedSingleLineSmokeAbility,
   isSphericalSmokeAbility,
   isStaticAnchorMovementAbility,
+  smokeMapUnitsFromMeters,
 } from '@/features/abilities/config';
 import {
   clampCurvePointsToMaxLength,
@@ -32,6 +33,8 @@ import { nextAbilitySpawnPoint } from '@/shared/utils/abilitySpawnPosition';
 import { normalizeAbilityPlacements } from '@/shared/utils/normalizeAbilityPlacements';
 import { reconcileMapPlacements } from '@/shared/utils/reconcileMapPlacements';
 import type { MovementAnchorKind } from '@/shared/types/movement';
+
+const BLAST_PACK_IMPACT_RADIUS = smokeMapUnitsFromMeters(6);
 
 export type { MatchupSide, MapAgentPlacement } from '@/shared/types/matchup';
 
@@ -777,7 +780,7 @@ export const useMatchupStore = create<MatchupState>()(
           anchorMovement: {
             kind: 'blast-pack' as const,
             status: 'armed' as const,
-            radius: range,
+            radius: BLAST_PACK_IMPACT_RADIUS,
           },
         };
         useMatchupStore.setState((s) => ({
@@ -930,36 +933,54 @@ export const useMatchupStore = create<MatchupState>()(
         const { currentTime, maxTime } = useTimelinePlaybackStore.getState();
         const deployT = quantizeTimelineSeconds(currentTime, maxTime);
         const range = getMovementRange(armed.agentId, armed.abilitySlot);
-        const dx = owner.x - armed.x;
-        const dy = owner.y - armed.y;
-        const dist = Math.hypot(dx, dy);
-        const blastFacing = dist > 1e-6 ? Math.atan2(dy, dx) : owner.facing;
-        const end =
+        const activationDelaySec = getMovementActivationDelaySec(armed.agentId, armed.abilitySlot);
+        const blastRadius = armed.anchorMovement.radius ?? BLAST_PACK_IMPACT_RADIUS;
+        const impactedPlacements =
           armed.anchorMovement.kind === 'blast-pack'
-            ? {
-                x: owner.x + Math.cos(blastFacing) * range,
-                y: owner.y + Math.sin(blastFacing) * range,
-                facing: blastFacing,
-              }
-            : {
-                x: armed.x,
-                y: armed.y,
-                facing: Math.atan2(armed.y - owner.y, armed.x - owner.x),
-              };
+            ? state.mapPlacements
+                .filter((p) => !p.eliminated)
+                .map((p) => {
+                  const dx = p.x - armed.x;
+                  const dy = p.y - armed.y;
+                  const dist = Math.hypot(dx, dy);
+                  if (dist > blastRadius) return null;
+                  const facing = dist > 1e-6 ? Math.atan2(dy, dx) : p.facing;
+                  const strength = Math.max(0, 1 - dist / blastRadius);
+                  const pushDistance = range * strength;
+                  if (pushDistance <= 0) return null;
+                  return {
+                    placementId: p.id,
+                    startX: p.x,
+                    startY: p.y,
+                    endX: p.x + Math.cos(facing) * pushDistance,
+                    endY: p.y + Math.sin(facing) * pushDistance,
+                    facing,
+                  };
+                })
+                .filter((entry): entry is NonNullable<typeof entry> => !!entry)
+            : [
+                {
+                  placementId: owner.id,
+                  startX: owner.x,
+                  startY: owner.y,
+                  endX: armed.x,
+                  endY: armed.y,
+                  facing: Math.atan2(armed.y - owner.y, armed.x - owner.x),
+                },
+              ];
+        const primaryMovement =
+          impactedPlacements.find((entry) => entry.placementId === ownerPlacementId) ??
+          impactedPlacements[0];
+        if (!primaryMovement) return;
+        const impactedByPlacementId = new Map(
+          impactedPlacements.flatMap((entry) =>
+            entry.placementId ? [[entry.placementId, entry] as const] : []
+          )
+        );
         const directMovement = {
-          startX: owner.x,
-          startY: owner.y,
-          endX: end.x,
-          endY: end.y,
-          facing: end.facing,
-          ...(getMovementActivationDelaySec(armed.agentId, armed.abilitySlot) > 0
-            ? {
-                activationDelaySec: getMovementActivationDelaySec(
-                  armed.agentId,
-                  armed.abilitySlot,
-                ),
-              }
-            : {}),
+          ...primaryMovement,
+          ...(activationDelaySec > 0 ? { activationDelaySec } : {}),
+          ...(impactedPlacements.length > 1 ? { impactedPlacements } : {}),
         };
         const updatedAbility = {
           ...armed,
@@ -972,9 +993,12 @@ export const useMatchupStore = create<MatchupState>()(
           },
         };
         useMatchupStore.setState((s) => ({
-          mapPlacements: s.mapPlacements.map((p) =>
-            p.id === ownerPlacementId ? { ...p, x: end.x, y: end.y, facing: end.facing } : p
-          ),
+          mapPlacements: s.mapPlacements.map((p) => {
+            const movement = impactedByPlacementId.get(p.id);
+            return movement
+              ? { ...p, x: movement.endX, y: movement.endY, facing: movement.facing }
+              : p;
+          }),
           abilityPlacements: s.abilityPlacements.map((p) =>
             p.id === armed.id ? updatedAbility : p
           ),
