@@ -1,4 +1,7 @@
 import type { AbilitySlot } from '@/features/abilities/config';
+import type { CurveSmokeGeometry } from '@/shared/types/curveSmoke';
+import type { LineSmokeGeometry } from '@/shared/types/lineSmoke';
+import type { DirectMovementGeometry, MovementAnchorGeometry } from '@/shared/types/movement';
 
 /** 地图上技能实例的生命周期状态 */
 export type AbilityPlacementState = 'initial' | 'active' | 'expired';
@@ -19,6 +22,14 @@ export type AbilityPlacement = {
   activeAt?: number;
   /** 球型烟雾消散时间（时间轴秒，量化后） */
   expiresAt?: number;
+  /** 固定双线烟（如霓虹高速通道） */
+  lineSmoke?: LineSmokeGeometry;
+  /** 可画曲线烟（如火墙、水墙） */
+  curveSmoke?: CurveSmokeGeometry;
+  /** 直接位移路径（如 Jett Tailwind / Omen Shrouded Step） */
+  directMovement?: DirectMovementGeometry;
+  /** 预部署位移锚点（如 Refract / Rendezvous / Blast Pack） */
+  anchorMovement?: MovementAnchorGeometry;
 };
 
 export type AbilityPopoverAnchor = {

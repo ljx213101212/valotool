@@ -71,9 +71,13 @@ function preserveKeyframeEventFields(
   if (!existing) return;
   snapshot.killEvents = [...(existing.snapshot.killEvents ?? [])];
   snapshot.abilityDeployEvents = [...(existing.snapshot.abilityDeployEvents ?? [])];
-  snapshot.matchup.abilityPlacements = structuredClone(
-    existing.snapshot.matchup.abilityPlacements ?? snapshot.matchup.abilityPlacements ?? []
+  const abilityPlacementsById = new Map(
+    (existing.snapshot.matchup.abilityPlacements ?? []).map((p) => [p.id, p])
   );
+  for (const placement of snapshot.matchup.abilityPlacements ?? []) {
+    abilityPlacementsById.set(placement.id, placement);
+  }
+  snapshot.matchup.abilityPlacements = structuredClone([...abilityPlacementsById.values()]);
 }
 
 function mergeKeyframeSnapshotAtTime(
@@ -251,6 +255,50 @@ export const useTimelineKeyframeStore = create<TimelineKeyframeState>()(
             s.sphericalSmokePlacementId === abilityPlacementId
               ? null
               : s.sphericalSmokePreview,
+          fixedDualLineSmokePlacementId:
+            s.fixedDualLineSmokePlacementId === abilityPlacementId
+              ? null
+              : s.fixedDualLineSmokePlacementId,
+          fixedDualLineSmokePreview:
+            s.fixedDualLineSmokePlacementId === abilityPlacementId
+              ? null
+              : s.fixedDualLineSmokePreview,
+          fixedSingleLineSmokePlacementId:
+            s.fixedSingleLineSmokePlacementId === abilityPlacementId
+              ? null
+              : s.fixedSingleLineSmokePlacementId,
+          fixedSingleLineSmokePreview:
+            s.fixedSingleLineSmokePlacementId === abilityPlacementId
+              ? null
+              : s.fixedSingleLineSmokePreview,
+          curveSmokePlacementId:
+            s.curveSmokePlacementId === abilityPlacementId
+              ? null
+              : s.curveSmokePlacementId,
+          curveSmokePreviewPoints:
+            s.curveSmokePlacementId === abilityPlacementId
+              ? []
+              : s.curveSmokePreviewPoints,
+          directMovementPlacementId:
+            s.directMovementPlacementId === abilityPlacementId
+              ? null
+              : s.directMovementPlacementId,
+          directMovementPreview:
+            s.directMovementPlacementId === abilityPlacementId
+              ? null
+              : s.directMovementPreview,
+          blastPackPlacementId:
+            s.blastPackPlacementId === abilityPlacementId
+              ? null
+              : s.blastPackPlacementId,
+          blastPackPreview:
+            s.blastPackPlacementId === abilityPlacementId
+              ? null
+              : s.blastPackPreview,
+          anchorMovementPlacementDraft:
+            s.anchorMovementPlacementDraft?.ownerPlacementId === abilityPlacementId
+              ? null
+              : s.anchorMovementPlacementDraft,
           selectedAbilityPlacementId:
             s.selectedAbilityPlacementId === abilityPlacementId
               ? null

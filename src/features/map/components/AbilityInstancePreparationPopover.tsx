@@ -1,7 +1,15 @@
 import { type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { getAbilityDisplayName } from '@/features/abilities/abilityDisplayName';
-import { isSphericalSmokeAbility } from '@/features/abilities/config';
+import {
+  isBlastPackMovementAbility,
+  isDrawableCurveSmokeAbility,
+  isDirectMovementAbility,
+  isFixedDualLineSmokeAbility,
+  isFixedSingleLineSmokeAbility,
+  isReleasePlacementAbility,
+  isSphericalSmokeAbility,
+} from '@/features/abilities/config';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
 import type { AbilityPlacement, AbilityPopoverAnchor } from '@/shared/types/ability';
 import './AbilityInstanceActionPopover.less';
@@ -25,9 +33,20 @@ export function AbilityInstancePreparationPopover({
   const removeAbilityPlacement = useMatchupStore((s) => s.removeAbilityPlacement);
   const recallAbilityPlacement = useMatchupStore((s) => s.recallAbilityPlacement);
   const beginSphericalSmokePlacement = useMatchupStore((s) => s.beginSphericalSmokePlacement);
+  const beginFixedDualLineSmokePlacement = useMatchupStore(
+    (s) => s.beginFixedDualLineSmokePlacement
+  );
+  const beginFixedSingleLineSmokePlacement = useMatchupStore(
+    (s) => s.beginFixedSingleLineSmokePlacement
+  );
+  const beginCurveSmokePlacement = useMatchupStore((s) => s.beginCurveSmokePlacement);
+  const beginDirectMovementPlacement = useMatchupStore((s) => s.beginDirectMovementPlacement);
+  const beginBlastPackPlacement = useMatchupStore((s) => s.beginBlastPackPlacement);
 
-  const canActivate =
-    isSphericalSmokeAbility(placement.agentId, placement.abilitySlot);
+  const canActivate = isReleasePlacementAbility(
+    placement.agentId,
+    placement.abilitySlot
+  );
 
   const left = anchor.clientX + POPOVER_OFFSET_X;
   const top = anchor.clientY + POPOVER_OFFSET_Y;
@@ -45,7 +64,19 @@ export function AbilityInstancePreparationPopover({
 
   const onActivate = () => {
     if (!canActivate) return;
-    beginSphericalSmokePlacement(placement.id);
+    if (isSphericalSmokeAbility(placement.agentId, placement.abilitySlot)) {
+      beginSphericalSmokePlacement(placement.id);
+    } else if (isFixedDualLineSmokeAbility(placement.agentId, placement.abilitySlot)) {
+      beginFixedDualLineSmokePlacement(placement.id);
+    } else if (isFixedSingleLineSmokeAbility(placement.agentId, placement.abilitySlot)) {
+      beginFixedSingleLineSmokePlacement(placement.id);
+    } else if (isDrawableCurveSmokeAbility(placement.agentId, placement.abilitySlot)) {
+      beginCurveSmokePlacement(placement.id);
+    } else if (isDirectMovementAbility(placement.agentId, placement.abilitySlot)) {
+      beginDirectMovementPlacement(placement.id);
+    } else if (isBlastPackMovementAbility(placement.agentId, placement.abilitySlot)) {
+      beginBlastPackPlacement(placement.id);
+    }
     closeAbilityInstancePopover();
   };
 
@@ -65,7 +96,7 @@ export function AbilityInstancePreparationPopover({
         disabled={!canActivate}
         title={
           canActivate
-            ? '进入释放期：在地图上选择具体施放位置（Esc 取消）'
+            ? '进入释放期：在地图上绘制或放置（Esc 取消）'
             : '该技能暂不支持此释放形式'
         }
         onClick={onActivate}

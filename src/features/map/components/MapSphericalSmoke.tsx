@@ -1,4 +1,5 @@
-import { Circle, Group } from 'react-konva';
+import { Circle, Group, Ring } from 'react-konva';
+import type { SphericalSmokeVariant } from '@/features/abilities/config';
 import type { MatchupSide } from '@/shared/types/matchup';
 import { tacticalSideMapTokenColors } from '@/shared/constants/tacticalSideColors';
 
@@ -9,6 +10,7 @@ export type MapSphericalSmokeProps = {
   y: number;
   radius: number;
   side: MatchupSide;
+  variant?: SphericalSmokeVariant;
   /** 放置预览：半透明 */
   preview?: boolean;
   /** ⌘/Ctrl+点击烟雾时打开技能操作 Popover */
@@ -20,11 +22,13 @@ export function MapSphericalSmoke({
   y,
   radius,
   side,
+  variant = 'default',
   preview = false,
   onCmdClick,
 }: MapSphericalSmokeProps) {
   const { accent } = tacticalSideMapTokenColors(side);
   const opacity = preview ? 0.55 : 1;
+  const isCage = variant === 'cage';
 
   const onSmokeClick = (e: {
     cancelBubble: boolean;
@@ -59,7 +63,28 @@ export function MapSphericalSmoke({
         fillEnabled={false}
         listening={false}
       />
-      <Circle radius={radius} fill={SMOKE_FILL} opacity={opacity} listening={false} />
+      {isCage ? (
+        <>
+          <Circle
+            radius={radius * 0.72}
+            fill={SMOKE_FILL}
+            opacity={opacity * 0.35}
+            listening={false}
+          />
+          <Ring
+            innerRadius={radius * 0.55}
+            outerRadius={radius}
+            stroke={accent}
+            strokeWidth={2}
+            dash={[6, 5]}
+            opacity={opacity * 0.85}
+            fillEnabled={false}
+            listening={false}
+          />
+        </>
+      ) : (
+        <Circle radius={radius} fill={SMOKE_FILL} opacity={opacity} listening={false} />
+      )}
       {!preview && onCmdClick ? (
         <Circle
           radius={radius}

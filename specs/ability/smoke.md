@@ -55,7 +55,7 @@ https://valorant.fandom.com/wiki/
     {
       "agent_zh": "海神",
       "agent_en": "Harbor",
-      "ability_zh": "狂潮",
+      "ability_zh": "水盾",
       "ability_en": "Cove",
       "radius_meters": 4.50,
       "diameter_meters": 9.00,
@@ -105,9 +105,10 @@ https://valorant.fandom.com/wiki/
       "ability_en": "Blaze",
       "radius_meters": null,
       "diameter_meters": null,
+      "length_meters": 18.00,
       "duration_seconds": 8.00,
       "type": "wall",
-      "notes": "长度约15-20米。属于线性视线阻隔（墙），可通过鼠标摆动划出弧线。不死鸟穿过可回血。"
+      "notes": "长度约15-20米，战术板路径上限取18m。可通过鼠标摆动划出弧线。不死鸟穿过可回血。"
     },
     {
       "agent_zh": "霓虹",
@@ -119,9 +120,40 @@ https://valorant.fandom.com/wiki/
       "duration_seconds": 6.00,
       "type": "wall",
       "notes": "向前延伸50米的两道平行闪电光墙。专门为进点撕扯防线设计，属于窄道方向的线性视野阻隔。"
+    },
+    {
+      "agent_zh": "海神",
+      "agent_en": "Harbor",
+      "ability_zh": "狂潮",
+      "ability_en": "High Tide",
+      "radius_meters": null,
+      "diameter_meters": null,
+      "length_meters": 18.00,
+      "duration_seconds": 7.00,
+      "type": "wall",
+      "notes": "可摆动水墙，战术板一期用直线近似。长度与 Phoenix 火墙同量级。"
+    },
+    {
+      "agent_zh": "蝰蛇",
+      "agent_en": "Viper",
+      "ability_zh": "毒幕",
+      "ability_en": "Toxic Screen",
+      "radius_meters": null,
+      "diameter_meters": null,
+      "length_meters": 13.00,
+      "duration_seconds": 8.00,
+      "type": "wall",
+      "notes": "绿色毒墙，游戏内随燃料维持；战术板用固定 8 秒展示。"
     }
   ]
 }
 
 ```
+
+**实现备注**
+
+- Cypher Cyber Cage：释放流程与球型烟相同，`ABILITY_EFFECT_META` 使用较小半径；地图可选 `smokeVariant: cage` 笼状样式。
+- Phoenix Blaze / Harbor High Tide：`smoke-line-drawable`，鼠标拖拽画曲线。
+- Viper Toxic Screen：`smoke-line-fixed-single` 笔直单线，长度 13m，放置交互同霓虹。
+- Phoenix / Harbor 弯曲线烟：路径总长上限见各技能 `length_meters`（18m）。
 
