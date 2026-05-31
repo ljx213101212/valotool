@@ -17,11 +17,11 @@ const armorLabelsByLocale = {
 } as const;
 
 export function getWeaponLabel(locale: WeaponLocale, id: WeaponId): string {
-  return weaponLabelsByLocale[locale][id];
+  return (weaponLabelsByLocale[locale] as Record<string, string>)[id];
 }
 
 export function getArmorLabel(locale: WeaponLocale, id: ArmorId): string {
-  return armorLabelsByLocale[locale][id];
+  return (armorLabelsByLocale[locale] as Record<string, string>)[id];
 }
 
 /** 购买栏武器格 aria 用短后缀（避免整句 UI 文案混在武器模块时可再抽到 app i18n）。 */
