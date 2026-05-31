@@ -3,6 +3,7 @@ import type { LineSmokeGeometry } from '@/shared/types/lineSmoke';
 import type { CurveSmokeGeometry } from '@/shared/types/curveSmoke';
 import type {
   DirectMovementGeometry,
+  MovementDisplacement,
   MovementAnchorGeometry,
   MovementAnchorKind,
   MovementAnchorStatus,
@@ -38,9 +39,9 @@ function normalizeCurveSmoke(raw: unknown): CurveSmokeGeometry | undefined {
   return { points: cs.points };
 }
 
-function normalizeDirectMovement(raw: unknown): DirectMovementGeometry | undefined {
+function normalizeMovementDisplacement(raw: unknown): MovementDisplacement | undefined {
   if (!raw || typeof raw !== 'object') return undefined;
-  const mv = raw as Partial<DirectMovementGeometry>;
+  const mv = raw as Partial<MovementDisplacement>;
   if (
     typeof mv.startX !== 'number' ||
     typeof mv.startY !== 'number' ||
@@ -55,17 +56,34 @@ function normalizeDirectMovement(raw: unknown): DirectMovementGeometry | undefin
   ) {
     return undefined;
   }
-  const activationDelaySec =
-    typeof mv.activationDelaySec === 'number' && Number.isFinite(mv.activationDelaySec)
-      ? mv.activationDelaySec
-      : undefined;
+  const placementId = typeof mv.placementId === 'string' ? mv.placementId : undefined;
   return {
+    ...(placementId ? { placementId } : {}),
     startX: mv.startX,
     startY: mv.startY,
     endX: mv.endX,
     endY: mv.endY,
     facing: mv.facing,
+  };
+}
+
+function normalizeDirectMovement(raw: unknown): DirectMovementGeometry | undefined {
+  const base = normalizeMovementDisplacement(raw);
+  if (!base || !raw || typeof raw !== 'object') return undefined;
+  const mv = raw as Partial<DirectMovementGeometry>;
+  const activationDelaySec =
+    typeof mv.activationDelaySec === 'number' && Number.isFinite(mv.activationDelaySec)
+      ? mv.activationDelaySec
+      : undefined;
+  const impactedPlacements = Array.isArray(mv.impactedPlacements)
+    ? mv.impactedPlacements
+        .map((entry) => normalizeMovementDisplacement(entry))
+        .filter((entry): entry is MovementDisplacement => !!entry)
+    : undefined;
+  return {
+    ...base,
     ...(activationDelaySec != null ? { activationDelaySec } : {}),
+    ...(impactedPlacements?.length ? { impactedPlacements } : {}),
   };
 }
 

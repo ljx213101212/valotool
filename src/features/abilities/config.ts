@@ -542,10 +542,7 @@ export function isReleasePlacementMovementAbility(
   agentCatalogId: string,
   abilitySlot: AbilitySlot,
 ): boolean {
-  return (
-    isDirectMovementAbility(agentCatalogId, abilitySlot) ||
-    isBlastPackMovementAbility(agentCatalogId, abilitySlot)
-  );
+  return isDirectMovementAbility(agentCatalogId, abilitySlot);
 }
 
 /** 预备期可进入释放流程的技能 */

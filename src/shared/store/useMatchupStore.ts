@@ -14,6 +14,7 @@ import {
   isFixedSingleLineSmokeAbility,
   isSphericalSmokeAbility,
   isStaticAnchorMovementAbility,
+  smokeMapUnitsFromMeters,
 } from '@/features/abilities/config';
 import {
   clampCurvePointsToMaxLength,
@@ -32,6 +33,8 @@ import { nextAbilitySpawnPoint } from '@/shared/utils/abilitySpawnPosition';
 import { normalizeAbilityPlacements } from '@/shared/utils/normalizeAbilityPlacements';
 import { reconcileMapPlacements } from '@/shared/utils/reconcileMapPlacements';
 import type { MovementAnchorKind } from '@/shared/types/movement';
+
+const BLAST_PACK_IMPACT_RADIUS = smokeMapUnitsFromMeters(6);
 
 export type { MatchupSide, MapAgentPlacement } from '@/shared/types/matchup';
 
@@ -87,6 +90,15 @@ interface MatchupState {
   /** 炸药包放置预览（从预备期 token 激活） */
   blastPackPlacementId: string | null;
   blastPackPreview: { x: number; y: number } | null;
+  /** 炸药包放置预览（从 Raze 头像技能 popover 直接触发） */
+  blastPackPlacementDraft: {
+    ownerPlacementId: string;
+    agentId: string;
+    abilitySlot: AbilitySlot;
+    range: number;
+    previewX: number;
+    previewY: number;
+  } | null;
   /** 地图上当前选中的特工 placement（仅内存，不参与 persist） */
   selectedPlacementId: string | null;
   setSelectedPlacementId: (id: string | null) => void;
@@ -118,6 +130,9 @@ interface MatchupState {
   cancelDirectMovementPlacement: () => void;
   confirmDirectMovementPlacement: (targetX: number, targetY: number) => void;
   beginBlastPackPlacement: (abilityPlacementId: string) => void;
+  beginBlastPackPlacementFromAgent: (
+    input: Omit<SpawnAbilityInput, 'x' | 'y'>
+  ) => void;
   updateBlastPackPreview: (targetX: number, targetY: number) => void;
   cancelBlastPackPlacement: () => void;
   confirmBlastPackPlacement: (targetX: number, targetY: number) => void;
@@ -211,6 +226,7 @@ export const useMatchupStore = create<MatchupState>()(
       anchorMovementPlacementDraft: null,
       blastPackPlacementId: null,
       blastPackPreview: null,
+      blastPackPlacementDraft: null,
       selectedPlacementId: null,
       selectedAbilityPlacementId: null,
       setSelectedPlacementId: (id) =>
@@ -279,6 +295,7 @@ export const useMatchupStore = create<MatchupState>()(
             anchorMovementPlacementDraft: null,
             blastPackPlacementId: null,
             blastPackPreview: null,
+            blastPackPlacementDraft: null,
             abilityInstancePopoverId: null,
             abilityInstancePopoverAnchor: null,
             abilityPopoverPlacementId: null,
@@ -324,6 +341,7 @@ export const useMatchupStore = create<MatchupState>()(
             anchorMovementPlacementDraft: null,
             blastPackPlacementId: null,
             blastPackPreview: null,
+            blastPackPlacementDraft: null,
             abilityInstancePopoverId: null,
             abilityInstancePopoverAnchor: null,
             abilityPopoverPlacementId: null,
@@ -369,6 +387,7 @@ export const useMatchupStore = create<MatchupState>()(
             anchorMovementPlacementDraft: null,
             blastPackPlacementId: null,
             blastPackPreview: null,
+            blastPackPlacementDraft: null,
             abilityInstancePopoverId: null,
             abilityInstancePopoverAnchor: null,
             abilityPopoverPlacementId: null,
@@ -410,6 +429,7 @@ export const useMatchupStore = create<MatchupState>()(
             anchorMovementPlacementDraft: null,
             blastPackPlacementId: null,
             blastPackPreview: null,
+            blastPackPlacementDraft: null,
             abilityInstancePopoverId: null,
             abilityInstancePopoverAnchor: null,
             abilityPopoverPlacementId: null,
@@ -605,6 +625,7 @@ export const useMatchupStore = create<MatchupState>()(
             anchorMovementPlacementDraft: null,
             blastPackPlacementId: null,
             blastPackPreview: null,
+            blastPackPlacementDraft: null,
             abilityInstancePopoverId: null,
             abilityInstancePopoverAnchor: null,
             abilityPopoverPlacementId: null,
@@ -732,6 +753,46 @@ export const useMatchupStore = create<MatchupState>()(
             directMovementPlacementId: null,
             directMovementPreview: null,
             anchorMovementPlacementDraft: null,
+            blastPackPlacementDraft: null,
+            abilityInstancePopoverId: null,
+            abilityInstancePopoverAnchor: null,
+            abilityPopoverPlacementId: null,
+            abilityPopoverAnchor: null,
+          };
+        }),
+      beginBlastPackPlacementFromAgent: (input) =>
+        set((s) => {
+          const owner = s.mapPlacements.find((p) => p.id === input.ownerPlacementId);
+          if (
+            !owner ||
+            owner.eliminated ||
+            !isBlastPackMovementAbility(input.agentId, input.abilitySlot)
+          ) {
+            return s;
+          }
+          const range = getMovementRange(input.agentId, input.abilitySlot);
+          return {
+            blastPackPlacementDraft: {
+              ownerPlacementId: input.ownerPlacementId,
+              agentId: input.agentId,
+              abilitySlot: input.abilitySlot,
+              range,
+              previewX: owner.x,
+              previewY: owner.y,
+            },
+            sphericalSmokePlacementId: null,
+            sphericalSmokePreview: null,
+            fixedDualLineSmokePlacementId: null,
+            fixedDualLineSmokePreview: null,
+            fixedSingleLineSmokePlacementId: null,
+            fixedSingleLineSmokePreview: null,
+            curveSmokePlacementId: null,
+            curveSmokePreviewPoints: [],
+            directMovementPlacementId: null,
+            directMovementPreview: null,
+            anchorMovementPlacementDraft: null,
+            blastPackPlacementId: null,
+            blastPackPreview: null,
             abilityInstancePopoverId: null,
             abilityInstancePopoverAnchor: null,
             abilityPopoverPlacementId: null,
@@ -740,6 +801,19 @@ export const useMatchupStore = create<MatchupState>()(
         }),
       updateBlastPackPreview: (targetX, targetY) =>
         set((s) => {
+          if (s.blastPackPlacementDraft) {
+            const draft = s.blastPackPlacementDraft;
+            const owner = s.mapPlacements.find((p) => p.id === draft.ownerPlacementId);
+            if (!owner) return s;
+            const target = clampPointToMovementRange(owner.x, owner.y, targetX, targetY, draft.range);
+            return {
+              blastPackPlacementDraft: {
+                ...draft,
+                previewX: target.x,
+                previewY: target.y,
+              },
+            };
+          }
           if (!s.blastPackPlacementId) return s;
           const placement = s.abilityPlacements.find((p) => p.id === s.blastPackPlacementId);
           const owner = placement
@@ -754,11 +828,43 @@ export const useMatchupStore = create<MatchupState>()(
         set({
           blastPackPlacementId: null,
           blastPackPreview: null,
+          blastPackPlacementDraft: null,
         }),
       confirmBlastPackPlacement: (targetX, targetY) => {
-        const { blastPackPlacementId } = useMatchupStore.getState();
-        if (!blastPackPlacementId) return;
         const state = useMatchupStore.getState();
+        const draft = state.blastPackPlacementDraft;
+        if (draft) {
+          const owner = state.mapPlacements.find((p) => p.id === draft.ownerPlacementId);
+          if (!owner) {
+            useMatchupStore.setState({ blastPackPlacementDraft: null });
+            return;
+          }
+          const end = clampPointToMovementRange(owner.x, owner.y, targetX, targetY, draft.range);
+          useMatchupStore.setState((s) => ({
+            abilityPlacements: [
+              ...s.abilityPlacements,
+              {
+                id: crypto.randomUUID(),
+                ownerPlacementId: draft.ownerPlacementId,
+                agentId: draft.agentId,
+                abilitySlot: draft.abilitySlot,
+                x: end.x,
+                y: end.y,
+                state: 'active' as const,
+                placedAt: Date.now(),
+                anchorMovement: {
+                  kind: 'blast-pack' as const,
+                  status: 'armed' as const,
+                  radius: BLAST_PACK_IMPACT_RADIUS,
+                },
+              },
+            ],
+            blastPackPlacementDraft: null,
+          }));
+          return;
+        }
+        const { blastPackPlacementId } = state;
+        if (!blastPackPlacementId) return;
         const target = state.abilityPlacements.find((p) => p.id === blastPackPlacementId);
         const owner = target
           ? state.mapPlacements.find((p) => p.id === target.ownerPlacementId)
@@ -777,7 +883,7 @@ export const useMatchupStore = create<MatchupState>()(
           anchorMovement: {
             kind: 'blast-pack' as const,
             status: 'armed' as const,
-            radius: range,
+            radius: BLAST_PACK_IMPACT_RADIUS,
           },
         };
         useMatchupStore.setState((s) => ({
@@ -786,6 +892,7 @@ export const useMatchupStore = create<MatchupState>()(
           ),
           blastPackPlacementId: null,
           blastPackPreview: null,
+          blastPackPlacementDraft: null,
         }));
       },
       beginAnchorMovementPlacement: (input) =>
@@ -920,6 +1027,10 @@ export const useMatchupStore = create<MatchupState>()(
           useMatchupStore.getState().beginAnchorMovementPlacement(input);
           return;
         }
+        if (isBlastPackMovementAbility(input.agentId, input.abilitySlot)) {
+          useMatchupStore.getState().beginBlastPackPlacementFromAgent(input);
+          return;
+        }
         useMatchupStore.getState().spawnAbilityAtMapCenter(input);
       },
       triggerArmedMovementAbility: (ownerPlacementId, abilitySlot) => {
@@ -930,36 +1041,54 @@ export const useMatchupStore = create<MatchupState>()(
         const { currentTime, maxTime } = useTimelinePlaybackStore.getState();
         const deployT = quantizeTimelineSeconds(currentTime, maxTime);
         const range = getMovementRange(armed.agentId, armed.abilitySlot);
-        const dx = owner.x - armed.x;
-        const dy = owner.y - armed.y;
-        const dist = Math.hypot(dx, dy);
-        const blastFacing = dist > 1e-6 ? Math.atan2(dy, dx) : owner.facing;
-        const end =
+        const activationDelaySec = getMovementActivationDelaySec(armed.agentId, armed.abilitySlot);
+        const blastRadius = armed.anchorMovement.radius ?? BLAST_PACK_IMPACT_RADIUS;
+        const impactedPlacements =
           armed.anchorMovement.kind === 'blast-pack'
-            ? {
-                x: owner.x + Math.cos(blastFacing) * range,
-                y: owner.y + Math.sin(blastFacing) * range,
-                facing: blastFacing,
-              }
-            : {
-                x: armed.x,
-                y: armed.y,
-                facing: Math.atan2(armed.y - owner.y, armed.x - owner.x),
-              };
+            ? state.mapPlacements
+                .filter((p) => !p.eliminated)
+                .map((p) => {
+                  const dx = p.x - armed.x;
+                  const dy = p.y - armed.y;
+                  const dist = Math.hypot(dx, dy);
+                  if (dist > blastRadius) return null;
+                  const facing = dist > 1e-6 ? Math.atan2(dy, dx) : p.facing;
+                  const strength = Math.max(0, 1 - dist / blastRadius);
+                  const pushDistance = range * strength;
+                  if (pushDistance <= 0) return null;
+                  return {
+                    placementId: p.id,
+                    startX: p.x,
+                    startY: p.y,
+                    endX: p.x + Math.cos(facing) * pushDistance,
+                    endY: p.y + Math.sin(facing) * pushDistance,
+                    facing,
+                  };
+                })
+                .filter((entry): entry is NonNullable<typeof entry> => !!entry)
+            : [
+                {
+                  placementId: owner.id,
+                  startX: owner.x,
+                  startY: owner.y,
+                  endX: armed.x,
+                  endY: armed.y,
+                  facing: Math.atan2(armed.y - owner.y, armed.x - owner.x),
+                },
+              ];
+        const primaryMovement =
+          impactedPlacements.find((entry) => entry.placementId === ownerPlacementId) ??
+          impactedPlacements[0];
+        if (!primaryMovement) return;
+        const impactedByPlacementId = new Map(
+          impactedPlacements.flatMap((entry) =>
+            entry.placementId ? [[entry.placementId, entry] as const] : []
+          )
+        );
         const directMovement = {
-          startX: owner.x,
-          startY: owner.y,
-          endX: end.x,
-          endY: end.y,
-          facing: end.facing,
-          ...(getMovementActivationDelaySec(armed.agentId, armed.abilitySlot) > 0
-            ? {
-                activationDelaySec: getMovementActivationDelaySec(
-                  armed.agentId,
-                  armed.abilitySlot,
-                ),
-              }
-            : {}),
+          ...primaryMovement,
+          ...(activationDelaySec > 0 ? { activationDelaySec } : {}),
+          ...(impactedPlacements.length > 1 ? { impactedPlacements } : {}),
         };
         const updatedAbility = {
           ...armed,
@@ -972,9 +1101,12 @@ export const useMatchupStore = create<MatchupState>()(
           },
         };
         useMatchupStore.setState((s) => ({
-          mapPlacements: s.mapPlacements.map((p) =>
-            p.id === ownerPlacementId ? { ...p, x: end.x, y: end.y, facing: end.facing } : p
-          ),
+          mapPlacements: s.mapPlacements.map((p) => {
+            const movement = impactedByPlacementId.get(p.id);
+            return movement
+              ? { ...p, x: movement.endX, y: movement.endY, facing: movement.facing }
+              : p;
+          }),
           abilityPlacements: s.abilityPlacements.map((p) =>
             p.id === armed.id ? updatedAbility : p
           ),

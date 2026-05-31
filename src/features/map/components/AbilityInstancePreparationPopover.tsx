@@ -2,7 +2,6 @@ import { type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { getAbilityDisplayName } from '@/features/abilities/abilityDisplayName';
 import {
-  isBlastPackMovementAbility,
   isDrawableCurveSmokeAbility,
   isDirectMovementAbility,
   isFixedDualLineSmokeAbility,
@@ -41,7 +40,6 @@ export function AbilityInstancePreparationPopover({
   );
   const beginCurveSmokePlacement = useMatchupStore((s) => s.beginCurveSmokePlacement);
   const beginDirectMovementPlacement = useMatchupStore((s) => s.beginDirectMovementPlacement);
-  const beginBlastPackPlacement = useMatchupStore((s) => s.beginBlastPackPlacement);
 
   const canActivate = isReleasePlacementAbility(
     placement.agentId,
@@ -74,8 +72,6 @@ export function AbilityInstancePreparationPopover({
       beginCurveSmokePlacement(placement.id);
     } else if (isDirectMovementAbility(placement.agentId, placement.abilitySlot)) {
       beginDirectMovementPlacement(placement.id);
-    } else if (isBlastPackMovementAbility(placement.agentId, placement.abilitySlot)) {
-      beginBlastPackPlacement(placement.id);
     }
     closeAbilityInstancePopover();
   };
