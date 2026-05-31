@@ -252,9 +252,14 @@ export type AbilityEffectKind =
   | 'smoke-sphere'
   | 'smoke-line-fixed-dual'
   | 'smoke-line-fixed-single'
-  | 'smoke-line-drawable';
+  | 'smoke-line-drawable'
+  | 'movement-direct'
+  | 'movement-anchor-static'
+  | 'movement-anchor-projectile'
+  | 'movement-blast-pack';
 
 export type SphericalSmokeVariant = 'default' | 'cage';
+export type MovementAbilityKind = 'dash' | 'slide' | 'teleport' | 'rewind' | 'blast-pack';
 
 export type AbilityEffectMeta = {
   effectKinds: readonly AbilityEffectKind[];
@@ -272,6 +277,12 @@ export type AbilityEffectMeta = {
   smokeLineStrokeWidth?: number;
   /** 线型烟：自定义颜色（不随阵营变化） */
   smokeLineColor?: string;
+  /** 位移距离上限（地图坐标，与特工 token 同系） */
+  movementRange?: number;
+  /** 位移技能的行为分类，用于 UI 与后续逻辑分支 */
+  movementKind?: MovementAbilityKind;
+  /** 从施放到移动生效的延迟（秒）；直接位移默认 0 */
+  movementActivationDelaySec?: number;
 };
 
 /** 未单独配置时的回退（与 Omen 暗影之罩标定一致） */
@@ -325,7 +336,19 @@ export const ABILITY_EFFECT_META: Partial<
       smokeDurationSec: 12.25,
     },
   },
+  chamber: {
+    Ability2: {
+      effectKinds: ['movement-anchor-static'],
+      movementKind: 'teleport',
+      movementRange: smokeMapUnitsFromMeters(14),
+    },
+  },
   jett: {
+    Ability2: {
+      effectKinds: ['movement-direct'],
+      movementKind: 'dash',
+      movementRange: smokeMapUnitsFromMeters(11),
+    },
     Grenade: {
       effectKinds: ['smoke-sphere'],
       smokeRadius: smokeMapRadiusFromMeters(3.35),
@@ -337,6 +360,12 @@ export const ABILITY_EFFECT_META: Partial<
       effectKinds: ['smoke-sphere'],
       smokeRadius: SMOKE_OMEN_MAP_RADIUS,
       smokeDurationSec: 15,
+    },
+    Grenade: {
+      effectKinds: ['movement-direct'],
+      movementKind: 'teleport',
+      movementRange: smokeMapUnitsFromMeters(15),
+      movementActivationDelaySec: 0.5,
     },
   },
   viper: {
@@ -371,6 +400,13 @@ export const ABILITY_EFFECT_META: Partial<
       smokeLineColor: PHOENIX_BLAZE_WALL_COLOR,
     },
   },
+  raze: {
+    Ability1: {
+      effectKinds: ['movement-blast-pack'],
+      movementKind: 'blast-pack',
+      movementRange: smokeMapUnitsFromMeters(8),
+    },
+  },
   harbor: {
     Ability1: {
       effectKinds: ['smoke-line-drawable'],
@@ -386,6 +422,11 @@ export const ABILITY_EFFECT_META: Partial<
     },
   },
   neon: {
+    Ability2: {
+      effectKinds: ['movement-direct'],
+      movementKind: 'slide',
+      movementRange: smokeMapUnitsFromMeters(7.5),
+    },
     Grenade: {
       effectKinds: ['smoke-line-fixed-dual'],
       smokeDurationSec: 6,
@@ -395,6 +436,24 @@ export const ABILITY_EFFECT_META: Partial<
       smokeLineSpacing: smokeMapUnitsFromMeters(4),
       smokeLineStrokeWidth: 10,
       smokeLineColor: NEON_FAST_LANE_SMOKE_COLOR,
+    },
+  },
+  waylay: {
+    Ability1: {
+      effectKinds: ['movement-direct'],
+      movementKind: 'dash',
+      movementRange: smokeMapUnitsFromMeters(12),
+    },
+    Ability2: {
+      effectKinds: ['movement-anchor-static'],
+      movementKind: 'rewind',
+    },
+  },
+  yoru: {
+    Ability2: {
+      effectKinds: ['movement-anchor-projectile'],
+      movementKind: 'teleport',
+      movementRange: smokeMapUnitsFromMeters(20),
     },
   },
 };
@@ -436,6 +495,35 @@ export function isDrawableCurveSmokeAbility(
   return meta?.effectKinds.includes('smoke-line-drawable') ?? false;
 }
 
+export function isDirectMovementAbility(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): boolean {
+  const meta = getAbilityEffectMeta(agentCatalogId, abilitySlot);
+  return meta?.effectKinds.includes('movement-direct') ?? false;
+}
+
+export function isStaticAnchorMovementAbility(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): boolean {
+  const meta = getAbilityEffectMeta(agentCatalogId, abilitySlot);
+  return meta?.effectKinds.includes('movement-anchor-static') ?? false;
+}
+
+export function isBlastPackMovementAbility(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): boolean {
+  const meta = getAbilityEffectMeta(agentCatalogId, abilitySlot);
+  return meta?.effectKinds.includes('movement-blast-pack') ?? false;
+}
+
+export function isMovementAbility(agentCatalogId: string, abilitySlot: AbilitySlot): boolean {
+  const meta = getAbilityEffectMeta(agentCatalogId, abilitySlot);
+  return meta?.effectKinds.some((kind) => kind.startsWith('movement-')) ?? false;
+}
+
 /** 预备期可进入释放流程的烟雾类技能 */
 export function isReleasePlacementSmokeAbility(
   agentCatalogId: string,
@@ -446,6 +534,28 @@ export function isReleasePlacementSmokeAbility(
     isFixedDualLineSmokeAbility(agentCatalogId, abilitySlot) ||
     isFixedSingleLineSmokeAbility(agentCatalogId, abilitySlot) ||
     isDrawableCurveSmokeAbility(agentCatalogId, abilitySlot)
+  );
+}
+
+/** 预备期可进入释放流程的位移技能；复杂锚点/炸药包类后续单独接入 */
+export function isReleasePlacementMovementAbility(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): boolean {
+  return (
+    isDirectMovementAbility(agentCatalogId, abilitySlot) ||
+    isBlastPackMovementAbility(agentCatalogId, abilitySlot)
+  );
+}
+
+/** 预备期可进入释放流程的技能 */
+export function isReleasePlacementAbility(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): boolean {
+  return (
+    isReleasePlacementSmokeAbility(agentCatalogId, abilitySlot) ||
+    isReleasePlacementMovementAbility(agentCatalogId, abilitySlot)
   );
 }
 
@@ -506,6 +616,24 @@ export function getSmokeDurationSec(agentCatalogId: string, abilitySlot: Ability
   return (
     getAbilityEffectMeta(agentCatalogId, abilitySlot)?.smokeDurationSec ?? DEFAULT_SMOKE_DURATION_SEC
   );
+}
+
+export function getMovementRange(agentCatalogId: string, abilitySlot: AbilitySlot): number {
+  return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.movementRange ?? smokeMapUnitsFromMeters(10);
+}
+
+export function getMovementActivationDelaySec(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): number {
+  return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.movementActivationDelaySec ?? 0;
+}
+
+export function getMovementKind(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): MovementAbilityKind {
+  return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.movementKind ?? 'dash';
 }
 
 export function getSphericalSmokeRadius(agentCatalogId: string, abilitySlot: AbilitySlot): number {

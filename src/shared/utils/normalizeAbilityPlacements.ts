@@ -1,8 +1,16 @@
 import type { AbilityPlacement, AbilityPlacementState } from '@/shared/types/ability';
 import type { LineSmokeGeometry } from '@/shared/types/lineSmoke';
 import type { CurveSmokeGeometry } from '@/shared/types/curveSmoke';
+import type {
+  DirectMovementGeometry,
+  MovementAnchorGeometry,
+  MovementAnchorKind,
+  MovementAnchorStatus,
+} from '@/shared/types/movement';
 
 const VALID_STATES = new Set<AbilityPlacementState>(['initial', 'active', 'expired']);
+const VALID_ANCHOR_KINDS = new Set<MovementAnchorKind>(['refract', 'rendezvous', 'blast-pack']);
+const VALID_ANCHOR_STATUSES = new Set<MovementAnchorStatus>(['armed', 'triggered']);
 
 function normalizeLineSmoke(raw: unknown): LineSmokeGeometry | undefined {
   if (!raw || typeof raw !== 'object') return undefined;
@@ -28,6 +36,57 @@ function normalizeCurveSmoke(raw: unknown): CurveSmokeGeometry | undefined {
     return undefined;
   }
   return { points: cs.points };
+}
+
+function normalizeDirectMovement(raw: unknown): DirectMovementGeometry | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const mv = raw as Partial<DirectMovementGeometry>;
+  if (
+    typeof mv.startX !== 'number' ||
+    typeof mv.startY !== 'number' ||
+    typeof mv.endX !== 'number' ||
+    typeof mv.endY !== 'number' ||
+    typeof mv.facing !== 'number' ||
+    !Number.isFinite(mv.startX) ||
+    !Number.isFinite(mv.startY) ||
+    !Number.isFinite(mv.endX) ||
+    !Number.isFinite(mv.endY) ||
+    !Number.isFinite(mv.facing)
+  ) {
+    return undefined;
+  }
+  const activationDelaySec =
+    typeof mv.activationDelaySec === 'number' && Number.isFinite(mv.activationDelaySec)
+      ? mv.activationDelaySec
+      : undefined;
+  return {
+    startX: mv.startX,
+    startY: mv.startY,
+    endX: mv.endX,
+    endY: mv.endY,
+    facing: mv.facing,
+    ...(activationDelaySec != null ? { activationDelaySec } : {}),
+  };
+}
+
+function normalizeAnchorMovement(raw: unknown): MovementAnchorGeometry | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const am = raw as Partial<MovementAnchorGeometry>;
+  if (
+    typeof am.kind !== 'string' ||
+    typeof am.status !== 'string' ||
+    !VALID_ANCHOR_KINDS.has(am.kind as MovementAnchorKind) ||
+    !VALID_ANCHOR_STATUSES.has(am.status as MovementAnchorStatus)
+  ) {
+    return undefined;
+  }
+  const radius =
+    typeof am.radius === 'number' && Number.isFinite(am.radius) ? am.radius : undefined;
+  return {
+    kind: am.kind as MovementAnchorKind,
+    status: am.status as MovementAnchorStatus,
+    ...(radius != null ? { radius } : {}),
+  };
 }
 
 export function normalizeAbilityPlacements(
@@ -59,6 +118,8 @@ export function normalizeAbilityPlacements(
       typeof p.expiresAt === 'number' && Number.isFinite(p.expiresAt) ? p.expiresAt : undefined;
     const lineSmoke = normalizeLineSmoke(p.lineSmoke);
     const curveSmoke = normalizeCurveSmoke(p.curveSmoke);
+    const directMovement = normalizeDirectMovement(p.directMovement);
+    const anchorMovement = normalizeAnchorMovement(p.anchorMovement);
     const legacyWall = p as { wallSmoke?: { cx?: number; cy?: number; facing?: number } };
     const wallAsLine =
       !lineSmoke &&
@@ -85,6 +146,8 @@ export function normalizeAbilityPlacements(
       ...(expiresAt != null ? { expiresAt } : {}),
       ...(lineSmoke ? { lineSmoke } : wallAsLine ? { lineSmoke: wallAsLine } : {}),
       ...(curveSmoke ? { curveSmoke } : {}),
+      ...(directMovement ? { directMovement } : {}),
+      ...(anchorMovement ? { anchorMovement } : {}),
     });
   }
   return out;

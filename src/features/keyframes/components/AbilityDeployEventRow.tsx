@@ -21,7 +21,8 @@ export function AbilityDeployEventRow({
 }: AbilityDeployEventRowProps) {
   const abilityName = getAbilityDisplayName(event.agentId, event.abilitySlot);
   const casterName = owner ? getAgentLabel(owner.agentId) : getAgentLabel(event.agentId);
-  const phaseLabel = event.phase === 'start' ? '开始' : '结束';
+  const phaseLabel =
+    event.phase === 'start' ? '开始' : event.phase === 'end' ? '结束' : '瞬发';
 
   return (
     <li className="ability-deploy-event-row">
@@ -48,9 +49,9 @@ export function AbilityDeployEventRow({
           )}
           <span
             className={
-              event.phase === 'start'
-                ? 'ability-deploy-event-row__phase ability-deploy-event-row__phase--start'
-                : 'ability-deploy-event-row__phase ability-deploy-event-row__phase--end'
+              event.phase === 'end'
+                ? 'ability-deploy-event-row__phase ability-deploy-event-row__phase--end'
+                : 'ability-deploy-event-row__phase ability-deploy-event-row__phase--start'
             }
           >
             {phaseLabel}

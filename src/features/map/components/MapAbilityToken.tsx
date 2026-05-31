@@ -4,6 +4,7 @@ import { Circle, Group, Image } from 'react-konva';
 import {
   agentCatalogIdToAbilitySlug,
   ABILITIES_BY_AGENT,
+  isDirectMovementAbility,
   isReleasePlacementSmokeAbility,
 } from '@/features/abilities';
 import { getAbilityDisplayIconUrl } from '@/features/abilities/abilityDisplayIconUrls';
@@ -45,13 +46,21 @@ export function MapAbilityToken({
   const { accent } = tacticalSideMapTokenColors(side);
   const isInitial = placement.state === 'initial';
   const hideToken =
-    isReleasePlacementSmokeAbility(placement.agentId, placement.abilitySlot) &&
-    (placement.state === 'active' || placement.state === 'expired');
+    ((isReleasePlacementSmokeAbility(placement.agentId, placement.abilitySlot) ||
+      isDirectMovementAbility(placement.agentId, placement.abilitySlot) ||
+      placement.anchorMovement?.status === 'triggered') &&
+      (placement.state === 'active' || placement.state === 'expired'));
 
   useEffect(() => {
+    let cancelled = false;
     if (!iconPath) {
-      setImg(null);
-      return;
+      const timer = window.setTimeout(() => {
+        if (!cancelled) setImg(null);
+      }, 0);
+      return () => {
+        cancelled = true;
+        window.clearTimeout(timer);
+      };
     }
     const el = new window.Image();
     el.crossOrigin = 'anonymous';
@@ -59,6 +68,7 @@ export function MapAbilityToken({
     el.onload = () => setImg(el);
     el.onerror = () => setImg(null);
     return () => {
+      cancelled = true;
       el.onload = null;
       el.onerror = null;
     };

@@ -18,6 +18,7 @@ export type AbilityInstanceTimelinePopoverProps = {
 
 function placementStatusLabel(placement: AbilityPlacement): string {
   if (placement.state === 'expired') return '已结束';
+  if (placement.directMovement) return '瞬发位移';
   return '释放期';
 }
 

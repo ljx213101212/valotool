@@ -5,7 +5,7 @@ import type Konva from 'konva';
 import { valorantMap } from '@/shared/data/valorantMap';
 import { MAP_DROP_ZONE_ID } from '@/shared/constants/dnd';
 import { useMapSelectionStore } from '@/shared/store/useMapSelectionStore';
-import { Layer, Line, Shape, Stage } from 'react-konva';
+import { Circle, Layer, Line, Shape, Stage } from 'react-konva';
 import {
   getFixedDualLineSmokeColor,
   getFixedDualLineSmokeLength,
@@ -15,6 +15,7 @@ import {
   getFixedSingleLineSmokeLength,
   getLineSmokeColor,
   getLineSmokeStrokeWidth,
+  getMovementRange,
   getSphericalSmokeRadius,
   getSphericalSmokeVariant,
   isDrawableCurveSmokeAbility,
@@ -37,8 +38,12 @@ import { message } from 'antd';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
 import { nextAbilitySpawnPoint } from '@/shared/utils/abilitySpawnPosition';
 import { useTimelinePlaybackStore } from '@/shared/store/timelinePlaybackStore';
-import { isDeployedSmokeVisibleAtPlayhead } from '@/shared/utils/timelineAbilityMutations';
+import { isDeployedAbilityVisibleAtPlayhead } from '@/shared/utils/timelineAbilityMutations';
 import { clientPointToMapStage } from '@/shared/utils/mapStagePointer';
+import {
+  directMovementFromPlacement,
+} from '@/shared/utils/directMovementGeometry';
+import { timelineTimesEqualStep } from '@/shared/utils/timelineQuantize';
 import {
   appendCurvePoint,
   curveSmokeFromPlacement,
@@ -47,6 +52,7 @@ import {
 import { lineSmokeFromPlacement } from '@/shared/utils/lineSmokeGeometry';
 import { MapAbilityToken } from './MapAbilityToken';
 import { MapCurveSmoke } from './MapCurveSmoke';
+import { MapDirectMovement } from './MapDirectMovement';
 import { MapFixedDualLineSmoke } from './MapFixedDualLineSmoke';
 import { MapFixedSingleLineSmoke } from './MapFixedSingleLineSmoke';
 import { MapHeroToken } from './MapHeroToken';
@@ -101,9 +107,26 @@ const Map = () => {
   const setCurveSmokePreviewPoints = useMatchupStore((s) => s.setCurveSmokePreviewPoints);
   const cancelCurveSmokePlacement = useMatchupStore((s) => s.cancelCurveSmokePlacement);
   const confirmCurveSmokePlacement = useMatchupStore((s) => s.confirmCurveSmokePlacement);
+  const directMovementPlacementId = useMatchupStore((s) => s.directMovementPlacementId);
+  const directMovementPreview = useMatchupStore((s) => s.directMovementPreview);
+  const updateDirectMovementPreview = useMatchupStore((s) => s.updateDirectMovementPreview);
+  const cancelDirectMovementPlacement = useMatchupStore((s) => s.cancelDirectMovementPlacement);
+  const confirmDirectMovementPlacement = useMatchupStore((s) => s.confirmDirectMovementPlacement);
+  const anchorMovementPlacementDraft = useMatchupStore((s) => s.anchorMovementPlacementDraft);
+  const updateAnchorMovementPlacementPreview = useMatchupStore(
+    (s) => s.updateAnchorMovementPlacementPreview
+  );
+  const cancelAnchorMovementPlacement = useMatchupStore((s) => s.cancelAnchorMovementPlacement);
+  const confirmAnchorMovementPlacement = useMatchupStore((s) => s.confirmAnchorMovementPlacement);
+  const blastPackPlacementId = useMatchupStore((s) => s.blastPackPlacementId);
+  const blastPackPreview = useMatchupStore((s) => s.blastPackPreview);
+  const updateBlastPackPreview = useMatchupStore((s) => s.updateBlastPackPreview);
+  const cancelBlastPackPlacement = useMatchupStore((s) => s.cancelBlastPackPlacement);
+  const confirmBlastPackPlacement = useMatchupStore((s) => s.confirmBlastPackPlacement);
   const spawnAbilityPlacement = useMatchupStore((s) => s.spawnAbilityPlacement);
   const curveDrawingRef = useRef(false);
   const timelineCurrentTime = useTimelinePlaybackStore((s) => s.currentTime);
+  const timelineMaxTime = useTimelinePlaybackStore((s) => s.maxTime);
   const mapWidth = valorantMap.bounds.max.x - valorantMap.bounds.min.x + 100;
   const mapHeight = valorantMap.bounds.max.y - valorantMap.bounds.min.y + 100;
   const defense = side === 'defense';
@@ -119,11 +142,16 @@ const Map = () => {
   const placingFixedSingleLineSmoke =
     !!fixedSingleLineSmokePlacementId && !!fixedSingleLineSmokePreview;
   const placingCurveSmoke = !!curveSmokePlacementId;
+  const placingDirectMovement = !!directMovementPlacementId && !!directMovementPreview;
+  const placingAnchorMovement = !!anchorMovementPlacementDraft;
+  const placingBlastPack = !!blastPackPlacementId && !!blastPackPreview;
   const placingSmoke =
     placingSphericalSmoke ||
     placingFixedDualLineSmoke ||
     placingFixedSingleLineSmoke ||
     placingCurveSmoke;
+  const placingAbilityEffect =
+    placingSmoke || placingDirectMovement || placingAnchorMovement || placingBlastPack;
 
   const sphericalSmokePlacement = useMemo(
     () =>
@@ -202,6 +230,39 @@ const Map = () => {
     };
   }, [curveSmokePlacement]);
 
+  const directMovementPlacement = useMemo(
+    () =>
+      directMovementPlacementId
+        ? abilityPlacements.find((p) => p.id === directMovementPlacementId)
+        : undefined,
+    [abilityPlacements, directMovementPlacementId]
+  );
+
+  const directMovementOwner = useMemo(() => {
+    if (!directMovementPlacement) return undefined;
+    return mapPlacements.find((p) => p.id === directMovementPlacement.ownerPlacementId);
+  }, [directMovementPlacement, mapPlacements]);
+
+  const directMovementSide = directMovementOwner?.side ?? 'attack';
+
+  const anchorMovementOwner = useMemo(() => {
+    if (!anchorMovementPlacementDraft) return undefined;
+    return mapPlacements.find((p) => p.id === anchorMovementPlacementDraft.ownerPlacementId);
+  }, [anchorMovementPlacementDraft, mapPlacements]);
+
+  const blastPackPlacement = useMemo(
+    () =>
+      blastPackPlacementId
+        ? abilityPlacements.find((p) => p.id === blastPackPlacementId)
+        : undefined,
+    [abilityPlacements, blastPackPlacementId]
+  );
+
+  const blastPackOwner = useMemo(() => {
+    if (!blastPackPlacement) return undefined;
+    return mapPlacements.find((p) => p.id === blastPackPlacement.ownerPlacementId);
+  }, [blastPackPlacement, mapPlacements]);
+
   const sphericalSmokeVariant = useMemo(() => {
     if (!sphericalSmokePlacement) return 'default' as const;
     return getSphericalSmokeVariant(
@@ -224,6 +285,11 @@ const Map = () => {
     closeAbilityPopover();
     closeAbilityInstancePopover();
   }, [closeAbilityPopover, closeAbilityInstancePopover]);
+
+  const lockMapTransformForPlacementEffect = useCallback(() => {
+    const timer = window.setTimeout(() => setMapTransformLocked(true), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (!abilityPopoverPlacementId) return;
@@ -248,7 +314,7 @@ const Map = () => {
   }, [abilityInstancePopoverId, closeAbilityInstancePopover]);
 
   useEffect(() => {
-    if (!abilityPopoverPlacementId && !abilityInstancePopoverId && !placingSmoke) return;
+    if (!abilityPopoverPlacementId && !abilityInstancePopoverId && !placingAbilityEffect) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
       if (placingSphericalSmoke) {
@@ -268,6 +334,18 @@ const Map = () => {
         cancelCurveSmokePlacement();
         return;
       }
+      if (placingDirectMovement) {
+        cancelDirectMovementPlacement();
+        return;
+      }
+      if (placingAnchorMovement) {
+        cancelAnchorMovementPlacement();
+        return;
+      }
+      if (placingBlastPack) {
+        cancelBlastPackPlacement();
+        return;
+      }
       closeAllMapPopovers();
     };
     window.addEventListener('keydown', onKey);
@@ -275,15 +353,21 @@ const Map = () => {
   }, [
     abilityPopoverPlacementId,
     abilityInstancePopoverId,
-    placingSmoke,
+    placingAbilityEffect,
     placingSphericalSmoke,
     placingFixedDualLineSmoke,
     placingFixedSingleLineSmoke,
     placingCurveSmoke,
+    placingDirectMovement,
+    placingAnchorMovement,
+    placingBlastPack,
     cancelSphericalSmokePlacement,
     cancelFixedDualLineSmokePlacement,
     cancelFixedSingleLineSmokePlacement,
     cancelCurveSmokePlacement,
+    cancelDirectMovementPlacement,
+    cancelAnchorMovementPlacement,
+    cancelBlastPackPlacement,
     closeAllMapPopovers,
   ]);
 
@@ -342,9 +426,42 @@ const Map = () => {
     ]
   );
 
+  const syncDirectMovementPreviewFromClient = useCallback(
+    (clientX: number, clientY: number) => {
+      const stage = stageRef.current;
+      if (!stage) return;
+      const pt = clientPointToMapStage(stage, clientX, clientY);
+      if (!pt) return;
+      updateDirectMovementPreview(pt.x, pt.y);
+    },
+    [updateDirectMovementPreview]
+  );
+
+  const syncAnchorMovementPreviewFromClient = useCallback(
+    (clientX: number, clientY: number) => {
+      const stage = stageRef.current;
+      if (!stage) return;
+      const pt = clientPointToMapStage(stage, clientX, clientY);
+      if (!pt) return;
+      updateAnchorMovementPlacementPreview(pt.x, pt.y);
+    },
+    [updateAnchorMovementPlacementPreview]
+  );
+
+  const syncBlastPackPreviewFromClient = useCallback(
+    (clientX: number, clientY: number) => {
+      const stage = stageRef.current;
+      if (!stage) return;
+      const pt = clientPointToMapStage(stage, clientX, clientY);
+      if (!pt) return;
+      updateBlastPackPreview(pt.x, pt.y);
+    },
+    [updateBlastPackPreview]
+  );
+
   useEffect(() => {
     if (!placingSphericalSmoke) return;
-    setMapTransformLocked(true);
+    const cancelTransformLock = lockMapTransformForPlacementEffect();
     const onMove = (e: PointerEvent) => {
       syncSphericalSmokePreviewFromClient(e.clientX, e.clientY);
     };
@@ -365,17 +482,19 @@ const Map = () => {
     return () => {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerdown', onDown, true);
+      cancelTransformLock();
       setMapTransformLocked(false);
     };
   }, [
     placingSphericalSmoke,
+    lockMapTransformForPlacementEffect,
     syncSphericalSmokePreviewFromClient,
     confirmSphericalSmokePlacement,
   ]);
 
   useEffect(() => {
     if (!placingFixedDualLineSmoke) return;
-    setMapTransformLocked(true);
+    const cancelTransformLock = lockMapTransformForPlacementEffect();
     const onMove = (e: PointerEvent) => {
       syncFixedDualLinePreviewFromClient(e.clientX, e.clientY);
     };
@@ -402,10 +521,12 @@ const Map = () => {
     return () => {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerdown', onDown, true);
+      cancelTransformLock();
       setMapTransformLocked(false);
     };
   }, [
     placingFixedDualLineSmoke,
+    lockMapTransformForPlacementEffect,
     fixedDualLineSmokePlacement,
     fixedDualLineSmokePreview?.facing,
     mapPlacements,
@@ -415,7 +536,7 @@ const Map = () => {
 
   useEffect(() => {
     if (!placingFixedSingleLineSmoke) return;
-    setMapTransformLocked(true);
+    const cancelTransformLock = lockMapTransformForPlacementEffect();
     const onMove = (e: PointerEvent) => {
       syncFixedSingleLinePreviewFromClient(e.clientX, e.clientY);
     };
@@ -442,10 +563,12 @@ const Map = () => {
     return () => {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerdown', onDown, true);
+      cancelTransformLock();
       setMapTransformLocked(false);
     };
   }, [
     placingFixedSingleLineSmoke,
+    lockMapTransformForPlacementEffect,
     fixedSingleLineSmokePlacement,
     fixedSingleLineSmokePreview?.facing,
     mapPlacements,
@@ -454,8 +577,107 @@ const Map = () => {
   ]);
 
   useEffect(() => {
+    if (!placingDirectMovement) return;
+    const cancelTransformLock = lockMapTransformForPlacementEffect();
+    const onMove = (e: PointerEvent) => {
+      syncDirectMovementPreviewFromClient(e.clientX, e.clientY);
+    };
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      const stage = stageRef.current;
+      if (!stage) return;
+      const container = stage.container();
+      if (!container.contains(e.target as Node)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const pt = clientPointToMapStage(stage, e.clientX, e.clientY);
+      if (!pt) return;
+      confirmDirectMovementPlacement(pt.x, pt.y);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerdown', onDown, true);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerdown', onDown, true);
+      cancelTransformLock();
+      setMapTransformLocked(false);
+    };
+  }, [
+    placingDirectMovement,
+    lockMapTransformForPlacementEffect,
+    syncDirectMovementPreviewFromClient,
+    confirmDirectMovementPlacement,
+  ]);
+
+  useEffect(() => {
+    if (!placingAnchorMovement) return;
+    const cancelTransformLock = lockMapTransformForPlacementEffect();
+    const onMove = (e: PointerEvent) => {
+      syncAnchorMovementPreviewFromClient(e.clientX, e.clientY);
+    };
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      const stage = stageRef.current;
+      if (!stage) return;
+      const container = stage.container();
+      if (!container.contains(e.target as Node)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const pt = clientPointToMapStage(stage, e.clientX, e.clientY);
+      if (!pt) return;
+      confirmAnchorMovementPlacement(pt.x, pt.y);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerdown', onDown, true);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerdown', onDown, true);
+      cancelTransformLock();
+      setMapTransformLocked(false);
+    };
+  }, [
+    placingAnchorMovement,
+    lockMapTransformForPlacementEffect,
+    syncAnchorMovementPreviewFromClient,
+    confirmAnchorMovementPlacement,
+  ]);
+
+  useEffect(() => {
+    if (!placingBlastPack) return;
+    const cancelTransformLock = lockMapTransformForPlacementEffect();
+    const onMove = (e: PointerEvent) => {
+      syncBlastPackPreviewFromClient(e.clientX, e.clientY);
+    };
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      const stage = stageRef.current;
+      if (!stage) return;
+      const container = stage.container();
+      if (!container.contains(e.target as Node)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const pt = clientPointToMapStage(stage, e.clientX, e.clientY);
+      if (!pt) return;
+      confirmBlastPackPlacement(pt.x, pt.y);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerdown', onDown, true);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerdown', onDown, true);
+      cancelTransformLock();
+      setMapTransformLocked(false);
+    };
+  }, [
+    placingBlastPack,
+    lockMapTransformForPlacementEffect,
+    syncBlastPackPreviewFromClient,
+    confirmBlastPackPlacement,
+  ]);
+
+  useEffect(() => {
     if (!placingCurveSmoke) return;
-    setMapTransformLocked(true);
+    const cancelTransformLock = lockMapTransformForPlacementEffect();
     curveDrawingRef.current = false;
 
     const stagePoint = (clientX: number, clientY: number) => {
@@ -488,7 +710,7 @@ const Map = () => {
       setCurveSmokePreviewPoints(appendCurvePoint(prev, pt.x, pt.y, maxLength));
     };
 
-    const onUp = (e: PointerEvent) => {
+    const onUp = () => {
       if (!curveDrawingRef.current) return;
       curveDrawingRef.current = false;
       const points = useMatchupStore.getState().curveSmokePreviewPoints;
@@ -509,10 +731,12 @@ const Map = () => {
       window.removeEventListener('pointerup', onUp);
       window.removeEventListener('pointercancel', onUp);
       curveDrawingRef.current = false;
+      cancelTransformLock();
       setMapTransformLocked(false);
     };
   }, [
     placingCurveSmoke,
+    lockMapTransformForPlacementEffect,
     curveSmokeMeta?.maxLength,
     setCurveSmokePreviewPoints,
     confirmCurveSmokePlacement,
@@ -562,7 +786,21 @@ const Map = () => {
   }, [curveSmokePlacementId, abilityPlacements, cancelCurveSmokePlacement]);
 
   useEffect(() => {
-    if (!placingSmoke) return;
+    if (!directMovementPlacementId) return;
+    if (!abilityPlacements.some((p) => p.id === directMovementPlacementId)) {
+      cancelDirectMovementPlacement();
+    }
+  }, [directMovementPlacementId, abilityPlacements, cancelDirectMovementPlacement]);
+
+  useEffect(() => {
+    if (!blastPackPlacementId) return;
+    if (!abilityPlacements.some((p) => p.id === blastPackPlacementId)) {
+      cancelBlastPackPlacement();
+    }
+  }, [blastPackPlacementId, abilityPlacements, cancelBlastPackPlacement]);
+
+  useEffect(() => {
+    if (!placingAbilityEffect) return;
     const stage = stageRef.current;
     const el = stage?.container();
     if (!el) return;
@@ -571,7 +809,7 @@ const Map = () => {
     return () => {
       el.style.cursor = prev;
     };
-  }, [placingSmoke]);
+  }, [placingAbilityEffect]);
 
   const handleMapTransform = useCallback(() => {
     closeAllMapPopovers();
@@ -775,7 +1013,32 @@ const Map = () => {
 
               <Layer>
                 {abilityPlacements.map((ab) => {
-                  if (!isDeployedSmokeVisibleAtPlayhead(ab, timelineCurrentTime)) {
+                  if (ab.directMovement) {
+                    const movement = directMovementFromPlacement(ab);
+                    if (
+                      !movement ||
+                      ab.activeAt == null ||
+                      !timelineTimesEqualStep(ab.activeAt, timelineCurrentTime, timelineMaxTime)
+                    ) {
+                      return null;
+                    }
+                    const owner = mapPlacements.find((p) => p.id === ab.ownerPlacementId);
+                    return (
+                      <MapDirectMovement
+                        key={`movement-direct-${ab.id}`}
+                        startX={movement.startX}
+                        startY={movement.startY}
+                        endX={movement.endX}
+                        endY={movement.endY}
+                        side={owner?.side ?? 'attack'}
+                        onCmdClick={(anchor) => {
+                          closeAllMapPopovers();
+                          openAbilityInstancePopover(ab.id, anchor);
+                        }}
+                      />
+                    );
+                  }
+                  if (!isDeployedAbilityVisibleAtPlayhead(ab, timelineCurrentTime)) {
                     return null;
                   }
                   if (isSphericalSmokeAbility(ab.agentId, ab.abilitySlot)) {
@@ -901,6 +1164,68 @@ const Map = () => {
                     color={curveSmokeMeta.color}
                     preview
                   />
+                ) : null}
+                {placingDirectMovement && directMovementPreview ? (
+                  <MapDirectMovement
+                    startX={directMovementPreview.startX}
+                    startY={directMovementPreview.startY}
+                    endX={directMovementPreview.endX}
+                    endY={directMovementPreview.endY}
+                    side={directMovementSide}
+                    preview
+                  />
+                ) : null}
+                {anchorMovementPlacementDraft && anchorMovementOwner ? (
+                  <>
+                    <Circle
+                      x={anchorMovementOwner.x}
+                      y={anchorMovementOwner.y}
+                      radius={anchorMovementPlacementDraft.range}
+                      stroke="rgba(250, 204, 21, 0.72)"
+                      strokeWidth={2}
+                      dash={[8, 7]}
+                      fill="rgba(250, 204, 21, 0.05)"
+                      listening={false}
+                    />
+                    <Circle
+                      x={anchorMovementPlacementDraft.previewX}
+                      y={anchorMovementPlacementDraft.previewY}
+                      radius={13}
+                      stroke="rgba(250, 204, 21, 0.95)"
+                      strokeWidth={2}
+                      fill="rgba(15, 23, 42, 0.78)"
+                      shadowColor="#facc15"
+                      shadowBlur={14}
+                      shadowOpacity={0.45}
+                      listening={false}
+                    />
+                  </>
+                ) : null}
+                {placingBlastPack && blastPackPreview && blastPackOwner && blastPackPlacement ? (
+                  <>
+                    <Circle
+                      x={blastPackOwner.x}
+                      y={blastPackOwner.y}
+                      radius={getMovementRange(blastPackPlacement.agentId, blastPackPlacement.abilitySlot)}
+                      stroke="rgba(248, 113, 113, 0.72)"
+                      strokeWidth={2}
+                      dash={[7, 6]}
+                      fill="rgba(248, 113, 113, 0.05)"
+                      listening={false}
+                    />
+                    <Circle
+                      x={blastPackPreview.x}
+                      y={blastPackPreview.y}
+                      radius={12}
+                      stroke="rgba(248, 113, 113, 0.95)"
+                      strokeWidth={2}
+                      fill="rgba(15, 23, 42, 0.78)"
+                      shadowColor="#f87171"
+                      shadowBlur={14}
+                      shadowOpacity={0.45}
+                      listening={false}
+                    />
+                  </>
                 ) : null}
               </Layer>
 

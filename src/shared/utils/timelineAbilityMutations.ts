@@ -21,12 +21,30 @@ export function patchPlacementForDeployPhase(
   placement: AbilityPlacement,
   phase: TimelineAbilityDeployEvent['phase'],
   activeAt: number,
-  expiresAt: number,
+  expiresAt?: number,
 ): AbilityPlacement {
   if (phase === 'start') {
-    return { ...placement, state: 'active', activeAt, expiresAt };
+    return {
+      ...placement,
+      state: 'active',
+      activeAt,
+      ...(expiresAt != null ? { expiresAt } : {}),
+    };
   }
-  return { ...placement, state: 'expired', activeAt, expiresAt };
+  if (phase === 'instant') {
+    return {
+      ...placement,
+      state: 'active',
+      activeAt,
+      ...(placement.expiresAt != null ? { expiresAt: placement.expiresAt } : {}),
+    };
+  }
+  return {
+    ...placement,
+    state: 'expired',
+    activeAt,
+    ...(expiresAt != null ? { expiresAt } : {}),
+  };
 }
 
 export function upsertPlacementInList(
@@ -48,7 +66,7 @@ export function applyDeployEventToSnapshotPlacements(
   const existing = placements.find((p) => p.id === event.abilityPlacementId);
   if (!existing) return placements;
   const activeAt = existing.activeAt ?? keyframeTime;
-  const expiresAt = existing.expiresAt ?? keyframeTime;
+  const expiresAt = existing.expiresAt ?? (event.phase === 'end' ? keyframeTime : undefined);
   const patched = patchPlacementForDeployPhase(existing, event.phase, activeAt, expiresAt);
   return upsertPlacementInList(placements, patched);
 }
@@ -70,8 +88,8 @@ export function snapshotWithAbilityDeployAppended(
   };
 }
 
-/** 已施放烟雾（球型 / 线型）在当前播放头是否应显示 */
-export function isDeployedSmokeVisibleAtPlayhead(
+/** 已施放、带地图表现的技能在当前播放头是否应显示 */
+export function isDeployedAbilityVisibleAtPlayhead(
   placement: AbilityPlacement,
   playheadSec: number,
 ): boolean {
@@ -81,6 +99,9 @@ export function isDeployedSmokeVisibleAtPlayhead(
   return placement.state === 'active';
 }
 
+/** 已施放烟雾（球型 / 线型）在当前播放头是否应显示 */
+export const isDeployedSmokeVisibleAtPlayhead = isDeployedAbilityVisibleAtPlayhead;
+
 /** @deprecated 使用 isDeployedSmokeVisibleAtPlayhead */
 export const isSphericalSmokeVisibleAtPlayhead = isDeployedSmokeVisibleAtPlayhead;
 
@@ -89,10 +110,11 @@ export function resolveAbilityStateAtPlayhead(
   placement: AbilityPlacement,
   playheadSec: number,
 ): AbilityPlacement['state'] {
-  if (placement.activeAt == null || placement.expiresAt == null) {
+  if (placement.activeAt == null) {
     return placement.state;
   }
   if (playheadSec < placement.activeAt - PLAYHEAD_EPS) return 'initial';
+  if (placement.expiresAt == null) return placement.state === 'expired' ? 'expired' : 'active';
   if (playheadSec >= placement.expiresAt - PLAYHEAD_EPS) return 'expired';
   return 'active';
 }
@@ -102,7 +124,7 @@ export function syncAbilityPlacementsForPlayhead(
   playheadSec: number,
 ): AbilityPlacement[] {
   return placements.map((p) => {
-    if (p.activeAt == null || p.expiresAt == null) return p;
+    if (p.activeAt == null) return p;
     const state = resolveAbilityStateAtPlayhead(p, playheadSec);
     if (state === p.state) return p;
     return { ...p, state };

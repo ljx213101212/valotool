@@ -21,9 +21,10 @@ type DeploySlotView = {
   slot: AbilitySlot;
   clickable: boolean;
   ability: AgentAbilityEntry | null;
+  armed: boolean;
 };
 
-function buildDeploySlots(agentCatalogId: string): DeploySlotView[] {
+function buildDeploySlots(agentCatalogId: string, armedSlots: Set<AbilitySlot>): DeploySlotView[] {
   const slug = agentCatalogIdToAbilitySlug(agentCatalogId);
   const rows = ABILITIES_BY_AGENT[slug];
   const bySlot = new Map<AbilitySlot, AgentAbilityEntry>(rows.map((r) => [r.name, r]));
@@ -32,6 +33,7 @@ function buildDeploySlots(agentCatalogId: string): DeploySlotView[] {
     slot: row.slot,
     clickable: row.draggable,
     ability: bySlot.get(row.slot) ?? null,
+    armed: armedSlots.has(row.slot),
   }));
 }
 
@@ -50,18 +52,26 @@ function AbilityChip({
   return (
     <button
       type="button"
-      className="agent-ability-popover__chip"
+      className={
+        slotView.armed
+          ? 'agent-ability-popover__chip agent-ability-popover__chip--armed'
+          : 'agent-ability-popover__chip'
+      }
       disabled={disabled}
       aria-label={
         slotView.ability
-          ? `${slotView.keyLabel}：${slotView.ability.displayName}，点击放置到地图中央`
+          ? slotView.armed
+            ? `${slotView.keyLabel}：${slotView.ability.displayName}，点击再次触发位移`
+            : `${slotView.keyLabel}：${slotView.ability.displayName}，点击放置到地图中央`
           : `${slotView.keyLabel}：暂未开放`
       }
       title={
         !slotView.clickable
           ? '大招点数等功能后续开放'
           : slotView.ability
-            ? '点击放置到地图中央'
+            ? slotView.armed
+              ? '已放置锚点：点击再次触发位移'
+              : '点击放置到地图中央'
             : undefined
       }
       onClick={() => {
@@ -88,12 +98,27 @@ export type AgentAbilityPopoverProps = {
 };
 
 export function AgentAbilityPopover({ placement, anchor, popoverRef }: AgentAbilityPopoverProps) {
-  const slots = useMemo(() => buildDeploySlots(placement.agentId), [placement.agentId]);
-  const spawnAbilityAtMapCenter = useMatchupStore((s) => s.spawnAbilityAtMapCenter);
+  const abilityPlacements = useMatchupStore((s) => s.abilityPlacements);
+  const armedSlots = useMemo(
+    () =>
+      new Set(
+        abilityPlacements
+          .filter(
+            (p) => p.ownerPlacementId === placement.id && p.anchorMovement?.status === 'armed'
+          )
+          .map((p) => p.abilitySlot)
+      ),
+    [abilityPlacements, placement.id]
+  );
+  const slots = useMemo(
+    () => buildDeploySlots(placement.agentId, armedSlots),
+    [armedSlots, placement.agentId]
+  );
+  const deployAgentAbility = useMatchupStore((s) => s.deployAgentAbility);
   const closeAbilityPopover = useMatchupStore((s) => s.closeAbilityPopover);
 
   const onDeploy = (abilitySlot: AbilitySlot) => {
-    spawnAbilityAtMapCenter({
+    deployAgentAbility({
       ownerPlacementId: placement.id,
       agentId: placement.agentId,
       abilitySlot,

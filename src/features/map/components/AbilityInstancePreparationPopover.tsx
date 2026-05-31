@@ -2,10 +2,12 @@ import { type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { getAbilityDisplayName } from '@/features/abilities/abilityDisplayName';
 import {
+  isBlastPackMovementAbility,
   isDrawableCurveSmokeAbility,
+  isDirectMovementAbility,
   isFixedDualLineSmokeAbility,
   isFixedSingleLineSmokeAbility,
-  isReleasePlacementSmokeAbility,
+  isReleasePlacementAbility,
   isSphericalSmokeAbility,
 } from '@/features/abilities/config';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
@@ -38,8 +40,10 @@ export function AbilityInstancePreparationPopover({
     (s) => s.beginFixedSingleLineSmokePlacement
   );
   const beginCurveSmokePlacement = useMatchupStore((s) => s.beginCurveSmokePlacement);
+  const beginDirectMovementPlacement = useMatchupStore((s) => s.beginDirectMovementPlacement);
+  const beginBlastPackPlacement = useMatchupStore((s) => s.beginBlastPackPlacement);
 
-  const canActivate = isReleasePlacementSmokeAbility(
+  const canActivate = isReleasePlacementAbility(
     placement.agentId,
     placement.abilitySlot
   );
@@ -68,6 +72,10 @@ export function AbilityInstancePreparationPopover({
       beginFixedSingleLineSmokePlacement(placement.id);
     } else if (isDrawableCurveSmokeAbility(placement.agentId, placement.abilitySlot)) {
       beginCurveSmokePlacement(placement.id);
+    } else if (isDirectMovementAbility(placement.agentId, placement.abilitySlot)) {
+      beginDirectMovementPlacement(placement.id);
+    } else if (isBlastPackMovementAbility(placement.agentId, placement.abilitySlot)) {
+      beginBlastPackPlacement(placement.id);
     }
     closeAbilityInstancePopover();
   };
