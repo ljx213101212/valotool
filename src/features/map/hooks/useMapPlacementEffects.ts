@@ -188,6 +188,16 @@ export function useBlastPackPlacementEffect(
   useSimplePlacementEffect(args);
 }
 
+export function useStatusEffectPlacementEffect(
+  args: UsePlacementEffectArgs & {
+    placing: boolean;
+    syncPreview: SyncPreviews['syncStatusEffectPreview'];
+    confirm: (x: number, y: number) => void;
+  },
+) {
+  useSimplePlacementEffect(args);
+}
+
 /** Shared implementation for simple "move-to-preview + click-to-confirm" placements */
 function useSimplePlacementEffect(
   args: UsePlacementEffectArgs & {

@@ -13,11 +13,26 @@ export interface TimelineConfig {
   };
 }
 
+type TimelineTick =
+  | {
+      type: 'major';
+      time: number;
+      x: number;
+      height: number;
+      label: string;
+    }
+  | {
+      type: 'minor';
+      time: number;
+      x: number;
+      height: number;
+      label?: undefined;
+    };
 
 const TimelineRuler: React.FC<{ config: TimelineConfig }> = ({ config }) => {
 
     const generateTicks = (config: TimelineConfig) => {
-        const ticks: any[] = [];
+        const ticks: TimelineTick[] = [];
         const { totalDuration, pixelsPerSecond, tickConfig } = config;
         const { majorTickInterval, minorTickInterval, majorTickHeight, minorTickHeight } = tickConfig;
       

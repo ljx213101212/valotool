@@ -4,7 +4,12 @@ import { Circle, Group, Image, Line } from 'react-konva';
 import { tacticalSideMapTokenColors } from '@/shared/constants/tacticalSideColors';
 import { getAgentPortraitUrl } from '@/shared/data/agentPortraitUrl';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
+import { useTimelinePlaybackStore } from '@/shared/store/timelinePlaybackStore';
 import type { MapAgentPlacement } from '@/shared/types/matchup';
+import {
+  resolveStatusOverlayOpacity,
+  strongestActiveStatusForTarget,
+} from '@/shared/utils/abilityStatusEffects';
 
 const BODY_R = 24;
 /** 选中时头像外侧白色描边圈半径（描边居中于圆上） */
@@ -63,6 +68,8 @@ export function MapHeroToken({
   onAbilityPopoverRequest?: (anchor: { clientX: number; clientY: number }) => void;
 }) {
   const patchMapPlacement = useMatchupStore((s) => s.patchMapPlacement);
+  const abilityPlacements = useMatchupStore((s) => s.abilityPlacements);
+  const timelineCurrentTime = useTimelinePlaybackStore((s) => s.currentTime);
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [hovered, setHovered] = useState(false);
   const [dragFacing, setDragFacing] = useState(false);
@@ -77,8 +84,8 @@ export function MapHeroToken({
 
   useEffect(() => {
     if (!url) {
-      setImg(null);
-      return;
+      const timer = window.setTimeout(() => setImg(null), 0);
+      return () => window.clearTimeout(timer);
     }
     const el = new window.Image();
     el.crossOrigin = 'anonymous';
@@ -92,14 +99,30 @@ export function MapHeroToken({
   }, [url]);
 
   useEffect(() => {
-    if (!dragFacing) {
+    if (dragFacing) return;
+    const timer = window.setTimeout(() => {
       setLiveFacing(placement.facing);
       facingRef.current = placement.facing;
-    }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [placement.facing, dragFacing]);
 
   const eliminated = !!placement.eliminated;
   const { accent, wedgeFill } = tacticalSideMapTokenColors(placement.side);
+  const activeStatus = strongestActiveStatusForTarget(
+    abilityPlacements.flatMap((ability) => ability.affectedStatuses ?? []),
+    placement.id,
+    timelineCurrentTime,
+  );
+  const statusOpacity = activeStatus
+    ? resolveStatusOverlayOpacity({ ...activeStatus, playheadSec: timelineCurrentTime })
+    : 0;
+  const statusFill =
+    activeStatus?.effect === 'concuss'
+      ? '#8bb8ff'
+      : activeStatus?.effect === 'nearsight'
+        ? '#b78cff'
+        : '#fff7b8';
 
   const showHandle = (hovered || dragFacing) && !eliminated;
   const facing = dragFacing ? liveFacing : placement.facing;
@@ -295,7 +318,29 @@ export function MapHeroToken({
         ) : (
           <Circle radius={BODY_R} fill="rgba(30, 41, 59, 0.95)" listening={false} />
         )}
+        {statusOpacity > 0 ? (
+          <Circle
+            radius={BODY_R}
+            fill={statusFill}
+            opacity={Math.min(0.82, statusOpacity)}
+            listening={false}
+          />
+        ) : null}
       </Group>
+
+      {statusOpacity > 0 ? (
+        <Circle
+          radius={BODY_R + 3}
+          stroke={statusFill}
+          strokeWidth={activeStatus?.effect === 'concuss' ? 2 : 3}
+          opacity={Math.min(0.72, statusOpacity)}
+          dash={activeStatus?.effect === 'concuss' ? [5, 4] : undefined}
+          shadowColor={statusFill}
+          shadowBlur={activeStatus?.effect === 'concuss' ? 10 : 16}
+          shadowOpacity={0.45}
+          listening={false}
+        />
+      ) : null}
 
       <Circle
         radius={BODY_R}

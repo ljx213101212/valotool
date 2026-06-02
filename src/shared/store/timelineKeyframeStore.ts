@@ -295,6 +295,14 @@ export const useTimelineKeyframeStore = create<TimelineKeyframeState>()(
             s.blastPackPlacementId === abilityPlacementId
               ? null
               : s.blastPackPreview,
+          statusEffectPlacementId:
+            s.statusEffectPlacementId === abilityPlacementId
+              ? null
+              : s.statusEffectPlacementId,
+          statusEffectPreview:
+            s.statusEffectPlacementId === abilityPlacementId
+              ? null
+              : s.statusEffectPreview,
           anchorMovementPlacementDraft:
             s.anchorMovementPlacementDraft?.ownerPlacementId === abilityPlacementId
               ? null

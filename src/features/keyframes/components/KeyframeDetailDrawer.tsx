@@ -55,7 +55,9 @@ export function KeyframeDetailDrawer() {
   }, [open, pushDrawerLayer, popDrawerLayer]);
 
   useEffect(() => {
-    if (!open) setDeleteOpen(false);
+    if (open) return;
+    const timer = window.setTimeout(() => setDeleteOpen(false), 0);
+    return () => window.clearTimeout(timer);
   }, [open]);
 
   const snap = entry?.snapshot;

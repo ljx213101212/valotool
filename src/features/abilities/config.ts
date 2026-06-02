@@ -256,10 +256,24 @@ export type AbilityEffectKind =
   | 'movement-direct'
   | 'movement-anchor-static'
   | 'movement-anchor-projectile'
-  | 'movement-blast-pack';
+  | 'movement-blast-pack'
+  | 'flash'
+  | 'blind'
+  | 'nearsight'
+  | 'concuss';
 
 export type SphericalSmokeVariant = 'default' | 'cage';
 export type MovementAbilityKind = 'dash' | 'slide' | 'teleport' | 'rewind' | 'blast-pack';
+export type AbilityStatusEffectType = 'flash' | 'blind' | 'nearsight' | 'concuss';
+export type AbilityAffectsRule = 'all-players' | 'enemies-only';
+export type FlashDeliveryKind =
+  | 'projectile'
+  | 'fixed-curve'
+  | 'guided'
+  | 'wall-burst'
+  | 'enemy-only-source'
+  | 'zone-projectile';
+export type ConcussDeliveryKind = 'circle' | 'line-zone';
 
 export type AbilityEffectMeta = {
   effectKinds: readonly AbilityEffectKind[];
@@ -283,6 +297,24 @@ export type AbilityEffectMeta = {
   movementKind?: MovementAbilityKind;
   /** 从施放到移动生效的延迟（秒）；直接位移默认 0 */
   movementActivationDelaySec?: number;
+  /** 闪光/致盲/震荡类状态效果 */
+  statusEffect?: AbilityStatusEffectType;
+  /** 影响队伍规则；安全型技能使用 enemies-only */
+  affects?: AbilityAffectsRule;
+  /** 闪光/致盲释放形态 */
+  flashDelivery?: FlashDeliveryKind;
+  /** 震荡释放形态 */
+  concussDelivery?: ConcussDeliveryKind;
+  /** 状态影响半径（地图坐标） */
+  effectRadius?: number;
+  /** 线性/推进型状态影响长度（地图坐标） */
+  effectLength?: number;
+  /** 线性/推进型状态影响宽度（地图坐标） */
+  effectWidth?: number;
+  /** 状态持续时间（秒） */
+  statusDurationSec?: number;
+  /** 状态消退时间（秒） */
+  statusFadeSec?: number;
 };
 
 /** 未单独配置时的回退（与 Omen 暗影之罩标定一致） */
@@ -316,10 +348,50 @@ export const ABILITY_EFFECT_META: Partial<
   Record<AgentAbilitySlug, Partial<Record<AbilitySlot, AbilityEffectMeta>>>
 > = {
   astra: {
+    Ability1: {
+      effectKinds: ['concuss'],
+      statusEffect: 'concuss',
+      concussDelivery: 'circle',
+      affects: 'all-players',
+      effectRadius: smokeMapUnitsFromMeters(5),
+      statusDurationSec: 3.5,
+      statusFadeSec: 0,
+    },
     Ability2: {
       effectKinds: ['smoke-sphere'],
       smokeRadius: smokeMapRadiusFromMeters(4.75),
       smokeDurationSec: 14.25,
+    },
+  },
+  breach: {
+    Ability1: {
+      effectKinds: ['flash'],
+      statusEffect: 'flash',
+      flashDelivery: 'wall-burst',
+      affects: 'all-players',
+      effectRadius: smokeMapUnitsFromMeters(16),
+      statusDurationSec: 2,
+      statusFadeSec: 1,
+    },
+    Ability2: {
+      effectKinds: ['concuss'],
+      statusEffect: 'concuss',
+      concussDelivery: 'line-zone',
+      affects: 'all-players',
+      effectLength: smokeMapUnitsFromMeters(32),
+      effectWidth: smokeMapUnitsFromMeters(5),
+      statusDurationSec: 3.5,
+      statusFadeSec: 0,
+    },
+    Ultimate: {
+      effectKinds: ['concuss'],
+      statusEffect: 'concuss',
+      concussDelivery: 'line-zone',
+      affects: 'all-players',
+      effectLength: smokeMapUnitsFromMeters(40),
+      effectWidth: smokeMapUnitsFromMeters(16),
+      statusDurationSec: 6,
+      statusFadeSec: 0,
     },
   },
   brimstone: {
@@ -356,6 +428,16 @@ export const ABILITY_EFFECT_META: Partial<
     },
   },
   omen: {
+    Ability1: {
+      effectKinds: ['nearsight'],
+      statusEffect: 'nearsight',
+      flashDelivery: 'zone-projectile',
+      affects: 'all-players',
+      effectLength: smokeMapUnitsFromMeters(22),
+      effectWidth: smokeMapUnitsFromMeters(6),
+      statusDurationSec: 2.5,
+      statusFadeSec: 0.6,
+    },
     Ability2: {
       effectKinds: ['smoke-sphere'],
       smokeRadius: SMOKE_OMEN_MAP_RADIUS,
@@ -382,6 +464,28 @@ export const ABILITY_EFFECT_META: Partial<
       smokeLineColor: VIPER_TOXIC_SCREEN_WALL_COLOR,
     },
   },
+  kayo: {
+    Ability1: {
+      effectKinds: ['flash'],
+      statusEffect: 'flash',
+      flashDelivery: 'projectile',
+      affects: 'all-players',
+      effectRadius: smokeMapUnitsFromMeters(15),
+      statusDurationSec: 2.25,
+      statusFadeSec: 1,
+    },
+  },
+  gekko: {
+    Ability2: {
+      effectKinds: ['blind'],
+      statusEffect: 'blind',
+      flashDelivery: 'enemy-only-source',
+      affects: 'enemies-only',
+      effectRadius: smokeMapUnitsFromMeters(14),
+      statusDurationSec: 2,
+      statusFadeSec: 0.8,
+    },
+  },
   cypher: {
     Ability1: {
       effectKinds: ['smoke-sphere'],
@@ -391,6 +495,15 @@ export const ABILITY_EFFECT_META: Partial<
     },
   },
   phoenix: {
+    Ability2: {
+      effectKinds: ['flash'],
+      statusEffect: 'flash',
+      flashDelivery: 'fixed-curve',
+      affects: 'all-players',
+      effectRadius: smokeMapUnitsFromMeters(13),
+      statusDurationSec: 1.5,
+      statusFadeSec: 1,
+    },
     Grenade: {
       effectKinds: ['smoke-line-drawable'],
       /** `smoke.md`：火墙约 15–20m，取 18m 为路径上限 */
@@ -398,6 +511,17 @@ export const ABILITY_EFFECT_META: Partial<
       smokeDurationSec: 8,
       smokeLineStrokeWidth: 14,
       smokeLineColor: PHOENIX_BLAZE_WALL_COLOR,
+    },
+  },
+  reyna: {
+    Grenade: {
+      effectKinds: ['nearsight'],
+      statusEffect: 'nearsight',
+      flashDelivery: 'enemy-only-source',
+      affects: 'enemies-only',
+      effectRadius: smokeMapUnitsFromMeters(16),
+      statusDurationSec: 2,
+      statusFadeSec: 0.6,
     },
   },
   raze: {
@@ -422,6 +546,15 @@ export const ABILITY_EFFECT_META: Partial<
     },
   },
   neon: {
+    Ability1: {
+      effectKinds: ['concuss'],
+      statusEffect: 'concuss',
+      concussDelivery: 'circle',
+      affects: 'all-players',
+      effectRadius: smokeMapUnitsFromMeters(4),
+      statusDurationSec: 3,
+      statusFadeSec: 0,
+    },
     Ability2: {
       effectKinds: ['movement-direct'],
       movementKind: 'slide',
@@ -438,6 +571,28 @@ export const ABILITY_EFFECT_META: Partial<
       smokeLineColor: NEON_FAST_LANE_SMOKE_COLOR,
     },
   },
+  skye: {
+    Ability2: {
+      effectKinds: ['flash'],
+      statusEffect: 'flash',
+      flashDelivery: 'guided',
+      affects: 'all-players',
+      effectRadius: smokeMapUnitsFromMeters(15),
+      statusDurationSec: 2,
+      statusFadeSec: 1,
+    },
+  },
+  vyse: {
+    Ability2: {
+      effectKinds: ['flash'],
+      statusEffect: 'flash',
+      flashDelivery: 'wall-burst',
+      affects: 'all-players',
+      effectRadius: smokeMapUnitsFromMeters(14),
+      statusDurationSec: 2,
+      statusFadeSec: 1,
+    },
+  },
   waylay: {
     Ability1: {
       effectKinds: ['movement-direct'],
@@ -450,6 +605,15 @@ export const ABILITY_EFFECT_META: Partial<
     },
   },
   yoru: {
+    Ability1: {
+      effectKinds: ['flash'],
+      statusEffect: 'flash',
+      flashDelivery: 'projectile',
+      affects: 'all-players',
+      effectRadius: smokeMapUnitsFromMeters(14),
+      statusDurationSec: 1.75,
+      statusFadeSec: 1,
+    },
     Ability2: {
       effectKinds: ['movement-anchor-projectile'],
       movementKind: 'teleport',
@@ -524,6 +688,27 @@ export function isMovementAbility(agentCatalogId: string, abilitySlot: AbilitySl
   return meta?.effectKinds.some((kind) => kind.startsWith('movement-')) ?? false;
 }
 
+export function isFlashOrBlindAbility(agentCatalogId: string, abilitySlot: AbilitySlot): boolean {
+  const meta = getAbilityEffectMeta(agentCatalogId, abilitySlot);
+  return (
+    meta?.effectKinds.some(
+      (kind) => kind === 'flash' || kind === 'blind' || kind === 'nearsight',
+    ) ?? false
+  );
+}
+
+export function isConcussAbility(agentCatalogId: string, abilitySlot: AbilitySlot): boolean {
+  const meta = getAbilityEffectMeta(agentCatalogId, abilitySlot);
+  return meta?.effectKinds.includes('concuss') ?? false;
+}
+
+export function isStatusEffectAbility(agentCatalogId: string, abilitySlot: AbilitySlot): boolean {
+  return (
+    isFlashOrBlindAbility(agentCatalogId, abilitySlot) ||
+    isConcussAbility(agentCatalogId, abilitySlot)
+  );
+}
+
 /** 预备期可进入释放流程的烟雾类技能 */
 export function isReleasePlacementSmokeAbility(
   agentCatalogId: string,
@@ -552,7 +737,8 @@ export function isReleasePlacementAbility(
 ): boolean {
   return (
     isReleasePlacementSmokeAbility(agentCatalogId, abilitySlot) ||
-    isReleasePlacementMovementAbility(agentCatalogId, abilitySlot)
+    isReleasePlacementMovementAbility(agentCatalogId, abilitySlot) ||
+    isStatusEffectAbility(agentCatalogId, abilitySlot)
   );
 }
 
@@ -617,6 +803,48 @@ export function getSmokeDurationSec(agentCatalogId: string, abilitySlot: Ability
 
 export function getMovementRange(agentCatalogId: string, abilitySlot: AbilitySlot): number {
   return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.movementRange ?? smokeMapUnitsFromMeters(10);
+}
+
+export function getAbilityAffectsRule(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): AbilityAffectsRule {
+  return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.affects ?? 'all-players';
+}
+
+export function getAbilityStatusEffectType(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): AbilityStatusEffectType {
+  const meta = getAbilityEffectMeta(agentCatalogId, abilitySlot);
+  if (meta?.statusEffect) return meta.statusEffect;
+  if (meta?.effectKinds.includes('concuss')) return 'concuss';
+  if (meta?.effectKinds.includes('nearsight')) return 'nearsight';
+  if (meta?.effectKinds.includes('blind')) return 'blind';
+  return 'flash';
+}
+
+export function getAbilityEffectRadius(agentCatalogId: string, abilitySlot: AbilitySlot): number {
+  return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.effectRadius ?? smokeMapUnitsFromMeters(8);
+}
+
+export function getAbilityEffectLength(agentCatalogId: string, abilitySlot: AbilitySlot): number {
+  return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.effectLength ?? smokeMapUnitsFromMeters(16);
+}
+
+export function getAbilityEffectWidth(agentCatalogId: string, abilitySlot: AbilitySlot): number {
+  return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.effectWidth ?? smokeMapUnitsFromMeters(4);
+}
+
+export function getAbilityStatusDurationSec(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): number {
+  return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.statusDurationSec ?? 2;
+}
+
+export function getAbilityStatusFadeSec(agentCatalogId: string, abilitySlot: AbilitySlot): number {
+  return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.statusFadeSec ?? 1;
 }
 
 export function getMovementActivationDelaySec(

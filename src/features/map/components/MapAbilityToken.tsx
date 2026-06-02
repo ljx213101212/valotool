@@ -6,6 +6,7 @@ import {
   ABILITIES_BY_AGENT,
   isDirectMovementAbility,
   isReleasePlacementSmokeAbility,
+  isStatusEffectAbility,
 } from '@/features/abilities';
 import { getAbilityDisplayIconUrl } from '@/features/abilities/abilityDisplayIconUrls';
 import { tacticalSideMapTokenColors } from '@/shared/constants/tacticalSideColors';
@@ -48,6 +49,7 @@ export function MapAbilityToken({
   const hideToken =
     ((isReleasePlacementSmokeAbility(placement.agentId, placement.abilitySlot) ||
       isDirectMovementAbility(placement.agentId, placement.abilitySlot) ||
+      isStatusEffectAbility(placement.agentId, placement.abilitySlot) ||
       placement.anchorMovement?.status === 'triggered') &&
       (placement.state === 'active' || placement.state === 'expired'));
 

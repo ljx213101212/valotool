@@ -23,6 +23,7 @@ export function useMapPlacementPreviews(stageRef: React.RefObject<Konva.Stage | 
     (s) => s.updateAnchorMovementPlacementPreview,
   );
   const updateBlastPackPreview = useMatchupStore((s) => s.updateBlastPackPreview);
+  const updateStatusEffectPreview = useMatchupStore((s) => s.updateStatusEffectPreview);
 
   const stagePoint = useCallback(
     (clientX: number, clientY: number) => {
@@ -103,6 +104,15 @@ export function useMapPlacementPreviews(stageRef: React.RefObject<Konva.Stage | 
     [stagePoint, updateBlastPackPreview],
   );
 
+  const syncStatusEffectPreview = useCallback(
+    (clientX: number, clientY: number) => {
+      const pt = stagePoint(clientX, clientY);
+      if (!pt) return;
+      updateStatusEffectPreview(pt.x, pt.y);
+    },
+    [stagePoint, updateStatusEffectPreview],
+  );
+
   return {
     syncSphericalSmokePreview,
     syncFixedDualLinePreview,
@@ -110,5 +120,6 @@ export function useMapPlacementPreviews(stageRef: React.RefObject<Konva.Stage | 
     syncDirectMovementPreview,
     syncAnchorMovementPreview,
     syncBlastPackPreview,
+    syncStatusEffectPreview,
   } as const;
 }

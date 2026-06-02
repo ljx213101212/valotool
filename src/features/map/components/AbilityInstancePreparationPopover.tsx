@@ -8,6 +8,7 @@ import {
   isFixedSingleLineSmokeAbility,
   isReleasePlacementAbility,
   isSphericalSmokeAbility,
+  isStatusEffectAbility,
 } from '@/features/abilities/config';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
 import type { AbilityPlacement, AbilityPopoverAnchor } from '@/shared/types/ability';
@@ -40,6 +41,7 @@ export function AbilityInstancePreparationPopover({
   );
   const beginCurveSmokePlacement = useMatchupStore((s) => s.beginCurveSmokePlacement);
   const beginDirectMovementPlacement = useMatchupStore((s) => s.beginDirectMovementPlacement);
+  const beginStatusEffectPlacement = useMatchupStore((s) => s.beginStatusEffectPlacement);
 
   const canActivate = isReleasePlacementAbility(
     placement.agentId,
@@ -72,6 +74,8 @@ export function AbilityInstancePreparationPopover({
       beginCurveSmokePlacement(placement.id);
     } else if (isDirectMovementAbility(placement.agentId, placement.abilitySlot)) {
       beginDirectMovementPlacement(placement.id);
+    } else if (isStatusEffectAbility(placement.agentId, placement.abilitySlot)) {
+      beginStatusEffectPlacement(placement.id);
     }
     closeAbilityInstancePopover();
   };

@@ -2,6 +2,14 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import type { AbilitySlot } from '@/features/abilities/config';
 import {
+  getAbilityAffectsRule,
+  getAbilityEffectLength,
+  getAbilityEffectMeta,
+  getAbilityEffectRadius,
+  getAbilityEffectWidth,
+  getAbilityStatusDurationSec,
+  getAbilityStatusEffectType,
+  getAbilityStatusFadeSec,
   getDrawableCurveMaxLength,
   getMovementActivationDelaySec,
   getMovementKind,
@@ -12,6 +20,8 @@ import {
   isDrawableCurveSmokeAbility,
   isFixedDualLineSmokeAbility,
   isFixedSingleLineSmokeAbility,
+  isConcussAbility,
+  isStatusEffectAbility,
   isSphericalSmokeAbility,
   isStaticAnchorMovementAbility,
   smokeMapUnitsFromMeters,
@@ -33,6 +43,13 @@ import { nextAbilitySpawnPoint } from '@/shared/utils/abilitySpawnPosition';
 import { normalizeAbilityPlacements } from '@/shared/utils/normalizeAbilityPlacements';
 import { reconcileMapPlacements } from '@/shared/utils/reconcileMapPlacements';
 import type { MovementAnchorKind } from '@/shared/types/movement';
+import {
+  computeCircularConcussTargets,
+  computeFlashTargets,
+  computeLineZoneStatusTargets,
+  updateAffectedStatusSeverity,
+} from '@/shared/utils/abilityStatusEffects';
+import type { AbilityStatusSeverity } from '@/shared/types/abilityStatus';
 
 const BLAST_PACK_IMPACT_RADIUS = smokeMapUnitsFromMeters(6);
 
@@ -99,6 +116,9 @@ interface MatchupState {
     previewX: number;
     previewY: number;
   } | null;
+  /** 闪光/致盲/震荡放置预览（仅内存） */
+  statusEffectPlacementId: string | null;
+  statusEffectPreview: { x: number; y: number; facing: number } | null;
   /** 地图上当前选中的特工 placement（仅内存，不参与 persist） */
   selectedPlacementId: string | null;
   setSelectedPlacementId: (id: string | null) => void;
@@ -142,6 +162,15 @@ interface MatchupState {
   updateAnchorMovementPlacementPreview: (targetX: number, targetY: number) => void;
   cancelAnchorMovementPlacement: () => void;
   confirmAnchorMovementPlacement: (targetX: number, targetY: number) => void;
+  beginStatusEffectPlacement: (abilityPlacementId: string) => void;
+  updateStatusEffectPreview: (targetX: number, targetY: number) => void;
+  cancelStatusEffectPlacement: () => void;
+  confirmStatusEffectPlacement: (targetX: number, targetY: number) => void;
+  updateAbilityAffectedStatusSeverity: (
+    abilityPlacementId: string,
+    targetPlacementId: string,
+    severity: AbilityStatusSeverity,
+  ) => void;
   deployAgentAbility: (input: Omit<SpawnAbilityInput, 'x' | 'y'>) => void;
   triggerArmedMovementAbility: (ownerPlacementId: string, abilitySlot: AbilitySlot) => void;
   spawnAbilityPlacement: (input: SpawnAbilityInput) => void;
@@ -164,7 +193,15 @@ interface MatchupState {
     patch: Partial<
       Pick<
         AbilityPlacement,
-        'x' | 'y' | 'state' | 'lineSmoke' | 'curveSmoke' | 'directMovement' | 'anchorMovement'
+        | 'x'
+        | 'y'
+        | 'state'
+        | 'lineSmoke'
+        | 'curveSmoke'
+        | 'directMovement'
+        | 'anchorMovement'
+        | 'statusEffect'
+        | 'affectedStatuses'
       >
     >
   ) => void;
@@ -227,6 +264,8 @@ export const useMatchupStore = create<MatchupState>()(
       blastPackPlacementId: null,
       blastPackPreview: null,
       blastPackPlacementDraft: null,
+      statusEffectPlacementId: null,
+      statusEffectPreview: null,
       selectedPlacementId: null,
       selectedAbilityPlacementId: null,
       setSelectedPlacementId: (id) =>
@@ -985,6 +1024,198 @@ export const useMatchupStore = create<MatchupState>()(
           anchorMovementPlacementDraft: null,
         }));
       },
+      beginStatusEffectPlacement: (abilityPlacementId) =>
+        set((s) => {
+          const placement = s.abilityPlacements.find((p) => p.id === abilityPlacementId);
+          const owner = placement
+            ? s.mapPlacements.find((p) => p.id === placement.ownerPlacementId)
+            : undefined;
+          if (
+            !placement ||
+            !owner ||
+            owner.eliminated ||
+            placement.state !== 'initial' ||
+            !isStatusEffectAbility(placement.agentId, placement.abilitySlot)
+          ) {
+            return s;
+          }
+          const facing = Math.atan2(placement.y - owner.y, placement.x - owner.x);
+          return {
+            statusEffectPlacementId: abilityPlacementId,
+            statusEffectPreview: { x: placement.x, y: placement.y, facing },
+            sphericalSmokePlacementId: null,
+            sphericalSmokePreview: null,
+            fixedDualLineSmokePlacementId: null,
+            fixedDualLineSmokePreview: null,
+            fixedSingleLineSmokePlacementId: null,
+            fixedSingleLineSmokePreview: null,
+            curveSmokePlacementId: null,
+            curveSmokePreviewPoints: [],
+            directMovementPlacementId: null,
+            directMovementPreview: null,
+            anchorMovementPlacementDraft: null,
+            blastPackPlacementId: null,
+            blastPackPreview: null,
+            blastPackPlacementDraft: null,
+            abilityInstancePopoverId: null,
+            abilityInstancePopoverAnchor: null,
+            abilityPopoverPlacementId: null,
+            abilityPopoverAnchor: null,
+          };
+        }),
+      updateStatusEffectPreview: (targetX, targetY) =>
+        set((s) => {
+          if (!s.statusEffectPlacementId) return s;
+          const placement = s.abilityPlacements.find((p) => p.id === s.statusEffectPlacementId);
+          const owner = placement
+            ? s.mapPlacements.find((p) => p.id === placement.ownerPlacementId)
+            : undefined;
+          const facing = owner ? Math.atan2(targetY - owner.y, targetX - owner.x) : 0;
+          return { statusEffectPreview: { x: targetX, y: targetY, facing } };
+        }),
+      cancelStatusEffectPlacement: () =>
+        set({
+          statusEffectPlacementId: null,
+          statusEffectPreview: null,
+        }),
+      confirmStatusEffectPlacement: (targetX, targetY) => {
+        const { statusEffectPlacementId, statusEffectPreview } = useMatchupStore.getState();
+        if (!statusEffectPlacementId) return;
+        const state = useMatchupStore.getState();
+        const target = state.abilityPlacements.find((p) => p.id === statusEffectPlacementId);
+        const owner = target
+          ? state.mapPlacements.find((p) => p.id === target.ownerPlacementId)
+          : undefined;
+        if (
+          !target ||
+          !owner ||
+          owner.eliminated ||
+          !isStatusEffectAbility(target.agentId, target.abilitySlot)
+        ) {
+          useMatchupStore.setState({
+            statusEffectPlacementId: null,
+            statusEffectPreview: null,
+          });
+          return;
+        }
+        const meta = getAbilityEffectMeta(target.agentId, target.abilitySlot);
+        const { currentTime, maxTime } = useTimelinePlaybackStore.getState();
+        const startT = quantizeTimelineSeconds(currentTime, maxTime);
+        const duration = getAbilityStatusDurationSec(target.agentId, target.abilitySlot);
+        const fadeSec = getAbilityStatusFadeSec(target.agentId, target.abilitySlot);
+        const endT = quantizeTimelineSeconds(Math.min(startT + duration + fadeSec, maxTime), maxTime);
+        const effect = getAbilityStatusEffectType(target.agentId, target.abilitySlot);
+        const affects = getAbilityAffectsRule(target.agentId, target.abilitySlot);
+        const radius = getAbilityEffectRadius(target.agentId, target.abilitySlot);
+        const length = getAbilityEffectLength(target.agentId, target.abilitySlot);
+        const width = getAbilityEffectWidth(target.agentId, target.abilitySlot);
+        const facing = statusEffectPreview?.facing ?? Math.atan2(targetY - owner.y, targetX - owner.x);
+        const lineLike =
+          meta?.concussDelivery === 'line-zone' || meta?.flashDelivery === 'zone-projectile';
+        const source = lineLike ? { x: owner.x, y: owner.y } : { x: targetX, y: targetY };
+        const affectedStatuses =
+          lineLike
+            ? computeLineZoneStatusTargets({
+                origin: { x: owner.x, y: owner.y },
+                facing,
+                length,
+                width,
+                casterSide: owner.side,
+                affects,
+                targets: state.mapPlacements,
+                startsAt: startT,
+                durationSec: duration,
+                fadeSec,
+                effect,
+              })
+            : isConcussAbility(target.agentId, target.abilitySlot)
+              ? computeCircularConcussTargets({
+                  source,
+                  casterSide: owner.side,
+                  affects,
+                  radius,
+                  targets: state.mapPlacements,
+                  startsAt: startT,
+                  durationSec: duration,
+                  fadeSec,
+                })
+              : computeFlashTargets({
+                  source,
+                  casterSide: owner.side,
+                  affects,
+                  radius,
+                  targets: state.mapPlacements,
+                  startsAt: startT,
+                  durationSec: duration,
+                  fadeSec,
+                  effect: effect === 'concuss' ? 'flash' : effect,
+                });
+
+        const updated = {
+          ...target,
+          x: targetX,
+          y: targetY,
+          state: 'active' as const,
+          activeAt: startT,
+          expiresAt: endT,
+          statusEffect: {
+            kind: effect,
+            sourceX: source.x,
+            sourceY: source.y,
+            radius,
+            facing,
+            length,
+            width,
+            ...(meta?.flashDelivery ? { flashDelivery: meta.flashDelivery } : {}),
+            ...(meta?.concussDelivery ? { concussDelivery: meta.concussDelivery } : {}),
+          },
+          affectedStatuses,
+        };
+        useMatchupStore.setState((s) => ({
+          abilityPlacements: s.abilityPlacements.map((p) =>
+            p.id === statusEffectPlacementId ? updated : p
+          ),
+          statusEffectPlacementId: null,
+          statusEffectPreview: null,
+        }));
+        const startEvent = buildAbilityDeployEvent(updated, 'start');
+        const endEvent = buildAbilityDeployEvent(updated, 'end');
+        useTimelineKeyframeStore.getState().recordAbilityDeployAtTime(startT, startEvent);
+        useTimelineKeyframeStore.getState().recordAbilityDeployAtTime(endT, endEvent);
+        syncLiveAbilityPlacementsForPlayhead(currentTime);
+      },
+      updateAbilityAffectedStatusSeverity: (abilityPlacementId, targetPlacementId, severity) =>
+        {
+          const patchPlacement = (placement: AbilityPlacement): AbilityPlacement =>
+            placement.id !== abilityPlacementId
+              ? placement
+              : {
+                  ...placement,
+                  affectedStatuses: placement.affectedStatuses?.map((status) =>
+                    status.targetPlacementId === targetPlacementId
+                      ? updateAffectedStatusSeverity(status, severity)
+                      : status,
+                  ),
+                };
+
+          set((s) => ({
+            abilityPlacements: s.abilityPlacements.map(patchPlacement),
+          }));
+          useTimelineKeyframeStore.setState((s) => ({
+            keyframes: s.keyframes.map((keyframe) => ({
+              ...keyframe,
+              snapshot: {
+                ...keyframe.snapshot,
+                matchup: {
+                  ...keyframe.snapshot.matchup,
+                  abilityPlacements: (
+                    keyframe.snapshot.matchup.abilityPlacements ?? []
+                  ).map(patchPlacement),
+                },
+              },
+            })),
+          }));
+        },
       deployAgentAbility: (input) => {
         const state = useMatchupStore.getState();
         const owner = state.mapPlacements.find((p) => p.id === input.ownerPlacementId);
