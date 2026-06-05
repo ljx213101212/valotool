@@ -1,5 +1,6 @@
 import { Circle, Group, Line } from 'react-konva';
 import type { AbilityStatusEffectType } from '@/features/abilities/config';
+import type { Point } from '@/shared/types/map';
 
 const EFFECT_COLORS: Record<AbilityStatusEffectType, string> = {
   flash: '#fff7b8',
@@ -16,6 +17,7 @@ export type MapStatusEffectProps = {
   facing?: number;
   length?: number;
   width?: number;
+  impactPoints?: Point[];
   preview?: boolean;
   onCmdClick?: (anchor: { clientX: number; clientY: number }) => void;
 };
@@ -28,12 +30,14 @@ export function MapStatusEffect({
   facing = 0,
   length,
   width = 28,
+  impactPoints,
   preview = false,
   onCmdClick,
 }: MapStatusEffectProps) {
   const color = EFFECT_COLORS[kind];
   const opacity = preview ? 0.42 : 0.74;
   const isLine = length != null && length > 0;
+  const circleSources = impactPoints?.length ? impactPoints : [{ x: sourceX, y: sourceY }];
   const endX = sourceX + Math.cos(facing) * (length ?? 0);
   const endY = sourceY + Math.sin(facing) * (length ?? 0);
 
@@ -87,28 +91,32 @@ export function MapStatusEffect({
         </>
       ) : (
         <>
-          <Circle
-            x={sourceX}
-            y={sourceY}
-            radius={radius}
-            fill={color}
-            opacity={opacity * 0.14}
-            stroke={color}
-            strokeWidth={2}
-            dash={preview ? [7, 6] : undefined}
-            shadowColor={color}
-            shadowBlur={16}
-            shadowOpacity={0.45}
-            listening={false}
-          />
-          <Circle
-            x={sourceX}
-            y={sourceY}
-            radius={8}
-            fill={color}
-            opacity={opacity}
-            listening={false}
-          />
+          {circleSources.map((source, index) => (
+            <Group key={`status-circle-${index}`}>
+              <Circle
+                x={source.x}
+                y={source.y}
+                radius={radius}
+                fill={color}
+                opacity={opacity * 0.14}
+                stroke={color}
+                strokeWidth={2}
+                dash={preview ? [7, 6] : undefined}
+                shadowColor={color}
+                shadowBlur={16}
+                shadowOpacity={0.45}
+                listening={false}
+              />
+              <Circle
+                x={source.x}
+                y={source.y}
+                radius={8}
+                fill={color}
+                opacity={opacity}
+                listening={false}
+              />
+            </Group>
+          ))}
           {!preview && onCmdClick ? (
             <Circle
               x={sourceX}

@@ -2,6 +2,7 @@ import { type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { AgentMapTokenChip } from '@/features/agents/components/AgentMapTokenChip';
 import { getAbilityDisplayName } from '@/features/abilities/abilityDisplayName';
+import { getAbilityAffectsRule } from '@/features/abilities/config';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
 import { useTimelinePlaybackStore } from '@/shared/store/timelinePlaybackStore';
 import type { AbilityPlacement, AbilityPopoverAnchor } from '@/shared/types/ability';
@@ -47,6 +48,18 @@ export function AbilityInstanceTimelinePopover({
   const left = anchor.clientX + POPOVER_OFFSET_X;
   const top = anchor.clientY + POPOVER_OFFSET_Y;
   const name = getAbilityDisplayName(placement.agentId, placement.abilitySlot);
+  const statusByTarget = new Map(
+    (placement.affectedStatuses ?? []).map((status) => [status.targetPlacementId, status]),
+  );
+  const owner = mapPlacements.find((p) => p.id === placement.ownerPlacementId);
+  const affects = getAbilityAffectsRule(placement.agentId, placement.abilitySlot);
+  const statusCorrectionTargets = placement.statusEffect
+    ? mapPlacements.filter(
+        (target) =>
+          !target.eliminated &&
+          (affects === 'all-players' || !owner || target.side !== owner.side),
+      )
+    : mapPlacements.filter((target) => statusByTarget.has(target.id));
 
   const seekToTime = (time: number) => {
     pausePlayback();
@@ -111,35 +124,31 @@ export function AbilityInstanceTimelinePopover({
       >
         结束时间
       </button>
-      {placement.affectedStatuses?.length ? (
+      {statusCorrectionTargets.length ? (
         <div className="ability-instance-popover__statuses" aria-label="影响目标">
-          {placement.affectedStatuses.map((status) => {
-            const target = mapPlacements.find((p) => p.id === status.targetPlacementId);
-            const targetName = target ? getAgentLabel(target.agentId) : status.targetPlacementId;
+          {statusCorrectionTargets.map((target) => {
+            const status = statusByTarget.get(target.id);
+            const targetName = getAgentLabel(target.agentId);
             return (
-              <div className="ability-instance-popover__status-row" key={status.targetPlacementId}>
-                {target ? (
-                  <AgentMapTokenChip
-                    agentId={target.agentId}
-                    side={target.side}
-                    eliminated={!!target.eliminated}
-                    size={24}
-                    title={targetName}
-                  />
-                ) : (
-                  <span className="ability-instance-popover__missing-target">?</span>
-                )}
+              <div className="ability-instance-popover__status-row" key={target.id}>
+                <AgentMapTokenChip
+                  agentId={target.agentId}
+                  side={target.side}
+                  eliminated={!!target.eliminated}
+                  size={24}
+                  title={targetName}
+                />
                 <div className="ability-instance-popover__severity-controls">
                   {(['back', 'side', 'front', 'miss'] as const).map((severity) => (
                     <button
                       key={severity}
                       type="button"
                       className={
-                        status.severity === severity
+                        (status?.severity ?? 'miss') === severity
                           ? 'ability-instance-popover__severity ability-instance-popover__severity--active'
                           : 'ability-instance-popover__severity'
                       }
-                      onClick={() => onSeverity(status.targetPlacementId, severity)}
+                      onClick={() => onSeverity(target.id, severity)}
                     >
                       {severity === 'back'
                         ? '背'

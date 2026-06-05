@@ -1,4 +1,8 @@
-import type { AbilityPlacement, AbilityPlacementState } from '@/shared/types/ability';
+import type {
+  AbilityPlacement,
+  AbilityPlacementState,
+  AbilityProjectilePath,
+} from '@/shared/types/ability';
 import type { LineSmokeGeometry } from '@/shared/types/lineSmoke';
 import type { CurveSmokeGeometry } from '@/shared/types/curveSmoke';
 import type {
@@ -46,6 +50,13 @@ const VALID_CONCUSS_DELIVERIES = new Set<ConcussDeliveryKind>(['circle', 'line-z
 
 function finiteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
+}
+
+function normalizePoint(raw: unknown): { x: number; y: number } | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const point = raw as { x?: unknown; y?: unknown };
+  if (!finiteNumber(point.x) || !finiteNumber(point.y)) return undefined;
+  return { x: point.x, y: point.y };
 }
 
 function normalizeLineSmoke(raw: unknown): LineSmokeGeometry | undefined {
@@ -167,6 +178,11 @@ function normalizeStatusGeometry(raw: unknown): AbilityStatusGeometry | undefine
     VALID_CONCUSS_DELIVERIES.has(sg.concussDelivery as ConcussDeliveryKind)
       ? (sg.concussDelivery as ConcussDeliveryKind)
       : undefined;
+  const impactPoints = Array.isArray(sg.impactPoints)
+    ? sg.impactPoints
+        .map((point) => normalizePoint(point))
+        .filter((point): point is { x: number; y: number } => !!point)
+    : undefined;
 
   return {
     kind: sg.kind as AbilityStatusEffectType,
@@ -178,6 +194,7 @@ function normalizeStatusGeometry(raw: unknown): AbilityStatusGeometry | undefine
     ...(width != null ? { width } : {}),
     ...(flashDelivery ? { flashDelivery } : {}),
     ...(concussDelivery ? { concussDelivery } : {}),
+    ...(impactPoints?.length ? { impactPoints } : {}),
   };
 }
 
@@ -217,6 +234,34 @@ function normalizeAffectedStatuses(raw: unknown): AbilityAffectedStatus[] | unde
   return statuses.length ? statuses : undefined;
 }
 
+function normalizeProjectilePath(raw: unknown): AbilityProjectilePath | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const path = raw as Partial<AbilityProjectilePath>;
+  if (!Array.isArray(path.segments) || !Array.isArray(path.hits)) return undefined;
+  const terminal = normalizePoint(path.terminal);
+  if (!terminal) return undefined;
+
+  const segments = path.segments.flatMap((segment): AbilityProjectilePath['segments'] => {
+    if (!segment || typeof segment !== 'object') return [];
+    const maybeSegment = segment as Partial<AbilityProjectilePath['segments'][number]>;
+    const from = normalizePoint(maybeSegment.from);
+    const to = normalizePoint(maybeSegment.to);
+    return from && to ? [{ from, to }] : [];
+  });
+  if (!segments.length) return undefined;
+
+  const hits = path.hits.flatMap((hit): AbilityProjectilePath['hits'] => {
+    if (!hit || typeof hit !== 'object') return [];
+    const maybeHit = hit as Partial<AbilityProjectilePath['hits'][number]>;
+    const point = normalizePoint(maybeHit.point);
+    return typeof maybeHit.wallId === 'string' && point
+      ? [{ wallId: maybeHit.wallId, point }]
+      : [];
+  });
+
+  return { segments, hits, terminal };
+}
+
 export function normalizeAbilityPlacements(
   raw: unknown
 ): AbilityPlacement[] {
@@ -250,6 +295,7 @@ export function normalizeAbilityPlacements(
     const anchorMovement = normalizeAnchorMovement(p.anchorMovement);
     const statusEffect = normalizeStatusGeometry(p.statusEffect);
     const affectedStatuses = normalizeAffectedStatuses(p.affectedStatuses);
+    const projectilePath = normalizeProjectilePath(p.projectilePath);
     const legacyWall = p as { wallSmoke?: { cx?: number; cy?: number; facing?: number } };
     const wallAsLine =
       !lineSmoke &&
@@ -280,6 +326,7 @@ export function normalizeAbilityPlacements(
       ...(anchorMovement ? { anchorMovement } : {}),
       ...(statusEffect ? { statusEffect } : {}),
       ...(affectedStatuses ? { affectedStatuses } : {}),
+      ...(projectilePath ? { projectilePath } : {}),
     });
   }
   return out;

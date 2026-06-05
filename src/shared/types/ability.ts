@@ -3,9 +3,22 @@ import type { CurveSmokeGeometry } from '@/shared/types/curveSmoke';
 import type { LineSmokeGeometry } from '@/shared/types/lineSmoke';
 import type { DirectMovementGeometry, MovementAnchorGeometry } from '@/shared/types/movement';
 import type { AbilityAffectedStatus, AbilityStatusGeometry } from '@/shared/types/abilityStatus';
+import type { Point } from '@/shared/types/map';
 
 /** 地图上技能实例的生命周期状态 */
 export type AbilityPlacementState = 'initial' | 'active' | 'expired';
+
+export type AbilityProjectilePath = {
+  segments: Array<{
+    from: Point;
+    to: Point;
+  }>;
+  hits: Array<{
+    wallId: string;
+    point: Point;
+  }>;
+  terminal: Point;
+};
 
 /** 地图上已释放的技能实例 */
 export type AbilityPlacement = {
@@ -35,6 +48,8 @@ export type AbilityPlacement = {
   statusEffect?: AbilityStatusGeometry;
   /** 本次技能施放影响到的特工状态 */
   affectedStatuses?: AbilityAffectedStatus[];
+  /** 投射物墙体命中/反弹路径（用于渲染与调试） */
+  projectilePath?: AbilityProjectilePath;
 };
 
 export type AbilityPopoverAnchor = {

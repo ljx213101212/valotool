@@ -3,6 +3,7 @@ import type {
   ConcussDeliveryKind,
   FlashDeliveryKind,
 } from '@/features/abilities/config';
+import type { Point } from '@/shared/types/map';
 
 export type AbilityStatusSeverity = 'miss' | 'back' | 'side' | 'front';
 
@@ -16,6 +17,7 @@ export type AbilityStatusGeometry = {
   width?: number;
   flashDelivery?: FlashDeliveryKind;
   concussDelivery?: ConcussDeliveryKind;
+  impactPoints?: Point[];
 };
 
 export type AbilityAffectedStatus = {

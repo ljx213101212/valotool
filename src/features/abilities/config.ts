@@ -315,6 +315,10 @@ export type AbilityEffectMeta = {
   statusDurationSec?: number;
   /** 状态消退时间（秒） */
   statusFadeSec?: number;
+  /** 投射物墙体交互的路径长度上限（地图坐标） */
+  projectileMaxDistance?: number;
+  /** 投射物允许的墙体反弹次数 */
+  projectileBounceCount?: number;
 };
 
 /** 未单独配置时的回退（与 Omen 暗影之罩标定一致） */
@@ -473,6 +477,8 @@ export const ABILITY_EFFECT_META: Partial<
       effectRadius: smokeMapUnitsFromMeters(15),
       statusDurationSec: 2.25,
       statusFadeSec: 1,
+      projectileMaxDistance: smokeMapUnitsFromMeters(35),
+      projectileBounceCount: 1,
     },
   },
   gekko: {
@@ -554,6 +560,8 @@ export const ABILITY_EFFECT_META: Partial<
       effectRadius: smokeMapUnitsFromMeters(4),
       statusDurationSec: 3,
       statusFadeSec: 0,
+      projectileMaxDistance: smokeMapUnitsFromMeters(30),
+      projectileBounceCount: 1,
     },
     Ability2: {
       effectKinds: ['movement-direct'],
@@ -613,6 +621,8 @@ export const ABILITY_EFFECT_META: Partial<
       effectRadius: smokeMapUnitsFromMeters(14),
       statusDurationSec: 1.75,
       statusFadeSec: 1,
+      projectileMaxDistance: smokeMapUnitsFromMeters(35),
+      projectileBounceCount: 1,
     },
     Ability2: {
       effectKinds: ['movement-anchor-projectile'],
@@ -845,6 +855,20 @@ export function getAbilityStatusDurationSec(
 
 export function getAbilityStatusFadeSec(agentCatalogId: string, abilitySlot: AbilitySlot): number {
   return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.statusFadeSec ?? 1;
+}
+
+export function getAbilityProjectileMaxDistance(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): number {
+  return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.projectileMaxDistance ?? 0;
+}
+
+export function getAbilityProjectileBounceCount(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): number {
+  return getAbilityEffectMeta(agentCatalogId, abilitySlot)?.projectileBounceCount ?? 0;
 }
 
 export function getMovementActivationDelaySec(
