@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { Fragment, useMemo } from 'react';
 import { Circle, Layer } from 'react-konva';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
 import { useTimelinePlaybackStore } from '@/shared/store/timelinePlaybackStore';
@@ -18,6 +18,7 @@ import {
   getAbilityEffectRadius,
   getAbilityEffectWidth,
   getAbilityStatusEffectType,
+  getAbilityAffectsRule,
   isSphericalSmokeAbility,
   isFixedDualLineSmokeAbility,
   isFixedSingleLineSmokeAbility,
@@ -38,6 +39,9 @@ import { MapFixedDualLineSmoke } from './MapFixedDualLineSmoke';
 import { MapFixedSingleLineSmoke } from './MapFixedSingleLineSmoke';
 import { MapCurveSmoke } from './MapCurveSmoke';
 import { MapStatusEffect } from './MapStatusEffect';
+import { MapProjectilePath } from './MapProjectilePath';
+import { MapLineOfSightDebugOverlay } from './MapLineOfSightDebugOverlay';
+import { valorantMap } from '@/shared/data/valorantMap';
 
 type MapAbilityRenderLayerProps = {
   onCmdClick: (placementId: string, anchor: { clientX: number; clientY: number }) => void;
@@ -355,18 +359,39 @@ const MapAbilityRenderLayer = ({ onCmdClick }: MapAbilityRenderLayerProps) => {
         }
 
         if (isStatusEffectAbility(ab.agentId, ab.abilitySlot) && ab.statusEffect) {
+          const owner = mapPlacements.find((p) => p.id === ab.ownerPlacementId);
+          const affects = getAbilityAffectsRule(ab.agentId, ab.abilitySlot);
+          const debugTargets = mapPlacements.filter(
+            (target) =>
+              !target.eliminated &&
+              (affects === 'all-players' || !owner || target.side !== owner.side),
+          );
+          const showLineOfSightDebug =
+            ab.statusEffect.kind !== 'concuss' && ab.statusEffect.length == null;
           return (
-            <MapStatusEffect
-              key={`status-effect-${ab.id}`}
-              kind={ab.statusEffect.kind}
-              sourceX={ab.statusEffect.sourceX}
-              sourceY={ab.statusEffect.sourceY}
-              radius={ab.statusEffect.radius}
-              facing={ab.statusEffect.facing}
-              length={ab.statusEffect.length}
-              width={ab.statusEffect.width}
-              onCmdClick={(anchor) => onCmdClick(ab.id, anchor)}
-            />
+            <Fragment key={`status-effect-group-${ab.id}`}>
+              {ab.projectilePath ? (
+                <MapProjectilePath path={ab.projectilePath} />
+              ) : null}
+              {showLineOfSightDebug ? (
+                <MapLineOfSightDebugOverlay
+                  source={{ x: ab.statusEffect.sourceX, y: ab.statusEffect.sourceY }}
+                  targets={debugTargets}
+                  walls={valorantMap.walls}
+                />
+              ) : null}
+              <MapStatusEffect
+                kind={ab.statusEffect.kind}
+                sourceX={ab.statusEffect.sourceX}
+                sourceY={ab.statusEffect.sourceY}
+                radius={ab.statusEffect.radius}
+                facing={ab.statusEffect.facing}
+                length={ab.statusEffect.length}
+                width={ab.statusEffect.width}
+                impactPoints={ab.statusEffect.impactPoints}
+                onCmdClick={(anchor) => onCmdClick(ab.id, anchor)}
+              />
+            </Fragment>
           );
         }
 

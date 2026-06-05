@@ -17,6 +17,8 @@ src/features/map/
     MapFixedSingleLineSmoke.tsx # 固定单线烟雾可视化
     MapCurveSmoke.tsx      # 曲线烟雾可视化
     MapDirectMovement.tsx  # 直线位移可视化
+    MapProjectilePath.tsx  # 投射物墙体命中/反弹路径可视化
+    MapLineOfSightDebugOverlay.tsx # DEV/调试用视线遮挡验算线
     MapPicker.tsx          # 选图组件
     AbilityInstanceActionPopover.tsx  # 技能实例操作弹窗
     AbilityInstancePreparationPopover.tsx # 技能准备弹窗
@@ -48,6 +50,8 @@ src/features/map/
   - 双线烟 → `MapFixedDualLineSmoke`
   - 单线烟 → `MapFixedSingleLineSmoke`
   - 曲线烟 → `MapCurveSmoke`
+  - 投射物路径 → `MapProjectilePath`
+  - DEV/调试视线遮挡验算 → `MapLineOfSightDebugOverlay`
 - Layer 5 附加: 放置预览渲染（`preview` prop）
 
 ### MapAbilityToken Layer / MapHeroToken Layer
@@ -92,6 +96,7 @@ useMatchupStore (Zustand)
 
 ## 与 shared 的边界
 - 地图数据源: `shared/data/valorantMap.ts`
+- 墙体几何工具: `shared/utils/mapGeometry.ts`，负责 2D LOS 遮挡、射线最近墙命中、有限次数反弹路径。它使用 `valorantMap.walls` 的 opaque 线段作为战术板近似，不表示完整 3D 视野系统。
 - 放置状态 store: `shared/store/useMatchupStore.ts`
 - 技能配置: `features/abilities/config.ts`
 - features/map 只依赖 shared 和 features/abilities，不反向

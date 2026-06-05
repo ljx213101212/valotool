@@ -5,6 +5,8 @@ import {
   getAbilityAffectsRule,
   getAbilityEffectLength,
   getAbilityEffectMeta,
+  getAbilityProjectileBounceCount,
+  getAbilityProjectileMaxDistance,
   getAbilityEffectRadius,
   getAbilityEffectWidth,
   getAbilityStatusDurationSec,
@@ -43,10 +45,17 @@ import { nextAbilitySpawnPoint } from '@/shared/utils/abilitySpawnPosition';
 import { normalizeAbilityPlacements } from '@/shared/utils/normalizeAbilityPlacements';
 import { reconcileMapPlacements } from '@/shared/utils/reconcileMapPlacements';
 import type { MovementAnchorKind } from '@/shared/types/movement';
+import { valorantMap } from '@/shared/data/valorantMap';
 import {
-  computeCircularConcussTargets,
+  projectileImpactPointsFromTrace,
+  traceWallBounces,
+} from '@/shared/utils/mapGeometry';
+import {
+  computeCircularConcussTargetsFromSources,
   computeFlashTargets,
   computeLineZoneStatusTargets,
+  severityDurationMultiplier,
+  statusStrengthForSeverity,
   updateAffectedStatusSeverity,
 } from '@/shared/utils/abilityStatusEffects';
 import type { AbilityStatusSeverity } from '@/shared/types/abilityStatus';
@@ -1109,10 +1118,37 @@ export const useMatchupStore = create<MatchupState>()(
         const radius = getAbilityEffectRadius(target.agentId, target.abilitySlot);
         const length = getAbilityEffectLength(target.agentId, target.abilitySlot);
         const width = getAbilityEffectWidth(target.agentId, target.abilitySlot);
+        const projectileMaxDistance = getAbilityProjectileMaxDistance(
+          target.agentId,
+          target.abilitySlot,
+        );
+        const projectileBounceCount = getAbilityProjectileBounceCount(
+          target.agentId,
+          target.abilitySlot,
+        );
         const facing = statusEffectPreview?.facing ?? Math.atan2(targetY - owner.y, targetX - owner.x);
         const lineLike =
           meta?.concussDelivery === 'line-zone' || meta?.flashDelivery === 'zone-projectile';
-        const source = lineLike ? { x: owner.x, y: owner.y } : { x: targetX, y: targetY };
+        const usesProjectilePath = !lineLike && projectileMaxDistance > 0;
+        const projectileTrace = usesProjectilePath
+          ? traceWallBounces({
+              origin: { x: owner.x, y: owner.y },
+              direction: {
+                x: Math.cos(facing),
+                y: Math.sin(facing),
+              },
+              maxDistance: projectileMaxDistance,
+              bounceCount: projectileBounceCount,
+              walls: valorantMap.walls,
+            })
+          : null;
+        const source = lineLike
+          ? { x: owner.x, y: owner.y }
+          : projectileTrace?.terminal ?? { x: targetX, y: targetY };
+        const impactSources =
+          projectileTrace
+            ? projectileImpactPointsFromTrace(projectileTrace)
+            : [source];
         const affectedStatuses =
           lineLike
             ? computeLineZoneStatusTargets({
@@ -1129,8 +1165,8 @@ export const useMatchupStore = create<MatchupState>()(
                 effect,
               })
             : isConcussAbility(target.agentId, target.abilitySlot)
-              ? computeCircularConcussTargets({
-                  source,
+              ? computeCircularConcussTargetsFromSources({
+                  sources: impactSources,
                   casterSide: owner.side,
                   affects,
                   radius,
@@ -1149,12 +1185,13 @@ export const useMatchupStore = create<MatchupState>()(
                   durationSec: duration,
                   fadeSec,
                   effect: effect === 'concuss' ? 'flash' : effect,
+                  walls: valorantMap.walls,
                 });
 
         const updated = {
           ...target,
-          x: targetX,
-          y: targetY,
+          x: source.x,
+          y: source.y,
           state: 'active' as const,
           activeAt: startT,
           expiresAt: endT,
@@ -1166,10 +1203,25 @@ export const useMatchupStore = create<MatchupState>()(
             facing,
             length,
             width,
+            ...(isConcussAbility(target.agentId, target.abilitySlot) && impactSources.length
+              ? { impactPoints: impactSources }
+              : {}),
             ...(meta?.flashDelivery ? { flashDelivery: meta.flashDelivery } : {}),
             ...(meta?.concussDelivery ? { concussDelivery: meta.concussDelivery } : {}),
           },
           affectedStatuses,
+          ...(projectileTrace
+            ? {
+                projectilePath: {
+                  segments: projectileTrace.segments,
+                  hits: projectileTrace.hits.map((hit) => ({
+                    wallId: hit.wall.id,
+                    point: hit.point,
+                  })),
+                  terminal: projectileTrace.terminal,
+                },
+              }
+            : {}),
         };
         useMatchupStore.setState((s) => ({
           abilityPlacements: s.abilityPlacements.map((p) =>
@@ -1187,16 +1239,47 @@ export const useMatchupStore = create<MatchupState>()(
       updateAbilityAffectedStatusSeverity: (abilityPlacementId, targetPlacementId, severity) =>
         {
           const patchPlacement = (placement: AbilityPlacement): AbilityPlacement =>
-            placement.id !== abilityPlacementId
-              ? placement
-              : {
+            {
+              if (placement.id !== abilityPlacementId) return placement;
+              const statuses = placement.affectedStatuses ?? [];
+              const existing = statuses.find((status) => status.targetPlacementId === targetPlacementId);
+              if (existing) {
+                return {
                   ...placement,
-                  affectedStatuses: placement.affectedStatuses?.map((status) =>
+                  affectedStatuses: statuses.map((status) =>
                     status.targetPlacementId === targetPlacementId
                       ? updateAffectedStatusSeverity(status, severity)
                       : status,
                   ),
                 };
+              }
+              if (!placement.statusEffect || severity === 'miss') {
+                return placement;
+              }
+              const startsAt = placement.activeAt ?? useTimelinePlaybackStore.getState().currentTime;
+              const baseDuration = getAbilityStatusDurationSec(
+                placement.agentId,
+                placement.abilitySlot,
+              );
+              const fadeSec = getAbilityStatusFadeSec(placement.agentId, placement.abilitySlot);
+              const endsAt = startsAt + baseDuration * severityDurationMultiplier(severity);
+              return {
+                ...placement,
+                affectedStatuses: [
+                  ...statuses,
+                  {
+                    targetPlacementId,
+                    effect: placement.statusEffect.kind,
+                    severity,
+                    strength: statusStrengthForSeverity(severity),
+                    startsAt,
+                    endsAt,
+                    fadeEndsAt: endsAt + fadeSec,
+                    manual: true,
+                  },
+                ],
+              };
+            };
 
           set((s) => ({
             abilityPlacements: s.abilityPlacements.map(patchPlacement),

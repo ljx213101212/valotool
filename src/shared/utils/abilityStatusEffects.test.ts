@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {
   computeCircularConcussTargets,
+  computeCircularConcussTargetsFromSources,
   computeFlashExposure,
   computeFlashTargets,
   computeLineZoneStatusTargets,
@@ -10,6 +11,7 @@ import {
   updateAffectedStatusSeverity,
 } from './abilityStatusEffects';
 import type { MapAgentPlacement } from '@/shared/types/matchup';
+import type { Wall } from '@/shared/types/map';
 
 function agent(
   id: string,
@@ -22,6 +24,14 @@ function agent(
 }
 
 const source = { x: 0, y: 0 };
+const blockingWall: Wall = {
+  id: 'flash-blocker',
+  line: [
+    { x: 25, y: -10 },
+    { x: 25, y: 10 },
+  ],
+  isOpaque: true,
+};
 
 assert.equal(
   computeFlashExposure({
@@ -78,6 +88,38 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
+  computeFlashTargets({
+    source,
+    casterSide: 'attack',
+    affects: 'enemies-only',
+    radius: 200,
+    targets: [agent('blocked-enemy', 'defense', 50, 0, Math.PI)],
+    startsAt: 10,
+    durationSec: 2,
+    fadeSec: 1,
+    effect: 'flash',
+    walls: [blockingWall],
+  }).map((status) => status.targetPlacementId),
+  [],
+);
+
+assert.deepEqual(
+  computeFlashTargets({
+    source,
+    casterSide: 'attack',
+    affects: 'enemies-only',
+    radius: 200,
+    targets: [agent('visible-enemy', 'defense', 50, 30, Math.PI)],
+    startsAt: 10,
+    durationSec: 2,
+    fadeSec: 1,
+    effect: 'flash',
+    walls: [blockingWall],
+  }).map((status) => status.targetPlacementId),
+  ['visible-enemy'],
+);
+
+assert.deepEqual(
   computeCircularConcussTargets({
     source,
     casterSide: 'attack',
@@ -92,6 +134,27 @@ assert.deepEqual(
     fadeSec: 0,
   }).map((status) => status.targetPlacementId),
   ['inside'],
+);
+
+assert.deepEqual(
+  computeCircularConcussTargetsFromSources({
+    sources: [
+      { x: 0, y: 0 },
+      { x: 120, y: 0 },
+    ],
+    casterSide: 'attack',
+    affects: 'all-players',
+    radius: 50,
+    targets: [
+      agent('first-impact', 'defense', 30, 0, 0),
+      agent('second-impact', 'defense', 130, 0, 0),
+      agent('outside', 'defense', 80, 80, 0),
+    ],
+    startsAt: 5,
+    durationSec: 3,
+    fadeSec: 0,
+  }).map((status) => status.targetPlacementId),
+  ['first-impact', 'second-impact'],
 );
 
 assert.deepEqual(

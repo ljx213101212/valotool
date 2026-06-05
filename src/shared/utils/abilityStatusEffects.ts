@@ -6,7 +6,9 @@ import type {
   AbilityAffectedStatus,
   AbilityStatusSeverity,
 } from '@/shared/types/abilityStatus';
+import type { Wall } from '@/shared/types/map';
 import type { MapAgentPlacement } from '@/shared/types/matchup';
+import { isLineOfSightBlocked } from './mapGeometry';
 
 export type MapPoint = {
   x: number;
@@ -117,6 +119,7 @@ export function computeFlashTargets(input: {
   durationSec: number;
   fadeSec: number;
   effect: Exclude<AbilityStatusEffectType, 'concuss'>;
+  walls?: Wall[];
 }): AbilityAffectedStatus[] {
   return input.targets.flatMap((target) => {
     if (!canAffectTarget(input.casterSide, target, input.affects) || target.eliminated) return [];
@@ -126,6 +129,16 @@ export function computeFlashTargets(input: {
       radius: input.radius,
     });
     if (exposure.severity === 'miss') return [];
+    if (
+      input.walls?.length &&
+      isLineOfSightBlocked({
+        source: input.source,
+        target,
+        walls: input.walls,
+      }).blocked
+    ) {
+      return [];
+    }
     const duration = input.durationSec * severityDurationMultiplier(exposure.severity);
     const endsAt = input.startsAt + duration;
     return [
@@ -168,6 +181,27 @@ export function computeCircularConcussTargets(input: {
       },
     ];
   });
+}
+
+export function computeCircularConcussTargetsFromSources(input: {
+  sources: MapPoint[];
+  casterSide: MapAgentPlacement['side'];
+  affects: AbilityAffectsRule;
+  radius: number;
+  targets: MapAgentPlacement[];
+  startsAt: number;
+  durationSec: number;
+  fadeSec: number;
+}): AbilityAffectedStatus[] {
+  const byTarget = new Map<string, AbilityAffectedStatus>();
+  for (const source of input.sources) {
+    for (const status of computeCircularConcussTargets({ ...input, source })) {
+      if (!byTarget.has(status.targetPlacementId)) {
+        byTarget.set(status.targetPlacementId, status);
+      }
+    }
+  }
+  return [...byTarget.values()];
 }
 
 export function computeLineZoneStatusTargets(input: {
