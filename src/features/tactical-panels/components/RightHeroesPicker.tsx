@@ -8,11 +8,13 @@ import {
   type AgentCatalogEntry,
   type RoleFilter,
 } from '@/shared/data/agentsCatalog';
+import { getAgentPortraitUrl } from '@/shared/data/agentPortraitUrl';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
 
 const ROLE_ORDER = ['duelist', 'initiator', 'sentinel', 'controller'] as const;
 
 function DraggableHeroChip({ agent }: { agent: AgentCatalogEntry }) {
+  const portraitUrl = getAgentPortraitUrl(agent.id);
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `palette-agent-${agent.id}`,
     data: { type: 'palette-agent', agentId: agent.id },
@@ -31,10 +33,16 @@ function DraggableHeroChip({ agent }: { agent: AgentCatalogEntry }) {
       ref={setNodeRef}
       style={style}
       className="right-hero-chip"
+      title={agent.label}
+      aria-label={agent.label}
       {...listeners}
       {...attributes}
     >
-      {agent.label}
+      {portraitUrl ? (
+        <img className="right-hero-chip__portrait" src={portraitUrl} alt="" draggable={false} />
+      ) : (
+        <span className="right-hero-chip__fallback">{agent.label}</span>
+      )}
     </button>
   );
 }

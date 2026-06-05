@@ -22,6 +22,7 @@ const TimelineArea: React.FC = () => {
     const [dragX, setDragX] = useState<number | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [keyframeDragId, setKeyframeDragId] = useState<string | null>(null);
+    const [areaHeight, setAreaHeight] = useState(0);
     const areaRef = useRef<HTMLDivElement>(null);
     const keyframeDragMovedRef = useRef(false);
     const keyframeDragStartClientXRef = useRef(0);
@@ -39,6 +40,19 @@ const TimelineArea: React.FC = () => {
       });
 
     const contentWidth = config.totalDuration * config.pixelsPerSecond;
+
+    useEffect(() => {
+        const el = areaRef.current;
+        if (!el) return;
+        const syncHeight = () => setAreaHeight(el.clientHeight);
+        const timer = window.setTimeout(syncHeight, 0);
+        const observer = new ResizeObserver(syncHeight);
+        observer.observe(el);
+        return () => {
+            window.clearTimeout(timer);
+            observer.disconnect();
+        };
+    }, []);
 
     const applyPointerClientX = useCallback((clientX: number) => {
         const el = areaRef.current;
@@ -159,7 +173,7 @@ const TimelineArea: React.FC = () => {
         </div>
         <TimelineCursor
             position={cursorX}
-            height={Math.max(0, (areaRef.current?.clientHeight ?? 0) - 50)}
+            height={Math.max(0, areaHeight - 50)}
             isDragging={isDragging}
         />
     </div>)

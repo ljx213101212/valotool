@@ -13,10 +13,16 @@ import {
   getLineSmokeStrokeWidth,
   getLineSmokeColor,
   getMovementRange,
+  getAbilityEffectLength,
+  getAbilityEffectMeta,
+  getAbilityEffectRadius,
+  getAbilityEffectWidth,
+  getAbilityStatusEffectType,
   isSphericalSmokeAbility,
   isFixedDualLineSmokeAbility,
   isFixedSingleLineSmokeAbility,
   isDrawableCurveSmokeAbility,
+  isStatusEffectAbility,
 } from '@/features/abilities/config';
 import {
   directMovementFromPlacement,
@@ -31,6 +37,7 @@ import { MapSphericalSmoke } from './MapSphericalSmoke';
 import { MapFixedDualLineSmoke } from './MapFixedDualLineSmoke';
 import { MapFixedSingleLineSmoke } from './MapFixedSingleLineSmoke';
 import { MapCurveSmoke } from './MapCurveSmoke';
+import { MapStatusEffect } from './MapStatusEffect';
 
 type MapAbilityRenderLayerProps = {
   onCmdClick: (placementId: string, anchor: { clientX: number; clientY: number }) => void;
@@ -61,6 +68,8 @@ const MapAbilityRenderLayer = ({ onCmdClick }: MapAbilityRenderLayerProps) => {
   const blastPackPlacementId = useMatchupStore((s) => s.blastPackPlacementId);
   const blastPackPlacementDraft = useMatchupStore((s) => s.blastPackPlacementDraft);
   const blastPackPreview = useMatchupStore((s) => s.blastPackPreview);
+  const statusEffectPlacementId = useMatchupStore((s) => s.statusEffectPlacementId);
+  const statusEffectPreview = useMatchupStore((s) => s.statusEffectPreview);
 
   // ----- placed effects -----
   const placingSphericalSmoke = !!sphericalSmokePlacementId && !!sphericalSmokePreview;
@@ -71,6 +80,7 @@ const MapAbilityRenderLayer = ({ onCmdClick }: MapAbilityRenderLayerProps) => {
   const placingDirectMovement = !!directMovementPlacementId && !!directMovementPreview;
   const placingBlastPack =
     !!blastPackPlacementDraft || (!!blastPackPlacementId && !!blastPackPreview);
+  const placingStatusEffect = !!statusEffectPlacementId && !!statusEffectPreview;
 
   // ----- memos for smoke meta -----
   const sphericalSmokePlacement = useMemo(
@@ -213,6 +223,33 @@ const MapAbilityRenderLayer = ({ onCmdClick }: MapAbilityRenderLayerProps) => {
       ? getMovementRange(blastPackPlacement.agentId, blastPackPlacement.abilitySlot)
       : 0);
 
+  const statusEffectPlacement = useMemo(
+    () =>
+      statusEffectPlacementId
+        ? abilityPlacements.find((p) => p.id === statusEffectPlacementId)
+        : undefined,
+    [abilityPlacements, statusEffectPlacementId],
+  );
+
+  const statusEffectOwner = useMemo(() => {
+    if (!statusEffectPlacement) return undefined;
+    return mapPlacements.find((p) => p.id === statusEffectPlacement.ownerPlacementId);
+  }, [mapPlacements, statusEffectPlacement]);
+
+  const statusEffectPreviewMeta = useMemo(() => {
+    if (!statusEffectPlacement) return null;
+    const { agentId, abilitySlot } = statusEffectPlacement;
+    const meta = getAbilityEffectMeta(agentId, abilitySlot);
+    const lineLike =
+      meta?.concussDelivery === 'line-zone' || meta?.flashDelivery === 'zone-projectile';
+    return {
+      kind: getAbilityStatusEffectType(agentId, abilitySlot),
+      radius: getAbilityEffectRadius(agentId, abilitySlot),
+      length: lineLike ? getAbilityEffectLength(agentId, abilitySlot) : undefined,
+      width: getAbilityEffectWidth(agentId, abilitySlot),
+    };
+  }, [statusEffectPlacement]);
+
   return (
     <Layer>
       {/* ---- deployed ability effects ---- */}
@@ -312,6 +349,22 @@ const MapAbilityRenderLayer = ({ onCmdClick }: MapAbilityRenderLayerProps) => {
               points={curve.points}
               strokeWidth={getLineSmokeStrokeWidth(ab.agentId, ab.abilitySlot)}
               color={getLineSmokeColor(ab.agentId, ab.abilitySlot)}
+              onCmdClick={(anchor) => onCmdClick(ab.id, anchor)}
+            />
+          );
+        }
+
+        if (isStatusEffectAbility(ab.agentId, ab.abilitySlot) && ab.statusEffect) {
+          return (
+            <MapStatusEffect
+              key={`status-effect-${ab.id}`}
+              kind={ab.statusEffect.kind}
+              sourceX={ab.statusEffect.sourceX}
+              sourceY={ab.statusEffect.sourceY}
+              radius={ab.statusEffect.radius}
+              facing={ab.statusEffect.facing}
+              length={ab.statusEffect.length}
+              width={ab.statusEffect.width}
               onCmdClick={(anchor) => onCmdClick(ab.id, anchor)}
             />
           );
@@ -429,6 +482,27 @@ const MapAbilityRenderLayer = ({ onCmdClick }: MapAbilityRenderLayerProps) => {
             listening={false}
           />
         </>
+      ) : null}
+
+      {placingStatusEffect && statusEffectPreview && statusEffectPreviewMeta ? (
+        <MapStatusEffect
+          kind={statusEffectPreviewMeta.kind}
+          sourceX={
+            statusEffectPreviewMeta.length && statusEffectOwner
+              ? statusEffectOwner.x
+              : statusEffectPreview.x
+          }
+          sourceY={
+            statusEffectPreviewMeta.length && statusEffectOwner
+              ? statusEffectOwner.y
+              : statusEffectPreview.y
+          }
+          radius={statusEffectPreviewMeta.radius}
+          facing={statusEffectPreview.facing}
+          length={statusEffectPreviewMeta.length}
+          width={statusEffectPreviewMeta.width}
+          preview
+        />
       ) : null}
     </Layer>
   );

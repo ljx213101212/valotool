@@ -13,7 +13,8 @@ export function MapPicker() {
   const current = useMemo(() => getMapById(selectedMapId) ?? MAPS_CATALOG[0], [selectedMapId]);
 
   useEffect(() => {
-    setThumbFailed(false);
+    const timer = window.setTimeout(() => setThumbFailed(false), 0);
+    return () => window.clearTimeout(timer);
   }, [selectedMapId]);
 
   const openPicker = () => {

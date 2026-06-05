@@ -36,6 +36,7 @@ import {
   useDirectMovementPlacementEffect,
   useAnchorMovementPlacementEffect,
   useBlastPackPlacementEffect,
+  useStatusEffectPlacementEffect,
 } from '../hooks/useMapPlacementEffects';
 import './Map.less';
 
@@ -107,6 +108,11 @@ const Map = () => {
   const cancelBlastPackPlacement = useMatchupStore((s) => s.cancelBlastPackPlacement);
   const confirmBlastPackPlacement = useMatchupStore((s) => s.confirmBlastPackPlacement);
 
+  const statusEffectPlacementId = useMatchupStore((s) => s.statusEffectPlacementId);
+  const statusEffectPreview = useMatchupStore((s) => s.statusEffectPreview);
+  const cancelStatusEffectPlacement = useMatchupStore((s) => s.cancelStatusEffectPlacement);
+  const confirmStatusEffectPlacement = useMatchupStore((s) => s.confirmStatusEffectPlacement);
+
   const spawnAbilityPlacement = useMatchupStore((s) => s.spawnAbilityPlacement);
 
   // ------------------------------------------------------------------
@@ -122,6 +128,7 @@ const Map = () => {
   const placingAnchorMovement = !!anchorMovementPlacementDraft;
   const placingBlastPack =
     !!blastPackPlacementDraft || (!!blastPackPlacementId && !!blastPackPreview);
+  const placingStatusEffect = !!statusEffectPlacementId && !!statusEffectPreview;
 
   const placingSmoke =
     placingSphericalSmoke ||
@@ -129,7 +136,11 @@ const Map = () => {
     placingFixedSingleLineSmoke ||
     placingCurveSmoke;
   const placingAbilityEffect =
-    placingSmoke || placingDirectMovement || placingAnchorMovement || placingBlastPack;
+    placingSmoke ||
+    placingDirectMovement ||
+    placingAnchorMovement ||
+    placingBlastPack ||
+    placingStatusEffect;
 
   // ------------------------------------------------------------------
   // memoized meta for placement effect hooks
@@ -268,6 +279,14 @@ const Map = () => {
     confirm: confirmBlastPackPlacement,
   });
 
+  useStatusEffectPlacementEffect({
+    stageRef,
+    setMapTransformLocked,
+    placing: placingStatusEffect,
+    syncPreview: previews.syncStatusEffectPreview,
+    confirm: confirmStatusEffectPlacement,
+  });
+
   useCurveSmokePlacementEffect({
     stageRef,
     setMapTransformLocked,
@@ -316,6 +335,7 @@ const Map = () => {
       if (placingDirectMovement) return cancelDirectMovementPlacement();
       if (placingAnchorMovement) return cancelAnchorMovementPlacement();
       if (placingBlastPack) return cancelBlastPackPlacement();
+      if (placingStatusEffect) return cancelStatusEffectPlacement();
       closeAllMapPopovers();
     };
     window.addEventListener('keydown', onKey);
@@ -331,6 +351,7 @@ const Map = () => {
     placingDirectMovement,
     placingAnchorMovement,
     placingBlastPack,
+    placingStatusEffect,
     cancelSphericalSmokePlacement,
     cancelFixedDualLineSmokePlacement,
     cancelFixedSingleLineSmokePlacement,
@@ -338,6 +359,7 @@ const Map = () => {
     cancelDirectMovementPlacement,
     cancelAnchorMovementPlacement,
     cancelBlastPackPlacement,
+    cancelStatusEffectPlacement,
     closeAllMapPopovers,
   ]);
 
@@ -399,6 +421,13 @@ const Map = () => {
       cancelBlastPackPlacement();
     }
   }, [blastPackPlacementId, abilityPlacements, cancelBlastPackPlacement]);
+
+  useEffect(() => {
+    if (!statusEffectPlacementId) return;
+    if (!abilityPlacements.some((p) => p.id === statusEffectPlacementId)) {
+      cancelStatusEffectPlacement();
+    }
+  }, [statusEffectPlacementId, abilityPlacements, cancelStatusEffectPlacement]);
 
   // crosshair cursor while placing
   useEffect(() => {

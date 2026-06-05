@@ -2,6 +2,7 @@ import type { AbilitySlot } from '@/features/abilities/config';
 import type { CurveSmokeGeometry } from '@/shared/types/curveSmoke';
 import type { LineSmokeGeometry } from '@/shared/types/lineSmoke';
 import type { DirectMovementGeometry, MovementAnchorGeometry } from '@/shared/types/movement';
+import type { AbilityAffectedStatus, AbilityStatusGeometry } from '@/shared/types/abilityStatus';
 
 /** 地图上技能实例的生命周期状态 */
 export type AbilityPlacementState = 'initial' | 'active' | 'expired';
@@ -30,6 +31,10 @@ export type AbilityPlacement = {
   directMovement?: DirectMovementGeometry;
   /** 预部署位移锚点（如 Refract / Rendezvous / Blast Pack） */
   anchorMovement?: MovementAnchorGeometry;
+  /** 闪光/致盲/震荡效果在地图上的几何信息 */
+  statusEffect?: AbilityStatusGeometry;
+  /** 本次技能施放影响到的特工状态 */
+  affectedStatuses?: AbilityAffectedStatus[];
 };
 
 export type AbilityPopoverAnchor = {

@@ -1,9 +1,12 @@
 import { type RefObject } from 'react';
 import { createPortal } from 'react-dom';
+import { AgentMapTokenChip } from '@/features/agents/components/AgentMapTokenChip';
 import { getAbilityDisplayName } from '@/features/abilities/abilityDisplayName';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
 import { useTimelinePlaybackStore } from '@/shared/store/timelinePlaybackStore';
 import type { AbilityPlacement, AbilityPopoverAnchor } from '@/shared/types/ability';
+import type { AbilityStatusSeverity } from '@/shared/types/abilityStatus';
+import { getAgentLabel } from '@/shared/data/agentsCatalog';
 import { formatTimelineQuantized } from '@/shared/utils/timelineQuantize';
 import './AbilityInstanceActionPopover.less';
 
@@ -31,8 +34,12 @@ export function AbilityInstanceTimelinePopover({
   const maxTime = useTimelinePlaybackStore((s) => s.maxTime);
   const pausePlayback = useTimelinePlaybackStore((s) => s.pausePlayback);
   const seek = useTimelinePlaybackStore((s) => s.seek);
+  const mapPlacements = useMatchupStore((s) => s.mapPlacements);
   const closeAbilityInstancePopover = useMatchupStore((s) => s.closeAbilityInstancePopover);
   const removeAbilityPlacement = useMatchupStore((s) => s.removeAbilityPlacement);
+  const updateAbilityAffectedStatusSeverity = useMatchupStore(
+    (s) => s.updateAbilityAffectedStatusSeverity,
+  );
 
   const hasDeployTime = placement.activeAt != null;
   const hasEndTime = placement.expiresAt != null;
@@ -60,6 +67,10 @@ export function AbilityInstanceTimelinePopover({
   const onDelete = () => {
     removeAbilityPlacement(placement.id);
     closeAbilityInstancePopover();
+  };
+
+  const onSeverity = (targetPlacementId: string, severity: AbilityStatusSeverity) => {
+    updateAbilityAffectedStatusSeverity(placement.id, targetPlacementId, severity);
   };
 
   return createPortal(
@@ -100,6 +111,51 @@ export function AbilityInstanceTimelinePopover({
       >
         结束时间
       </button>
+      {placement.affectedStatuses?.length ? (
+        <div className="ability-instance-popover__statuses" aria-label="影响目标">
+          {placement.affectedStatuses.map((status) => {
+            const target = mapPlacements.find((p) => p.id === status.targetPlacementId);
+            const targetName = target ? getAgentLabel(target.agentId) : status.targetPlacementId;
+            return (
+              <div className="ability-instance-popover__status-row" key={status.targetPlacementId}>
+                {target ? (
+                  <AgentMapTokenChip
+                    agentId={target.agentId}
+                    side={target.side}
+                    eliminated={!!target.eliminated}
+                    size={24}
+                    title={targetName}
+                  />
+                ) : (
+                  <span className="ability-instance-popover__missing-target">?</span>
+                )}
+                <div className="ability-instance-popover__severity-controls">
+                  {(['back', 'side', 'front', 'miss'] as const).map((severity) => (
+                    <button
+                      key={severity}
+                      type="button"
+                      className={
+                        status.severity === severity
+                          ? 'ability-instance-popover__severity ability-instance-popover__severity--active'
+                          : 'ability-instance-popover__severity'
+                      }
+                      onClick={() => onSeverity(status.targetPlacementId, severity)}
+                    >
+                      {severity === 'back'
+                        ? '背'
+                        : severity === 'side'
+                          ? '侧'
+                          : severity === 'front'
+                            ? '正'
+                            : '空'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
       <button
         type="button"
         className="ability-instance-popover__action ability-instance-popover__action--danger"
