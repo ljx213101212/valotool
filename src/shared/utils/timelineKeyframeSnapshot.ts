@@ -20,6 +20,7 @@ export function captureTimelineKeyframeSnapshot(): TimelineKeyframeSnapshot {
     },
     killEvents: [],
     abilityDeployEvents: [],
+    damageEvents: [],
   };
 }
 

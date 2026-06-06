@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import type { DamageEvent } from '@/shared/types/damage';
 import type { TimelineAbilityDeployEvent } from '@/shared/types/timelineAbility';
 import type { TimelineKeyframeEntry, TimelineKeyframeSnapshot } from '@/shared/types/timelineKeyframe';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
@@ -11,6 +12,10 @@ import {
   removePlacementFromSnapshot,
   snapshotWithAbilityDeployAppended,
 } from '@/shared/utils/timelineAbilityMutations';
+import {
+  recomputeSnapshotDamageState,
+  snapshotWithDamageEventAppended,
+} from '@/shared/utils/timelineDamageMutations';
 import { syncLiveAbilityPlacementsForPlayhead } from '@/shared/utils/timelineAbilityPlayheadSync';
 import {
   canRecordKillInPlacements,
@@ -50,6 +55,8 @@ export type TimelineKeyframeState = {
   popKillFromKeyframe: (keyframeId: string) => boolean;
   /** 在指定时间写入/合并关键帧并追加一条技能施放记录 */
   recordAbilityDeployAtTime: (timeSeconds: number, event: TimelineAbilityDeployEvent) => void;
+  /** 在指定时间写入/合并关键帧并追加伤害记录 */
+  recordDamageEventsAtTime: (timeSeconds: number, events: DamageEvent[]) => void;
   /** 从时间轴移除技能实例及其在所有关键帧中的施放记录 */
   purgeAbilityPlacementFromTimeline: (abilityPlacementId: string) => void;
   /** 拖拽修改关键帧时间戳（100ms 网格，冲突则忽略） */
@@ -71,6 +78,7 @@ function preserveKeyframeEventFields(
   if (!existing) return;
   snapshot.killEvents = [...(existing.snapshot.killEvents ?? [])];
   snapshot.abilityDeployEvents = [...(existing.snapshot.abilityDeployEvents ?? [])];
+  snapshot.damageEvents = [...(existing.snapshot.damageEvents ?? [])];
   const abilityPlacementsById = new Map(
     (existing.snapshot.matchup.abilityPlacements ?? []).map((p) => [p.id, p])
   );
@@ -232,6 +240,27 @@ export const useTimelineKeyframeStore = create<TimelineKeyframeState>()(
         if (builtSnapshot) applySnapshotToLiveIfAtPlayhead(t, builtSnapshot);
       },
 
+      recordDamageEventsAtTime: (timeSeconds, events) => {
+        if (!events.length) return;
+        const maxTime = useTimelinePlaybackStore.getState().maxTime;
+        const t = quantizeTimelineSeconds(timeSeconds, maxTime);
+        let builtSnapshot: TimelineKeyframeSnapshot | null = null;
+        set((s) => {
+          const next = mergeKeyframeSnapshotAtTime(s.keyframes, t, maxTime, (existingAtT) => {
+            const base = captureTimelineKeyframeSnapshot();
+            preserveKeyframeEventFields(base, existingAtT);
+            const snap = events.reduce(
+              (snapshot, event) => snapshotWithDamageEventAppended(snapshot, event),
+              base,
+            );
+            builtSnapshot = snap;
+            return snap;
+          });
+          return { keyframes: next };
+        });
+        if (builtSnapshot) applySnapshotToLiveIfAtPlayhead(t, builtSnapshot);
+      },
+
       purgeAbilityPlacementFromTimeline: (abilityPlacementId) => {
         const maxTime = useTimelinePlaybackStore.getState().maxTime;
         const { currentTime } = useTimelinePlaybackStore.getState();
@@ -332,13 +361,21 @@ export const useTimelineKeyframeStore = create<TimelineKeyframeState>()(
         if (!entry) return false;
         const kills = [...(entry.snapshot.killEvents ?? [])];
         if (!kills.length) return false;
-        const last = kills.pop()!;
+        let manualKillIndex = -1;
+        for (let i = kills.length - 1; i >= 0; i -= 1) {
+          if (kills[i].source?.type !== 'damage') {
+            manualKillIndex = i;
+            break;
+          }
+        }
+        if (manualKillIndex < 0) return false;
+        const [last] = kills.splice(manualKillIndex, 1);
         const mapPlacements = reviveOneKillVictim(entry.snapshot.matchup.mapPlacements, last);
-        const newSnap = {
+        const newSnap = recomputeSnapshotDamageState({
           ...entry.snapshot,
           killEvents: kills,
           matchup: { ...entry.snapshot.matchup, mapPlacements },
-        };
+        });
         set((s) => ({
           keyframes: sortedKeyframes(
             s.keyframes.map((k) => (k.id === keyframeId ? { ...k, snapshot: newSnap } : k))

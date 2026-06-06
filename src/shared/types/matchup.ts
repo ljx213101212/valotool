@@ -1,3 +1,5 @@
+import type { CombatState } from '@/shared/types/damage';
+
 export type MatchupSide = 'attack' | 'defense';
 
 export interface MapAgentPlacement {
@@ -12,4 +14,8 @@ export interface MapAgentPlacement {
   eliminated?: boolean;
   /** 击杀者 placement id，仅 `eliminated` 时为真 */
   eliminatedByPlacementId?: string;
+  /** 该特工在本回合起点的血甲状态 */
+  initialCombatState?: CombatState;
+  /** 当前时间点推导出的血甲状态 */
+  combatState?: CombatState;
 }

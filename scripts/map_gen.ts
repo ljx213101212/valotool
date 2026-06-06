@@ -9,7 +9,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 
 /** 约定见 scripts/MAP_SVG_CONVENTIONS.md */
-const SVG_FILE_PATH = path.join(ROOT, 'src/assets/maps/split.svg');
+const SVG_FILE_PATH = process.argv[2]
+  ? path.resolve(process.argv[2])
+  : path.join(ROOT, 'src/assets/maps/split.svg');
 const OUTPUT_TS_PATH = path.join(ROOT, 'src', 'shared', 'data', 'valorantMap.ts');
 
 function round(n: number): number {

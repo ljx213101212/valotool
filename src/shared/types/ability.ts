@@ -46,6 +46,12 @@ export type AbilityPlacement = {
   anchorMovement?: MovementAnchorGeometry;
   /** 闪光/致盲/震荡效果在地图上的几何信息 */
   statusEffect?: AbilityStatusGeometry;
+  /** 伤害效果在地图上的几何信息 */
+  damageEffect?: {
+    sourceX: number;
+    sourceY: number;
+    radius: number;
+  };
   /** 本次技能施放影响到的特工状态 */
   affectedStatuses?: AbilityAffectedStatus[];
   /** 投射物墙体命中/反弹路径（用于渲染与调试） */
