@@ -38,8 +38,8 @@
 | Family | 说明 | 本期支持 |
 | --- | --- | --- |
 | `instant-area` | 确认后按圆形/线形/胶囊区域立即结算一次伤害 | 支持 MVP |
-| `delayed-area` | 放置后等待 windup/delay，再按区域结算一次或一组爆炸 | 先分类，后续做 UI 结算 |
-| `persistent-area` | 在持续时间内按 tick / interval 多次造成伤害 | 先分类，后续做 UI 结算 |
+| `delayed-area` | 放置后等待 windup/delay，再按区域结算一次或一组爆炸 | 本期支持（Gekko Mosh Pit） |
+| `persistent-area` | 在持续时间内按 tick / interval 多次造成伤害 | 本期支持（Brimstone Incendiary, Killjoy Nanoswarm） |
 | `linear-beam` | 直线/柱体/光束命中，通常有长度和半径 | 先分类，后续做 |
 | `projectile-direct` | 投射物命中、追踪物、控制物直接咬/爆炸 | 先分类，后续做 |
 | `weapon-equip` | 技能召唤武器或准武器，涉及命中部位、距离、射速 | 先分类，后续做 |
@@ -51,8 +51,8 @@
 为了验证血甲管线而不是一次吞下所有技能，第一批实现以下代表 family：
 
 1. `instant-area`: Sova `Shock Bolt`，圆形范围、中心到边缘衰减，最大 75。
-2. `delayed-area`: Gekko `Mosh Pit`，3 秒 windup，持续 DoT 后爆炸；本期只记录数据，不开放 UI 伤害结算。
-3. `persistent-area`: Brimstone `Incendiary` / Killjoy `Nanoswarm`，圆形持续区域，按 tick 推导伤害；本期只记录数据，不开放 UI 伤害结算。
+2. `delayed-area`: Gekko `Mosh Pit`，3 秒 windup，3 ticks 爆炸（50/tick inner，25/tick outer）；本期支持 UI 伤害结算。
+3. `persistent-area`: Brimstone `Incendiary`（1/tick，60 ticks/s，8s 总时长）/ Killjoy `Nanoswarm`（1/tick，45 ticks/s，4s 总时长），圆形持续区域，按 tick 推导伤害；本期支持 UI 伤害结算。
 
 其他技能先完成资料和分类，若其 family 未实现则在 UI 中标记为暂不支持伤害结算。
 
@@ -61,11 +61,11 @@
 | Agent | Ability | Family | 伤害资料摘要 | 本期状态 |
 | --- | --- | --- | --- | --- |
 | Breach | Aftershock | delayed-area / linear-area | 10m 长、3m 半径；2.2s windup；80/tick，2 ticks，总 160 | 分类，暂不支持 |
-| Brimstone | Incendiary | persistent-area | 半径 4.5m；1/tick，60 ticks/s；约 420-465 总伤害；8s 总时长 | 分类，暂不支持 |
+| Brimstone | Incendiary | persistent-area | 半径 4.5m；1/tick，60 ticks/s；约 420-465 总伤害；8s 总时长 | 支持 |
 | Brimstone | Orbital Strike | persistent-area | 半径 9m；2s windup；20/tick，6.67 ticks/s；约 400-500 总伤害 | 分类，暂不支持 |
-| Gekko | Mosh Pit | delayed-area / persistent-area | 半径 inner 5.5m / outer 6.2m；3s windup；DoT 总 30；爆炸 50/tick inner、25/tick outer，3 ticks | 分类，暂不支持 |
+| Gekko | Mosh Pit | delayed-area / persistent-area | 半径 inner 5.5m / outer 6.2m；3s windup；DoT 总 30；爆炸 50/tick inner、25/tick outer，3 ticks | 支持 |
 | KAY/O | FRAG/ment | persistent-area / pulsed-area | inner 1m / outer 4m；0.5s windup；25-60/tick，4 ticks，总 100-240 | 分类，暂不支持 |
-| Killjoy | Nanoswarm | persistent-area | 半径 4.5m；0.5s damage delay；1/tick，45 ticks/s，4s，总 180 | 分类，暂不支持 |
+| Killjoy | Nanoswarm | persistent-area | 半径 4.5m；0.5s damage delay；1/tick，45 ticks/s，4s，总 180 | 支持 |
 | Killjoy | Turret | weapon-equip / autonomous | 0-20m: 8/shot，20-35m: 6/shot，35m+: 4/shot；3 发 burst | 分类，暂不支持 |
 | Phoenix | Blaze | persistent-line | 线性火墙；1/tick，30 ticks/s，8s，总 225-240；Phoenix 自身治疗而非受伤 | 分类，暂不支持 |
 | Phoenix | Hot Hands | persistent-area | 半径 4.5m；1/tick，60 ticks/s，4s，总 195-240；Phoenix 自身治疗而非受伤 | 分类，暂不支持 |

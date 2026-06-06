@@ -29,6 +29,15 @@ assert.equal(nanoswarm?.damage?.timing.kind, 'persistent');
 assert.equal(nanoswarm?.damage?.values.tickDamage, 1);
 assert.equal(nanoswarm?.damage?.values.tickRatePerSec, 45);
 
+const moshPitSupported = isSupportedDamageAbility('gekko', 'Grenade');
+assert.equal(moshPitSupported, true);
+
+const nanoswarmArmed = getAbilityEffectMeta('killjoy', 'Grenade')?.damage?.armed;
+assert.equal(nanoswarmArmed, true);
+
+const incendiarySupported = isSupportedDamageAbility('brimstone', 'Ability1');
+assert.equal(incendiarySupported, true);
+
 const aftershock = getAbilityEffectMeta('breach', 'Grenade');
 assert.equal(aftershock?.damage?.family, 'delayed-area');
 assert.equal(aftershock?.damage?.supportStatus, 'unsupported');

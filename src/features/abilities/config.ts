@@ -333,6 +333,8 @@ export type AbilityDamageMeta = {
   friendlyFire: boolean;
   values: AbilityDamageValues;
   source: AbilityDamageSource;
+  /** 是否需要手动触发（如 Nanoswarm 需要 armed + trigger） */
+  armed?: boolean;
 };
 
 export type AbilityEffectMeta = {
@@ -492,7 +494,7 @@ export const ABILITY_EFFECT_META: Partial<
       effectKinds: ['damage'],
       damage: {
         family: 'persistent-area',
-        supportStatus: 'unsupported',
+        supportStatus: 'supported',
         shape: {
           kind: 'circle',
           outerRadius: smokeMapUnitsFromMeters(4.5),
@@ -591,7 +593,7 @@ export const ABILITY_EFFECT_META: Partial<
       effectKinds: ['damage'],
       damage: {
         family: 'delayed-area',
-        supportStatus: 'unsupported',
+        supportStatus: 'supported',
         shape: {
           kind: 'circle',
           innerRadius: smokeMapUnitsFromMeters(5.5),
@@ -623,7 +625,7 @@ export const ABILITY_EFFECT_META: Partial<
       effectKinds: ['damage'],
       damage: {
         family: 'persistent-area',
-        supportStatus: 'unsupported',
+        supportStatus: 'supported',
         shape: {
           kind: 'circle',
           outerRadius: smokeMapUnitsFromMeters(4.5),
@@ -632,6 +634,7 @@ export const ABILITY_EFFECT_META: Partial<
         targetRule: 'all-players',
         friendlyFire: true,
         values: { tickDamage: 1, tickRatePerSec: 45, totalDamage: 180 },
+        armed: true,
         source: valorantWikiDamageSource('Nanoswarm'),
       },
     },

@@ -191,6 +191,7 @@ interface MatchupState {
   ) => void;
   deployAgentAbility: (input: Omit<SpawnAbilityInput, 'x' | 'y'>) => void;
   triggerArmedMovementAbility: (ownerPlacementId: string, abilitySlot: AbilitySlot) => void;
+  triggerArmedDamageAbility: (abilityPlacementId: string) => void;
   spawnAbilityPlacement: (input: SpawnAbilityInput) => void;
   spawnAbilityAtMapCenter: (
     input: Omit<SpawnAbilityInput, 'x' | 'y'>
@@ -1321,37 +1322,39 @@ export const useMatchupStore = create<MatchupState>()(
         }
         const { currentTime, maxTime } = useTimelinePlaybackStore.getState();
         const startT = quantizeTimelineSeconds(currentTime, maxTime);
-        const damageEvents = computeAbilityDamageEvents({
-          idPrefix: `${target.id}-damage`,
-          damage,
-          abilityId: `${target.agentId}-${target.abilitySlot}`,
-          casterPlacementId: owner.id,
-          deploymentId: target.id,
-          source: { x: targetX, y: targetY },
-          casterSide: owner.side,
-          targets: state.mapPlacements,
-          startsAt: startT,
-        });
-        const lastDamageTime = damageEvents.reduce(
-          (latest, event) => Math.max(latest, event.time),
-          startT,
-        );
-        const endT = quantizeTimelineSeconds(Math.min(lastDamageTime, maxTime), maxTime);
         const isInstantDamage = damage.timing.kind === 'instant';
+        const isArmed = !!damage.armed;
+        const damageEffect = isInstantDamage
+          ? undefined
+          : {
+              sourceX: targetX,
+              sourceY: targetY,
+              radius: damage.shape.outerRadius,
+              ...(isArmed ? { armed: true } : {}),
+            };
+        const lastTime = (() => {
+          if (isInstantDamage || isArmed) return startT;
+          const metaDuration =
+            damage.timing.kind === 'persistent'
+              ? damage.timing.durationSec
+              : damage.timing.kind === 'windup-then-persistent'
+                ? damage.timing.windupSec + damage.timing.durationSec
+                : damage.timing.kind === 'windup'
+                  ? damage.timing.windupSec
+                  : 0;
+          return Math.min(startT + metaDuration, maxTime);
+        })();
+        const endT = quantizeTimelineSeconds(lastTime, maxTime);
         const updated = {
           ...target,
           x: targetX,
           y: targetY,
           state: isInstantDamage ? ('expired' as const) : ('active' as const),
           activeAt: startT,
-          expiresAt: endT,
-          damageEffect: isInstantDamage
-            ? undefined
-            : {
-                sourceX: targetX,
-                sourceY: targetY,
-                radius: damage.shape.outerRadius,
-              },
+          // Armed damage abilities (Nanoswarm) don't expire at placement time;
+          // their real expiresAt is set on trigger via triggerArmedDamageAbility.
+          expiresAt: isArmed ? undefined : endT,
+          damageEffect,
         };
         useMatchupStore.setState((s) => ({
           abilityPlacements: s.abilityPlacements.map((p) =>
@@ -1360,16 +1363,27 @@ export const useMatchupStore = create<MatchupState>()(
           damagePlacementId: null,
           damagePreview: null,
         }));
+        const phase = isInstantDamage ? 'instant' as const : 'start' as const;
         useTimelineKeyframeStore
           .getState()
-          .recordAbilityDeployAtTime(
-            startT,
-            buildAbilityDeployEvent(updated, isInstantDamage ? 'instant' : 'start'),
-          );
-        useTimelineKeyframeStore
-          .getState()
-          .recordDamageEventsAtTime(startT, damageEvents);
-        if (!isInstantDamage && endT > startT) {
+          .recordAbilityDeployAtTime(startT, buildAbilityDeployEvent(updated, phase));
+        // Only instant damage generates events; temporal damage is visual-only,
+        // with damage values to be manually edited or driven by video analysis data.
+        if (isInstantDamage) {
+          const damageEvents = computeAbilityDamageEvents({
+            idPrefix: `${target.id}-damage`,
+            damage,
+            abilityId: `${target.agentId}-${target.abilitySlot}`,
+            casterPlacementId: owner.id,
+            deploymentId: target.id,
+            source: { x: targetX, y: targetY },
+            casterSide: owner.side,
+            targets: state.mapPlacements,
+            startsAt: startT,
+          });
+          useTimelineKeyframeStore.getState().recordDamageEventsAtTime(startT, damageEvents);
+        }
+        if (!isInstantDamage && !isArmed && endT > startT) {
           useTimelineKeyframeStore
             .getState()
             .recordAbilityDeployAtTime(endT, buildAbilityDeployEvent(updated, 'end'));
@@ -1443,13 +1457,23 @@ export const useMatchupStore = create<MatchupState>()(
         const state = useMatchupStore.getState();
         const owner = state.mapPlacements.find((p) => p.id === input.ownerPlacementId);
         if (!owner || owner.eliminated) return;
-        const armed = findArmedMovementAbility(
+        const armedMove = findArmedMovementAbility(
           state.abilityPlacements,
           input.ownerPlacementId,
           input.abilitySlot,
         );
-        if (armed) {
+        if (armedMove) {
           useMatchupStore.getState().triggerArmedMovementAbility(input.ownerPlacementId, input.abilitySlot);
+          return;
+        }
+        const armedDamage = state.abilityPlacements.find(
+          (p) =>
+            p.ownerPlacementId === input.ownerPlacementId &&
+            p.abilitySlot === input.abilitySlot &&
+            p.damageEffect?.armed,
+        );
+        if (armedDamage) {
+          useMatchupStore.getState().triggerArmedDamageAbility(armedDamage.id);
           return;
         }
         if (
@@ -1570,6 +1594,57 @@ export const useMatchupStore = create<MatchupState>()(
         useTimelineKeyframeStore
           .getState()
           .recordAbilityDeployAtTime(deployT, buildAbilityDeployEvent(updatedAbility, 'instant'));
+        syncLiveAbilityPlacementsForPlayhead(currentTime);
+      },
+      triggerArmedDamageAbility: (abilityPlacementId) => {
+        const state = useMatchupStore.getState();
+        const placement = state.abilityPlacements.find((p) => p.id === abilityPlacementId);
+        const owner = placement
+          ? state.mapPlacements.find((p) => p.id === placement.ownerPlacementId)
+          : undefined;
+        const meta = placement
+          ? getAbilityEffectMeta(placement.agentId, placement.abilitySlot)
+          : undefined;
+        const damage = meta?.damage;
+        if (
+          !placement ||
+          !owner ||
+          owner.eliminated ||
+          !damage ||
+          damage.supportStatus !== 'supported' ||
+          damage.shape.kind !== 'circle' ||
+          !placement.damageEffect?.armed
+        ) {
+          return;
+        }
+        const { currentTime, maxTime } = useTimelinePlaybackStore.getState();
+        const triggerT = quantizeTimelineSeconds(currentTime, maxTime);
+        const lastTime = damage.timing.kind === 'persistent'
+          ? Math.min(triggerT + damage.timing.durationSec, maxTime)
+          : triggerT;
+        const endT = quantizeTimelineSeconds(lastTime, maxTime);
+        const updated = {
+          ...placement,
+          activeAt: triggerT,
+          expiresAt: endT,
+          damageEffect: {
+            sourceX: placement.damageEffect.sourceX,
+            sourceY: placement.damageEffect.sourceY,
+            radius: placement.damageEffect.radius,
+          },
+        };
+        useMatchupStore.setState((s) => ({
+          abilityPlacements: s.abilityPlacements.map((p) =>
+            p.id === abilityPlacementId ? updated : p
+          ),
+        }));
+        const deployEvent = buildAbilityDeployEvent(updated, 'start');
+        useTimelineKeyframeStore.getState().recordAbilityDeployAtTime(triggerT, deployEvent);
+        if (endT > triggerT) {
+          useTimelineKeyframeStore
+            .getState()
+            .recordAbilityDeployAtTime(endT, buildAbilityDeployEvent(updated, 'end'));
+        }
         syncLiveAbilityPlacementsForPlayhead(currentTime);
       },
       spawnAbilityPlacement: (input) =>

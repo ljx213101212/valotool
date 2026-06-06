@@ -51,6 +51,8 @@ export type AbilityPlacement = {
     sourceX: number;
     sourceY: number;
     radius: number;
+    /** 是否待手动触发（如 Nanoswarm 初始状态仅 armed，尚未开始伤害） */
+    armed?: boolean;
   };
   /** 本次技能施放影响到的特工状态 */
   affectedStatuses?: AbilityAffectedStatus[];
