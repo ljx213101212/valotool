@@ -114,9 +114,8 @@ function parseTranslate(transform: string | null): { tx: number; ty: number } {
 }
 
 /**
- * Build unique lines from polygon points.
+ * Build wall lines from polygon points.
  * Each consecutive pair (i, i+1) becomes a wall line.
- * The last-closing edge (last point → first point) is also included.
  */
 function polygonToLines(points: Point[]): Line[] {
   const lines: Line[] = [];
@@ -155,7 +154,9 @@ function main(): void {
     args[1] ?? inputPath?.replace(/\.svg$/i, '_calibrated.svg');
 
   if (!inputPath) {
-    console.error('Usage: tsx scripts/vtracer_to_map.ts <input.svg> [output.svg]');
+    console.error(
+      'Usage: tsx scripts/vtracer_to_map.ts <input.svg> [output.svg]',
+    );
     process.exit(1);
   }
 
@@ -170,8 +171,13 @@ function main(): void {
   // Get viewBox and SVG dimensions
   const svgEl = doc.getElementsByTagName('svg')[0];
   const vb = parseViewBox(svgEl?.getAttribute('viewBox'));
-  const svgWidth = parseFloat(svgEl?.getAttribute('width') ?? `${vb.w}`);
-  const svgHeight = parseFloat(svgEl?.getAttribute('height') ?? `${vb.h}`);
+
+  // Use || instead of ?? because getAttribute returns '' (empty string) for
+  // missing attributes, which is not null/undefined and would pass through ??.
+  const widthAttr = svgEl?.getAttribute('width') ?? '';
+  const heightAttr = svgEl?.getAttribute('height') ?? '';
+  const svgWidth = parseFloat(widthAttr) || vb.w;
+  const svgHeight = parseFloat(heightAttr) || vb.h;
 
   // Collect all polygon paths
   const pathElements = doc.getElementsByTagName('path');
@@ -247,11 +253,10 @@ function main(): void {
 
   console.log(`\nGenerated: ${outputPath}`);
   console.log(`  viewBox: ${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+  console.log(`  Size: ${svgWidth} × ${svgHeight}`);
   console.log(`  Polygons: ${polygonCount}`);
   console.log(`  Walls: ${allLines.length}`);
-  console.log(
-    `\nNext steps:`,
-  );
+  console.log(`\nNext steps:`);
   console.log(`  1. Open in Figma/editor to manually add boxes and areas`);
   console.log(
     `  2. Add <path id="site-a" .../> and <path id="site-b" .../> in <g id="areas">`,
