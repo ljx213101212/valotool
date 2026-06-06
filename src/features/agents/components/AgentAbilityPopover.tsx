@@ -61,7 +61,7 @@ function AbilityChip({
       aria-label={
         slotView.ability
           ? slotView.armed
-            ? `${slotView.keyLabel}：${slotView.ability.displayName}，点击再次触发位移`
+            ? `${slotView.keyLabel}：${slotView.ability.displayName}，点击触发技能`
             : `${slotView.keyLabel}：${slotView.ability.displayName}，点击放置到地图中央`
           : `${slotView.keyLabel}：暂未开放`
       }
@@ -70,7 +70,7 @@ function AbilityChip({
           ? '大招点数等功能后续开放'
           : slotView.ability
             ? slotView.armed
-              ? '已放置锚点：点击再次触发位移'
+              ? '已放置：点击触发技能'
               : '点击放置到地图中央'
             : undefined
       }
@@ -104,7 +104,9 @@ export function AgentAbilityPopover({ placement, anchor, popoverRef }: AgentAbil
       new Set(
         abilityPlacements
           .filter(
-            (p) => p.ownerPlacementId === placement.id && p.anchorMovement?.status === 'armed'
+            (p) =>
+              p.ownerPlacementId === placement.id &&
+              (p.anchorMovement?.status === 'armed' || p.damageEffect?.armed)
           )
           .map((p) => p.abilitySlot)
       ),

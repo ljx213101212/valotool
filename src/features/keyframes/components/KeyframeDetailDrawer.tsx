@@ -91,6 +91,8 @@ export function KeyframeDetailDrawer() {
   const killCount = snap?.killEvents?.length ?? 0;
   const abilityDeployEvents = snap?.abilityDeployEvents ?? [];
   const abilityDeployCount = abilityDeployEvents.length;
+  const damageEvents = snap?.damageEvents ?? [];
+  const damageCount = damageEvents.length;
 
   const openAddKillModal = useCallback(() => {
     setKillerId(null);
@@ -294,6 +296,44 @@ export function KeyframeDetailDrawer() {
                       owner={owner ?? null}
                       onDelete={() => onDeleteAbilityDeploy(ev.abilityPlacementId)}
                     />
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+
+          <section className="keyframe-detail-drawer__section keyframe-detail-drawer__section--damage">
+            <div className="keyframe-detail-drawer__kill-section-head">
+              <h2 className="keyframe-detail-drawer__kill-section-title">
+                伤害事件
+                <span className="keyframe-detail-drawer__kill-count">{damageCount}</span>
+              </h2>
+            </div>
+            {damageCount === 0 ? (
+              <p className="keyframe-detail-drawer__empty">本关键帧无伤害记录</p>
+            ) : (
+              <ul className="keyframe-detail-drawer__ability-list" role="list">
+                {damageEvents.map((event, i) => {
+                  const target = snap.matchup.mapPlacements.find(
+                    (p) => p.id === event.targetPlacementId,
+                  );
+                  const combat = target?.combatState;
+                  return (
+                    <li className="ability-deploy-event-row" key={`${event.id}-${i}`}>
+                      <span className="ability-deploy-event-row__idx" aria-hidden>
+                        {i + 1}
+                      </span>
+                      <div className="ability-deploy-event-row__main">
+                        <div className="ability-deploy-event-row__name">
+                          {target ? getAgentLabel(target.agentId) : '未知目标'} 受到 {event.rawDamage} 伤害
+                        </div>
+                        <div className="ability-deploy-event-row__meta keyframe-detail-drawer__damage-meta">
+                          {combat
+                            ? `结果 ${combat.health}/${combat.maxHealth} HP · ${combat.armor}/${combat.maxArmor} 甲`
+                            : '结果未知'}
+                        </div>
+                      </div>
+                    </li>
                   );
                 })}
               </ul>

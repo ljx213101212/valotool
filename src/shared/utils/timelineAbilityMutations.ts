@@ -1,6 +1,7 @@
 import type { AbilityPlacement } from '@/shared/types/ability';
 import type { TimelineAbilityDeployEvent } from '@/shared/types/timelineAbility';
 import type { TimelineKeyframeSnapshot } from '@/shared/types/timelineKeyframe';
+import { removeDamageEventsForAbilityDeploymentFromSnapshot } from './timelineDamageMutations';
 
 const PLAYHEAD_EPS = 1e-6;
 
@@ -34,7 +35,7 @@ export function patchPlacementForDeployPhase(
   if (phase === 'instant') {
     return {
       ...placement,
-      state: 'active',
+      state: 'expired',
       activeAt,
       ...(placement.expiresAt != null ? { expiresAt: placement.expiresAt } : {}),
     };
@@ -142,7 +143,7 @@ export function removePlacementFromSnapshot(
   snapshot: TimelineKeyframeSnapshot,
   abilityPlacementId: string,
 ): TimelineKeyframeSnapshot {
-  return {
+  const snapshotWithoutPlacement = {
     ...snapshot,
     abilityDeployEvents: removeAbilityDeployEventsForPlacement(
       snapshot.abilityDeployEvents ?? [],
@@ -155,4 +156,8 @@ export function removePlacementFromSnapshot(
       ),
     },
   };
+  return removeDamageEventsForAbilityDeploymentFromSnapshot(
+    snapshotWithoutPlacement,
+    abilityPlacementId,
+  );
 }

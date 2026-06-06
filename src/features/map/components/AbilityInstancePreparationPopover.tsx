@@ -8,6 +8,7 @@ import {
   isFixedSingleLineSmokeAbility,
   isReleasePlacementAbility,
   isSphericalSmokeAbility,
+  isSupportedDamageAbility,
   isStatusEffectAbility,
 } from '@/features/abilities/config';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
@@ -42,6 +43,7 @@ export function AbilityInstancePreparationPopover({
   const beginCurveSmokePlacement = useMatchupStore((s) => s.beginCurveSmokePlacement);
   const beginDirectMovementPlacement = useMatchupStore((s) => s.beginDirectMovementPlacement);
   const beginStatusEffectPlacement = useMatchupStore((s) => s.beginStatusEffectPlacement);
+  const beginDamagePlacement = useMatchupStore((s) => s.beginDamagePlacement);
 
   const canActivate = isReleasePlacementAbility(
     placement.agentId,
@@ -76,6 +78,8 @@ export function AbilityInstancePreparationPopover({
       beginDirectMovementPlacement(placement.id);
     } else if (isStatusEffectAbility(placement.agentId, placement.abilitySlot)) {
       beginStatusEffectPlacement(placement.id);
+    } else if (isSupportedDamageAbility(placement.agentId, placement.abilitySlot)) {
+      beginDamagePlacement(placement.id);
     }
     closeAbilityInstancePopover();
   };

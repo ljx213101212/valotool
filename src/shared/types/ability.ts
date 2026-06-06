@@ -46,6 +46,14 @@ export type AbilityPlacement = {
   anchorMovement?: MovementAnchorGeometry;
   /** 闪光/致盲/震荡效果在地图上的几何信息 */
   statusEffect?: AbilityStatusGeometry;
+  /** 伤害效果在地图上的几何信息 */
+  damageEffect?: {
+    sourceX: number;
+    sourceY: number;
+    radius: number;
+    /** 是否待手动触发（如 Nanoswarm 初始状态仅 armed，尚未开始伤害） */
+    armed?: boolean;
+  };
   /** 本次技能施放影响到的特工状态 */
   affectedStatuses?: AbilityAffectedStatus[];
   /** 投射物墙体命中/反弹路径（用于渲染与调试） */

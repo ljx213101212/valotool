@@ -198,6 +198,23 @@ function normalizeStatusGeometry(raw: unknown): AbilityStatusGeometry | undefine
   };
 }
 
+function normalizeDamageEffect(raw: unknown): AbilityPlacement['damageEffect'] | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const effect = raw as NonNullable<AbilityPlacement['damageEffect']>;
+  if (
+    !finiteNumber(effect.sourceX) ||
+    !finiteNumber(effect.sourceY) ||
+    !finiteNumber(effect.radius)
+  ) {
+    return undefined;
+  }
+  return {
+    sourceX: effect.sourceX,
+    sourceY: effect.sourceY,
+    radius: effect.radius,
+  };
+}
+
 function normalizeAffectedStatuses(raw: unknown): AbilityAffectedStatus[] | undefined {
   if (!Array.isArray(raw)) return undefined;
   const statuses = raw.flatMap((entry): AbilityAffectedStatus[] => {
@@ -294,6 +311,7 @@ export function normalizeAbilityPlacements(
     const directMovement = normalizeDirectMovement(p.directMovement);
     const anchorMovement = normalizeAnchorMovement(p.anchorMovement);
     const statusEffect = normalizeStatusGeometry(p.statusEffect);
+    const damageEffect = normalizeDamageEffect(p.damageEffect);
     const affectedStatuses = normalizeAffectedStatuses(p.affectedStatuses);
     const projectilePath = normalizeProjectilePath(p.projectilePath);
     const legacyWall = p as { wallSmoke?: { cx?: number; cy?: number; facing?: number } };
@@ -325,6 +343,7 @@ export function normalizeAbilityPlacements(
       ...(directMovement ? { directMovement } : {}),
       ...(anchorMovement ? { anchorMovement } : {}),
       ...(statusEffect ? { statusEffect } : {}),
+      ...(damageEffect ? { damageEffect } : {}),
       ...(affectedStatuses ? { affectedStatuses } : {}),
       ...(projectilePath ? { projectilePath } : {}),
     });

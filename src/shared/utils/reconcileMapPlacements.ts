@@ -1,6 +1,7 @@
-import { valorantMap } from '@/shared/data/valorantMap';
 import type { MapAgentPlacement, MatchupSide } from '@/shared/types/matchup';
 import type { TacticalMap } from '@/shared/types/map';
+import { valorantMap } from '../data/valorantMap';
+import { createDefaultCombatState } from './damageCombat';
 
 function defaultPlacementForSide(
   side: MatchupSide,
@@ -27,6 +28,15 @@ function placementKey(p: Pick<MapAgentPlacement, 'side' | 'agentId'>): string {
   return `${p.side}:${p.agentId}`;
 }
 
+function withDefaultCombatState(placement: MapAgentPlacement): MapAgentPlacement {
+  const initialCombatState = placement.initialCombatState ?? createDefaultCombatState('none');
+  return {
+    ...placement,
+    initialCombatState,
+    combatState: placement.combatState ?? initialCombatState,
+  };
+}
+
 /** 与阵容同步：去掉已离队特工，并为新加入者生成默认坐标与朝向 */
 export function reconcileMapPlacements(
   attackAgentIds: string[],
@@ -39,7 +49,7 @@ export function reconcileMapPlacements(
     ...defenseAgentIds.map((id) => `defense:${id}`),
   ]);
 
-  const kept = (existing ?? []).filter((p) => roster.has(placementKey(p)));
+  const kept = (existing ?? []).filter((p) => roster.has(placementKey(p))).map(withDefaultCombatState);
   const have = new Set(kept.map(placementKey));
 
   const out = [...kept];
@@ -47,13 +57,13 @@ export function reconcileMapPlacements(
   for (const agentId of attackAgentIds) {
     const key = placementKey({ side: 'attack', agentId });
     if (have.has(key)) continue;
-    out.push({
+    out.push(withDefaultCombatState({
       id: crypto.randomUUID(),
       side: 'attack',
       agentId,
       ...defaultPlacementForSide('attack', attackIdx++, bounds),
       facing: defaultFacingForSide('attack'),
-    });
+    }));
     have.add(key);
   }
 
@@ -61,13 +71,13 @@ export function reconcileMapPlacements(
   for (const agentId of defenseAgentIds) {
     const key = placementKey({ side: 'defense', agentId });
     if (have.has(key)) continue;
-    out.push({
+    out.push(withDefaultCombatState({
       id: crypto.randomUUID(),
       side: 'defense',
       agentId,
       ...defaultPlacementForSide('defense', defenseIdx++, bounds),
       facing: defaultFacingForSide('defense'),
-    });
+    }));
     have.add(key);
   }
 
