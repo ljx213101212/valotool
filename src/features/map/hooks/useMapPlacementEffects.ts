@@ -198,6 +198,16 @@ export function useStatusEffectPlacementEffect(
   useSimplePlacementEffect(args);
 }
 
+export function useDamagePlacementEffect(
+  args: UsePlacementEffectArgs & {
+    placing: boolean;
+    syncPreview: SyncPreviews['syncDamagePreview'];
+    confirm: (x: number, y: number) => void;
+  },
+) {
+  useSimplePlacementEffect(args);
+}
+
 /** Shared implementation for simple "move-to-preview + click-to-confirm" placements */
 function useSimplePlacementEffect(
   args: UsePlacementEffectArgs & {

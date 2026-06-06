@@ -31,6 +31,7 @@ export function AgentDetailDrawer() {
 
   const placement = mapPlacements.find((p) => p.id === selectedPlacementId);
   const open = !!placement;
+  const combatState = placement?.combatState;
 
   const killFeed = useMemo(
     () => (placement ? collectAgentKillFeed(placement, keyframes) : []),
@@ -108,7 +109,21 @@ export function AgentDetailDrawer() {
             </div>
             <div className="agent-detail-drawer__row">
               <dt>当前血量</dt>
-              <dd className="agent-detail-drawer__placeholder">—</dd>
+              <dd>
+                {combatState
+                  ? `${combatState.health}/${combatState.maxHealth}`
+                  : '100/100'}
+              </dd>
+            </div>
+            <div className="agent-detail-drawer__row">
+              <dt>当前护甲</dt>
+              <dd>
+                {combatState
+                  ? `${combatState.armor}/${combatState.maxArmor} · ${combatState.armorKind}${
+                      combatState.regenPool != null ? ` · 池 ${combatState.regenPool}` : ''
+                    }`
+                  : '0/0 · none'}
+              </dd>
             </div>
             <div className="agent-detail-drawer__row">
               <dt>当前经济</dt>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { Circle, Group, Image, Line } from 'react-konva';
+import { Arc, Circle, Group, Image, Line } from 'react-konva';
 import { tacticalSideMapTokenColors } from '@/shared/constants/tacticalSideColors';
 import { getAgentPortraitUrl } from '@/shared/data/agentPortraitUrl';
 import { useMatchupStore } from '@/shared/store/useMatchupStore';
@@ -22,6 +22,8 @@ const VISION_LEN = 18;
 const VISION_ARC_STEPS = 28;
 /** 淘汰态仅显示 X 时的臂长 */
 const X_ARM = BODY_R * 0.72;
+const HEALTH_RING_R = BODY_R + 2.5;
+const ARMOR_RING_R = BODY_R - 2;
 
 /**
  * 圆外顶点 + 两条切线 + 圆上两切点间的弧，围成封闭区域（不进入圆内）。
@@ -126,6 +128,15 @@ export function MapHeroToken({
 
   const showHandle = (hovered || dragFacing) && !eliminated;
   const facing = dragFacing ? liveFacing : placement.facing;
+  const combatState = placement.combatState;
+  const healthRatio = combatState
+    ? Math.max(0, Math.min(1, combatState.health / combatState.maxHealth))
+    : 1;
+  const armorRatio = combatState?.maxArmor
+    ? Math.max(0, Math.min(1, combatState.armor / combatState.maxArmor))
+    : 0;
+  const healthColor =
+    healthRatio > 0.66 ? '#22c55e' : healthRatio > 0.33 ? '#facc15' : '#ef4444';
 
   const lockMapTransform = () => {
     if (!setMapTransformLocked) return;
@@ -302,6 +313,32 @@ export function MapHeroToken({
           onClick={onSelectClick}
           onMouseEnter={(e) => setStageCursor(e.target, 'pointer')}
           onMouseLeave={(e) => setStageCursor(e.target, '')}
+        />
+      ) : null}
+
+      <Arc
+        x={0}
+        y={0}
+        innerRadius={HEALTH_RING_R - 1.6}
+        outerRadius={HEALTH_RING_R}
+        angle={Math.max(1, healthRatio * 360)}
+        rotation={-90}
+        fill={healthColor}
+        listening={false}
+        perfectDrawEnabled={false}
+      />
+
+      {armorRatio > 0 ? (
+        <Arc
+          x={0}
+          y={0}
+          innerRadius={ARMOR_RING_R - 1.4}
+          outerRadius={ARMOR_RING_R}
+          angle={Math.max(2, armorRatio * 160)}
+          rotation={100}
+          fill={combatState?.armorKind === 'regen' ? '#38bdf8' : '#93c5fd'}
+          listening={false}
+          perfectDrawEnabled={false}
         />
       ) : null}
 

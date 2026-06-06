@@ -36,6 +36,7 @@ import {
   useDirectMovementPlacementEffect,
   useAnchorMovementPlacementEffect,
   useBlastPackPlacementEffect,
+  useDamagePlacementEffect,
   useStatusEffectPlacementEffect,
 } from '../hooks/useMapPlacementEffects';
 import './Map.less';
@@ -112,6 +113,10 @@ const Map = () => {
   const statusEffectPreview = useMatchupStore((s) => s.statusEffectPreview);
   const cancelStatusEffectPlacement = useMatchupStore((s) => s.cancelStatusEffectPlacement);
   const confirmStatusEffectPlacement = useMatchupStore((s) => s.confirmStatusEffectPlacement);
+  const damagePlacementId = useMatchupStore((s) => s.damagePlacementId);
+  const damagePreview = useMatchupStore((s) => s.damagePreview);
+  const cancelDamagePlacement = useMatchupStore((s) => s.cancelDamagePlacement);
+  const confirmDamagePlacement = useMatchupStore((s) => s.confirmDamagePlacement);
 
   const spawnAbilityPlacement = useMatchupStore((s) => s.spawnAbilityPlacement);
 
@@ -129,6 +134,7 @@ const Map = () => {
   const placingBlastPack =
     !!blastPackPlacementDraft || (!!blastPackPlacementId && !!blastPackPreview);
   const placingStatusEffect = !!statusEffectPlacementId && !!statusEffectPreview;
+  const placingDamage = !!damagePlacementId && !!damagePreview;
 
   const placingSmoke =
     placingSphericalSmoke ||
@@ -140,7 +146,8 @@ const Map = () => {
     placingDirectMovement ||
     placingAnchorMovement ||
     placingBlastPack ||
-    placingStatusEffect;
+    placingStatusEffect ||
+    placingDamage;
 
   // ------------------------------------------------------------------
   // memoized meta for placement effect hooks
@@ -287,6 +294,14 @@ const Map = () => {
     confirm: confirmStatusEffectPlacement,
   });
 
+  useDamagePlacementEffect({
+    stageRef,
+    setMapTransformLocked,
+    placing: placingDamage,
+    syncPreview: previews.syncDamagePreview,
+    confirm: confirmDamagePlacement,
+  });
+
   useCurveSmokePlacementEffect({
     stageRef,
     setMapTransformLocked,
@@ -336,6 +351,7 @@ const Map = () => {
       if (placingAnchorMovement) return cancelAnchorMovementPlacement();
       if (placingBlastPack) return cancelBlastPackPlacement();
       if (placingStatusEffect) return cancelStatusEffectPlacement();
+      if (placingDamage) return cancelDamagePlacement();
       closeAllMapPopovers();
     };
     window.addEventListener('keydown', onKey);
@@ -352,6 +368,7 @@ const Map = () => {
     placingAnchorMovement,
     placingBlastPack,
     placingStatusEffect,
+    placingDamage,
     cancelSphericalSmokePlacement,
     cancelFixedDualLineSmokePlacement,
     cancelFixedSingleLineSmokePlacement,
@@ -360,6 +377,7 @@ const Map = () => {
     cancelAnchorMovementPlacement,
     cancelBlastPackPlacement,
     cancelStatusEffectPlacement,
+    cancelDamagePlacement,
     closeAllMapPopovers,
   ]);
 

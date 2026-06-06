@@ -23,6 +23,7 @@ import {
   isFixedDualLineSmokeAbility,
   isFixedSingleLineSmokeAbility,
   isConcussAbility,
+  isSupportedDamageAbility,
   isStatusEffectAbility,
   isSphericalSmokeAbility,
   isStaticAnchorMovementAbility,
@@ -58,6 +59,7 @@ import {
   statusStrengthForSeverity,
   updateAffectedStatusSeverity,
 } from '@/shared/utils/abilityStatusEffects';
+import { computeAbilityDamageEvents } from '@/shared/utils/abilityDamageEvents';
 import type { AbilityStatusSeverity } from '@/shared/types/abilityStatus';
 
 const BLAST_PACK_IMPACT_RADIUS = smokeMapUnitsFromMeters(6);
@@ -128,6 +130,9 @@ interface MatchupState {
   /** 闪光/致盲/震荡放置预览（仅内存） */
   statusEffectPlacementId: string | null;
   statusEffectPreview: { x: number; y: number; facing: number } | null;
+  /** 伤害技能放置预览（仅内存） */
+  damagePlacementId: string | null;
+  damagePreview: { x: number; y: number } | null;
   /** 地图上当前选中的特工 placement（仅内存，不参与 persist） */
   selectedPlacementId: string | null;
   setSelectedPlacementId: (id: string | null) => void;
@@ -175,6 +180,10 @@ interface MatchupState {
   updateStatusEffectPreview: (targetX: number, targetY: number) => void;
   cancelStatusEffectPlacement: () => void;
   confirmStatusEffectPlacement: (targetX: number, targetY: number) => void;
+  beginDamagePlacement: (abilityPlacementId: string) => void;
+  updateDamagePreview: (targetX: number, targetY: number) => void;
+  cancelDamagePlacement: () => void;
+  confirmDamagePlacement: (targetX: number, targetY: number) => void;
   updateAbilityAffectedStatusSeverity: (
     abilityPlacementId: string,
     targetPlacementId: string,
@@ -182,6 +191,7 @@ interface MatchupState {
   ) => void;
   deployAgentAbility: (input: Omit<SpawnAbilityInput, 'x' | 'y'>) => void;
   triggerArmedMovementAbility: (ownerPlacementId: string, abilitySlot: AbilitySlot) => void;
+  triggerArmedDamageAbility: (abilityPlacementId: string) => void;
   spawnAbilityPlacement: (input: SpawnAbilityInput) => void;
   spawnAbilityAtMapCenter: (
     input: Omit<SpawnAbilityInput, 'x' | 'y'>
@@ -210,6 +220,7 @@ interface MatchupState {
         | 'directMovement'
         | 'anchorMovement'
         | 'statusEffect'
+        | 'damageEffect'
         | 'affectedStatuses'
       >
     >
@@ -275,6 +286,8 @@ export const useMatchupStore = create<MatchupState>()(
       blastPackPlacementDraft: null,
       statusEffectPlacementId: null,
       statusEffectPreview: null,
+      damagePlacementId: null,
+      damagePreview: null,
       selectedPlacementId: null,
       selectedAbilityPlacementId: null,
       setSelectedPlacementId: (id) =>
@@ -1236,6 +1249,147 @@ export const useMatchupStore = create<MatchupState>()(
         useTimelineKeyframeStore.getState().recordAbilityDeployAtTime(endT, endEvent);
         syncLiveAbilityPlacementsForPlayhead(currentTime);
       },
+      beginDamagePlacement: (abilityPlacementId) =>
+        set((s) => {
+          const placement = s.abilityPlacements.find((p) => p.id === abilityPlacementId);
+          const owner = placement
+            ? s.mapPlacements.find((p) => p.id === placement.ownerPlacementId)
+            : undefined;
+          if (
+            !placement ||
+            !owner ||
+            owner.eliminated ||
+            placement.state !== 'initial' ||
+            !isSupportedDamageAbility(placement.agentId, placement.abilitySlot)
+          ) {
+            return s;
+          }
+          return {
+            damagePlacementId: abilityPlacementId,
+            damagePreview: { x: placement.x, y: placement.y },
+            sphericalSmokePlacementId: null,
+            sphericalSmokePreview: null,
+            fixedDualLineSmokePlacementId: null,
+            fixedDualLineSmokePreview: null,
+            fixedSingleLineSmokePlacementId: null,
+            fixedSingleLineSmokePreview: null,
+            curveSmokePlacementId: null,
+            curveSmokePreviewPoints: [],
+            directMovementPlacementId: null,
+            directMovementPreview: null,
+            anchorMovementPlacementDraft: null,
+            blastPackPlacementId: null,
+            blastPackPreview: null,
+            blastPackPlacementDraft: null,
+            statusEffectPlacementId: null,
+            statusEffectPreview: null,
+            abilityInstancePopoverId: null,
+            abilityInstancePopoverAnchor: null,
+            abilityPopoverPlacementId: null,
+            abilityPopoverAnchor: null,
+          };
+        }),
+      updateDamagePreview: (targetX, targetY) =>
+        set((s) => (s.damagePlacementId ? { damagePreview: { x: targetX, y: targetY } } : s)),
+      cancelDamagePlacement: () =>
+        set({
+          damagePlacementId: null,
+          damagePreview: null,
+        }),
+      confirmDamagePlacement: (targetX, targetY) => {
+        const { damagePlacementId } = useMatchupStore.getState();
+        if (!damagePlacementId) return;
+        const state = useMatchupStore.getState();
+        const target = state.abilityPlacements.find((p) => p.id === damagePlacementId);
+        const owner = target
+          ? state.mapPlacements.find((p) => p.id === target.ownerPlacementId)
+          : undefined;
+        const meta = target ? getAbilityEffectMeta(target.agentId, target.abilitySlot) : undefined;
+        const damage = meta?.damage;
+        if (
+          !target ||
+          !owner ||
+          owner.eliminated ||
+          !damage ||
+          damage.supportStatus !== 'supported' ||
+          damage.shape.kind !== 'circle'
+        ) {
+          useMatchupStore.setState({
+            damagePlacementId: null,
+            damagePreview: null,
+          });
+          return;
+        }
+        const { currentTime, maxTime } = useTimelinePlaybackStore.getState();
+        const startT = quantizeTimelineSeconds(currentTime, maxTime);
+        const isInstantDamage = damage.timing.kind === 'instant';
+        const isArmed = !!damage.armed;
+        const damageEffect = isInstantDamage
+          ? undefined
+          : {
+              sourceX: targetX,
+              sourceY: targetY,
+              radius: damage.shape.outerRadius,
+              ...(isArmed ? { armed: true } : {}),
+            };
+        const lastTime = (() => {
+          if (isInstantDamage || isArmed) return startT;
+          const metaDuration =
+            damage.timing.kind === 'persistent'
+              ? damage.timing.durationSec
+              : damage.timing.kind === 'windup-then-persistent'
+                ? damage.timing.windupSec + damage.timing.durationSec
+                : damage.timing.kind === 'windup'
+                  ? damage.timing.windupSec
+                  : 0;
+          return Math.min(startT + metaDuration, maxTime);
+        })();
+        const endT = quantizeTimelineSeconds(lastTime, maxTime);
+        const updated = {
+          ...target,
+          x: targetX,
+          y: targetY,
+          state: isInstantDamage ? ('expired' as const) : ('active' as const),
+          activeAt: startT,
+          // Armed damage abilities (Nanoswarm) don't expire at placement time;
+          // their real expiresAt is set on trigger via triggerArmedDamageAbility.
+          expiresAt: isArmed ? undefined : endT,
+          damageEffect,
+        };
+        useMatchupStore.setState((s) => ({
+          abilityPlacements: s.abilityPlacements.map((p) =>
+            p.id === damagePlacementId ? updated : p
+          ),
+          damagePlacementId: null,
+          damagePreview: null,
+        }));
+        const phase = isInstantDamage ? 'instant' as const : 'start' as const;
+        useTimelineKeyframeStore
+          .getState()
+          .recordAbilityDeployAtTime(startT, buildAbilityDeployEvent(updated, phase));
+        // Only instant damage generates events; temporal damage is visual-only,
+        // with damage values to be manually edited or driven by video analysis data.
+        if (isInstantDamage) {
+          const damageEvents = computeAbilityDamageEvents({
+            idPrefix: `${target.id}-damage`,
+            damage,
+            abilityId: `${target.agentId}-${target.abilitySlot}`,
+            casterPlacementId: owner.id,
+            deploymentId: target.id,
+            source: { x: targetX, y: targetY },
+            casterSide: owner.side,
+            targets: state.mapPlacements,
+            startsAt: startT,
+          });
+          useTimelineKeyframeStore.getState().recordDamageEventsAtTime(startT, damageEvents);
+        }
+        if (!isInstantDamage && !isArmed && endT > startT) {
+          useTimelineKeyframeStore
+            .getState()
+            .recordAbilityDeployAtTime(endT, buildAbilityDeployEvent(updated, 'end'));
+        }
+        syncLiveAbilityPlacementsForPlayhead(currentTime);
+      },
       updateAbilityAffectedStatusSeverity: (abilityPlacementId, targetPlacementId, severity) =>
         {
           const patchPlacement = (placement: AbilityPlacement): AbilityPlacement =>
@@ -1303,13 +1457,23 @@ export const useMatchupStore = create<MatchupState>()(
         const state = useMatchupStore.getState();
         const owner = state.mapPlacements.find((p) => p.id === input.ownerPlacementId);
         if (!owner || owner.eliminated) return;
-        const armed = findArmedMovementAbility(
+        const armedMove = findArmedMovementAbility(
           state.abilityPlacements,
           input.ownerPlacementId,
           input.abilitySlot,
         );
-        if (armed) {
+        if (armedMove) {
           useMatchupStore.getState().triggerArmedMovementAbility(input.ownerPlacementId, input.abilitySlot);
+          return;
+        }
+        const armedDamage = state.abilityPlacements.find(
+          (p) =>
+            p.ownerPlacementId === input.ownerPlacementId &&
+            p.abilitySlot === input.abilitySlot &&
+            p.damageEffect?.armed,
+        );
+        if (armedDamage) {
+          useMatchupStore.getState().triggerArmedDamageAbility(armedDamage.id);
           return;
         }
         if (
@@ -1430,6 +1594,57 @@ export const useMatchupStore = create<MatchupState>()(
         useTimelineKeyframeStore
           .getState()
           .recordAbilityDeployAtTime(deployT, buildAbilityDeployEvent(updatedAbility, 'instant'));
+        syncLiveAbilityPlacementsForPlayhead(currentTime);
+      },
+      triggerArmedDamageAbility: (abilityPlacementId) => {
+        const state = useMatchupStore.getState();
+        const placement = state.abilityPlacements.find((p) => p.id === abilityPlacementId);
+        const owner = placement
+          ? state.mapPlacements.find((p) => p.id === placement.ownerPlacementId)
+          : undefined;
+        const meta = placement
+          ? getAbilityEffectMeta(placement.agentId, placement.abilitySlot)
+          : undefined;
+        const damage = meta?.damage;
+        if (
+          !placement ||
+          !owner ||
+          owner.eliminated ||
+          !damage ||
+          damage.supportStatus !== 'supported' ||
+          damage.shape.kind !== 'circle' ||
+          !placement.damageEffect?.armed
+        ) {
+          return;
+        }
+        const { currentTime, maxTime } = useTimelinePlaybackStore.getState();
+        const triggerT = quantizeTimelineSeconds(currentTime, maxTime);
+        const lastTime = damage.timing.kind === 'persistent'
+          ? Math.min(triggerT + damage.timing.durationSec, maxTime)
+          : triggerT;
+        const endT = quantizeTimelineSeconds(lastTime, maxTime);
+        const updated = {
+          ...placement,
+          activeAt: triggerT,
+          expiresAt: endT,
+          damageEffect: {
+            sourceX: placement.damageEffect.sourceX,
+            sourceY: placement.damageEffect.sourceY,
+            radius: placement.damageEffect.radius,
+          },
+        };
+        useMatchupStore.setState((s) => ({
+          abilityPlacements: s.abilityPlacements.map((p) =>
+            p.id === abilityPlacementId ? updated : p
+          ),
+        }));
+        const deployEvent = buildAbilityDeployEvent(updated, 'start');
+        useTimelineKeyframeStore.getState().recordAbilityDeployAtTime(triggerT, deployEvent);
+        if (endT > triggerT) {
+          useTimelineKeyframeStore
+            .getState()
+            .recordAbilityDeployAtTime(endT, buildAbilityDeployEvent(updated, 'end'));
+        }
         syncLiveAbilityPlacementsForPlayhead(currentTime);
       },
       spawnAbilityPlacement: (input) =>

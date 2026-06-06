@@ -5,6 +5,7 @@ import {
   agentCatalogIdToAbilitySlug,
   ABILITIES_BY_AGENT,
   isDirectMovementAbility,
+  isDamageAbility,
   isReleasePlacementSmokeAbility,
   isStatusEffectAbility,
 } from '@/features/abilities';
@@ -49,6 +50,7 @@ export function MapAbilityToken({
   const hideToken =
     ((isReleasePlacementSmokeAbility(placement.agentId, placement.abilitySlot) ||
       isDirectMovementAbility(placement.agentId, placement.abilitySlot) ||
+      isDamageAbility(placement.agentId, placement.abilitySlot) ||
       isStatusEffectAbility(placement.agentId, placement.abilitySlot) ||
       placement.anchorMovement?.status === 'triggered') &&
       (placement.state === 'active' || placement.state === 'expired'));

@@ -1,4 +1,5 @@
 import type { AbilityPlacement } from '@/shared/types/ability';
+import type { DamageEvent } from '@/shared/types/damage';
 import type { TimelineAbilityDeployEvent } from '@/shared/types/timelineAbility';
 import type { MapAgentPlacement, MatchupSide } from '@/shared/types/matchup';
 import type { TacticalSide } from '@/shared/store/useMapSelectionStore';
@@ -7,6 +8,11 @@ import type { TacticalSide } from '@/shared/store/useMapSelectionStore';
 export type TimelineKillEvent = {
   killerPlacementId: string;
   victimPlacementId: string;
+  source?: {
+    type: 'damage';
+    damageEventId: string;
+    deploymentId?: string;
+  };
 };
 
 /** 关键帧记录的地图与阵容快照（与 matchup / map 选择持久化字段对齐） */
@@ -27,6 +33,8 @@ export type TimelineKeyframeSnapshot = {
   killEvents: TimelineKillEvent[];
   /** 本刻度发生的技能施放/结束；缺省按空数组（旧数据兼容） */
   abilityDeployEvents: TimelineAbilityDeployEvent[];
+  /** 本刻度发生的伤害事件；缺省按空数组（旧数据兼容） */
+  damageEvents?: DamageEvent[];
 };
 
 export type TimelineKeyframeEntry = {

@@ -257,6 +257,7 @@ export type AbilityEffectKind =
   | 'movement-anchor-static'
   | 'movement-anchor-projectile'
   | 'movement-blast-pack'
+  | 'damage'
   | 'flash'
   | 'blind'
   | 'nearsight'
@@ -274,6 +275,67 @@ export type FlashDeliveryKind =
   | 'enemy-only-source'
   | 'zone-projectile';
 export type ConcussDeliveryKind = 'circle' | 'line-zone';
+export type AbilityDamageFamily =
+  | 'instant-area'
+  | 'delayed-area'
+  | 'persistent-area'
+  | 'linear-beam'
+  | 'projectile-direct'
+  | 'weapon-equip'
+  | 'compound'
+  | 'decay-or-nonlethal';
+export type AbilityDamageSupportStatus = 'supported' | 'unsupported';
+export type AbilityDamageShape =
+  | {
+      kind: 'circle';
+      outerRadius: number;
+      innerRadius?: number;
+    }
+  | {
+      kind: 'line';
+      length: number;
+      width: number;
+    }
+  | {
+      kind: 'beam';
+      length: number;
+      radius: number;
+    };
+export type AbilityDamageTiming =
+  | { kind: 'instant' }
+  | { kind: 'windup'; windupSec: number }
+  | { kind: 'persistent'; durationSec: number; tickRatePerSec?: number }
+  | {
+      kind: 'windup-then-persistent';
+      windupSec: number;
+      durationSec: number;
+      tickRatePerSec?: number;
+    };
+export type AbilityDamageValues = {
+  maxDamage?: number;
+  minDamage?: number;
+  tickDamage?: number;
+  tickRatePerSec?: number;
+  ticks?: number;
+  totalDamage?: number;
+};
+export type AbilityDamageSource = {
+  name: string;
+  url: string;
+  verifiedAt: string;
+};
+export type AbilityDamageMeta = {
+  family: AbilityDamageFamily;
+  supportStatus: AbilityDamageSupportStatus;
+  shape: AbilityDamageShape;
+  timing: AbilityDamageTiming;
+  targetRule: AbilityAffectsRule;
+  friendlyFire: boolean;
+  values: AbilityDamageValues;
+  source: AbilityDamageSource;
+  /** 是否需要手动触发（如 Nanoswarm 需要 armed + trigger） */
+  armed?: boolean;
+};
 
 export type AbilityEffectMeta = {
   effectKinds: readonly AbilityEffectKind[];
@@ -319,6 +381,8 @@ export type AbilityEffectMeta = {
   projectileMaxDistance?: number;
   /** 投射物允许的墙体反弹次数 */
   projectileBounceCount?: number;
+  /** 伤害技能元数据；supportStatus 为 unsupported 时只做资料分类，不进入伤害结算 */
+  damage?: AbilityDamageMeta;
 };
 
 /** 未单独配置时的回退（与 Omen 暗影之罩标定一致） */
@@ -344,6 +408,16 @@ export const NEON_FAST_LANE_SMOKE_COLOR = '#3ee8ff';
 export const PHOENIX_BLAZE_WALL_COLOR = '#ff6b35';
 export const HARBOR_HIGH_TIDE_WALL_COLOR = '#2dd4bf';
 export const VIPER_TOXIC_SCREEN_WALL_COLOR = '#36b37e';
+
+const DAMAGE_SOURCE_VERIFIED_AT = '2026-06-06';
+
+function valorantWikiDamageSource(page: string): AbilityDamageSource {
+  return {
+    name: `Valorant Wiki: ${page.replaceAll('_', ' ')}`,
+    url: `https://valorant.fandom.com/wiki/${page}`,
+    verifiedAt: DAMAGE_SOURCE_VERIFIED_AT,
+  };
+}
 
 /**
  * 技能效果元数据（按 agent slug + slot）。球型烟雾半径/时长见 `specs/ability/smoke.md`。
@@ -397,8 +471,41 @@ export const ABILITY_EFFECT_META: Partial<
       statusDurationSec: 6,
       statusFadeSec: 0,
     },
+    Grenade: {
+      effectKinds: ['damage'],
+      damage: {
+        family: 'delayed-area',
+        supportStatus: 'unsupported',
+        shape: {
+          kind: 'line',
+          length: smokeMapUnitsFromMeters(10),
+          width: smokeMapUnitsFromMeters(6),
+        },
+        timing: { kind: 'windup', windupSec: 2.2 },
+        targetRule: 'all-players',
+        friendlyFire: true,
+        values: { tickDamage: 80, ticks: 2, totalDamage: 160 },
+        source: valorantWikiDamageSource('Aftershock'),
+      },
+    },
   },
   brimstone: {
+    Ability1: {
+      effectKinds: ['damage'],
+      damage: {
+        family: 'persistent-area',
+        supportStatus: 'supported',
+        shape: {
+          kind: 'circle',
+          outerRadius: smokeMapUnitsFromMeters(4.5),
+        },
+        timing: { kind: 'persistent', durationSec: 8, tickRatePerSec: 60 },
+        targetRule: 'all-players',
+        friendlyFire: true,
+        values: { tickDamage: 1, tickRatePerSec: 60, maxDamage: 465 },
+        source: valorantWikiDamageSource('Incendiary'),
+      },
+    },
     Ability2: {
       effectKinds: ['smoke-sphere'],
       smokeRadius: smokeMapRadiusFromMeters(4.15),
@@ -482,6 +589,27 @@ export const ABILITY_EFFECT_META: Partial<
     },
   },
   gekko: {
+    Grenade: {
+      effectKinds: ['damage'],
+      damage: {
+        family: 'delayed-area',
+        supportStatus: 'supported',
+        shape: {
+          kind: 'circle',
+          innerRadius: smokeMapUnitsFromMeters(5.5),
+          outerRadius: smokeMapUnitsFromMeters(6.2),
+        },
+        timing: {
+          kind: 'windup-then-persistent',
+          windupSec: 3,
+          durationSec: 0.5,
+        },
+        targetRule: 'all-players',
+        friendlyFire: true,
+        values: { tickDamage: 50, ticks: 3, maxDamage: 180 },
+        source: valorantWikiDamageSource('Mosh_Pit'),
+      },
+    },
     Ability2: {
       effectKinds: ['blind'],
       statusEffect: 'blind',
@@ -490,6 +618,25 @@ export const ABILITY_EFFECT_META: Partial<
       effectRadius: smokeMapUnitsFromMeters(14),
       statusDurationSec: 2,
       statusFadeSec: 0.8,
+    },
+  },
+  killjoy: {
+    Grenade: {
+      effectKinds: ['damage'],
+      damage: {
+        family: 'persistent-area',
+        supportStatus: 'supported',
+        shape: {
+          kind: 'circle',
+          outerRadius: smokeMapUnitsFromMeters(4.5),
+        },
+        timing: { kind: 'persistent', durationSec: 4, tickRatePerSec: 45 },
+        targetRule: 'all-players',
+        friendlyFire: true,
+        values: { tickDamage: 1, tickRatePerSec: 45, totalDamage: 180 },
+        armed: true,
+        source: valorantWikiDamageSource('Nanoswarm'),
+      },
     },
   },
   cypher: {
@@ -588,6 +735,25 @@ export const ABILITY_EFFECT_META: Partial<
       effectRadius: smokeMapUnitsFromMeters(15),
       statusDurationSec: 2,
       statusFadeSec: 1,
+    },
+  },
+  sova: {
+    Ability1: {
+      effectKinds: ['damage'],
+      damage: {
+        family: 'instant-area',
+        supportStatus: 'supported',
+        shape: {
+          kind: 'circle',
+          innerRadius: smokeMapUnitsFromMeters(1.5),
+          outerRadius: smokeMapUnitsFromMeters(4),
+        },
+        timing: { kind: 'instant' },
+        targetRule: 'all-players',
+        friendlyFire: true,
+        values: { minDamage: 1, maxDamage: 75 },
+        source: valorantWikiDamageSource('Shock_Bolt'),
+      },
     },
   },
   vyse: {
@@ -719,6 +885,19 @@ export function isStatusEffectAbility(agentCatalogId: string, abilitySlot: Abili
   );
 }
 
+export function isDamageAbility(agentCatalogId: string, abilitySlot: AbilitySlot): boolean {
+  const meta = getAbilityEffectMeta(agentCatalogId, abilitySlot);
+  return meta?.effectKinds.includes('damage') ?? false;
+}
+
+export function isSupportedDamageAbility(
+  agentCatalogId: string,
+  abilitySlot: AbilitySlot,
+): boolean {
+  const meta = getAbilityEffectMeta(agentCatalogId, abilitySlot);
+  return meta?.damage?.supportStatus === 'supported';
+}
+
 /** 预备期可进入释放流程的烟雾类技能 */
 export function isReleasePlacementSmokeAbility(
   agentCatalogId: string,
@@ -748,7 +927,8 @@ export function isReleasePlacementAbility(
   return (
     isReleasePlacementSmokeAbility(agentCatalogId, abilitySlot) ||
     isReleasePlacementMovementAbility(agentCatalogId, abilitySlot) ||
-    isStatusEffectAbility(agentCatalogId, abilitySlot)
+    isStatusEffectAbility(agentCatalogId, abilitySlot) ||
+    isSupportedDamageAbility(agentCatalogId, abilitySlot)
   );
 }
 

@@ -47,6 +47,17 @@ type MapAbilityRenderLayerProps = {
   onCmdClick: (placementId: string, anchor: { clientX: number; clientY: number }) => void;
 };
 
+function eventAnchor(evt: MouseEvent | TouchEvent) {
+  if ('clientX' in evt) {
+    return { clientX: evt.clientX, clientY: evt.clientY };
+  }
+  const touch = evt.changedTouches[0] ?? evt.touches[0];
+  return {
+    clientX: touch?.clientX ?? 0,
+    clientY: touch?.clientY ?? 0,
+  };
+}
+
 /**
  * MapAbilityRenderLayer renders all deployed ability effects and their placement previews
  * in a single Konva Layer.
@@ -74,6 +85,8 @@ const MapAbilityRenderLayer = ({ onCmdClick }: MapAbilityRenderLayerProps) => {
   const blastPackPreview = useMatchupStore((s) => s.blastPackPreview);
   const statusEffectPlacementId = useMatchupStore((s) => s.statusEffectPlacementId);
   const statusEffectPreview = useMatchupStore((s) => s.statusEffectPreview);
+  const damagePlacementId = useMatchupStore((s) => s.damagePlacementId);
+  const damagePreview = useMatchupStore((s) => s.damagePreview);
 
   // ----- placed effects -----
   const placingSphericalSmoke = !!sphericalSmokePlacementId && !!sphericalSmokePreview;
@@ -85,6 +98,7 @@ const MapAbilityRenderLayer = ({ onCmdClick }: MapAbilityRenderLayerProps) => {
   const placingBlastPack =
     !!blastPackPlacementDraft || (!!blastPackPlacementId && !!blastPackPreview);
   const placingStatusEffect = !!statusEffectPlacementId && !!statusEffectPreview;
+  const placingDamage = !!damagePlacementId && !!damagePreview;
 
   // ----- memos for smoke meta -----
   const sphericalSmokePlacement = useMemo(
@@ -118,6 +132,21 @@ const MapAbilityRenderLayer = ({ onCmdClick }: MapAbilityRenderLayerProps) => {
       sphericalSmokePlacement.abilitySlot,
     );
   }, [sphericalSmokePlacement]);
+
+  const damagePlacement = useMemo(
+    () =>
+      damagePlacementId
+        ? abilityPlacements.find((p) => p.id === damagePlacementId)
+        : undefined,
+    [abilityPlacements, damagePlacementId],
+  );
+
+  const damagePreviewRadius = useMemo(() => {
+    const shape = damagePlacement
+      ? getAbilityEffectMeta(damagePlacement.agentId, damagePlacement.abilitySlot)?.damage?.shape
+      : undefined;
+    return shape?.kind === 'circle' ? shape.outerRadius : 30;
+  }, [damagePlacement]);
 
   const fixedDualLineSmokePlacement = useMemo(
     () =>
@@ -289,6 +318,31 @@ const MapAbilityRenderLayer = ({ onCmdClick }: MapAbilityRenderLayerProps) => {
 
         if (!isDeployedAbilityVisibleAtPlayhead(ab, timelineCurrentTime)) {
           return null;
+        }
+
+        if (ab.damageEffect) {
+          return (
+            <Circle
+              key={`damage-effect-${ab.id}`}
+              x={ab.damageEffect.sourceX}
+              y={ab.damageEffect.sourceY}
+              radius={ab.damageEffect.radius}
+              fill="rgba(239, 68, 68, 0.16)"
+              stroke="rgba(248, 113, 113, 0.85)"
+              strokeWidth={2}
+              dash={[8, 6]}
+              onClick={(e) => {
+                if (!(e.evt.metaKey || e.evt.ctrlKey)) return;
+                e.cancelBubble = true;
+                onCmdClick(ab.id, eventAnchor(e.evt));
+              }}
+              onTap={(e) => {
+                if (!(e.evt.metaKey || e.evt.ctrlKey)) return;
+                e.cancelBubble = true;
+                onCmdClick(ab.id, eventAnchor(e.evt));
+              }}
+            />
+          );
         }
 
         if (isSphericalSmokeAbility(ab.agentId, ab.abilitySlot)) {
@@ -527,6 +581,19 @@ const MapAbilityRenderLayer = ({ onCmdClick }: MapAbilityRenderLayerProps) => {
           length={statusEffectPreviewMeta.length}
           width={statusEffectPreviewMeta.width}
           preview
+        />
+      ) : null}
+
+      {placingDamage && damagePreview ? (
+        <Circle
+          x={damagePreview.x}
+          y={damagePreview.y}
+          radius={damagePreviewRadius}
+          fill="rgba(239, 68, 68, 0.12)"
+          stroke="rgba(248, 113, 113, 0.75)"
+          strokeWidth={2}
+          dash={[8, 6]}
+          listening={false}
         />
       ) : null}
     </Layer>

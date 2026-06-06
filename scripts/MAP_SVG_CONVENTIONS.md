@@ -1,24 +1,46 @@
-# 战术地图 SVG 命名约定（map_gen）
+# Tactical Map SVG Naming Conventions (map_gen)
 
-源文件默认：`src/assets/maps/split.svg`。根下可用 `<g id="map">` 包裹整块地图内容（可选）。
+Source file default: `src/assets/maps/split.svg`. Root may contain `<g id="map">` wrapper (optional).
 
-## 四大分组（均在 `map` 内或 SVG 根下可被 `getElementById` 找到）
+## Four main groups (findable via `getElementById` within `map` or SVG root)
 
-| 分组 `id` | 用途 | 子元素约定 |
-|-----------|------|------------|
-| `walls` | 墙/障碍边线（视野遮挡、碰撞） | 仅 `<line>`。每条线建议 `id="wall-{序号}"`，**禁止空格**（勿用 `Line 1`）。 |
-| `walkable_region` | 地面可走区域 | 若干闭合 `<path>`（`d` 以 `Z`/`z` 结束）。主地面可用 `id="walkable"`。 |
-| `boxes` | 可跳上的箱子顶面可走区域 | 若干闭合 `<path>`，建议 `id="box-{序号}-walkable"`。 |
-| `areas` | 安包/逻辑区（仅多边形） | 仅包点轮廓使用 **`id` 以 `site-` 开头**，例如 `site-a`、`site-b`。装饰文字、字母矢量等使用 `id="label-*"` 或放到单独 `g id="labels"`，**不要**以 `site-` 开头，避免被写入 `TacticalMap.areas`。 |
+| Group `id` | Purpose | Child element convention |
+|------------|---------|--------------------------|
+| `walls` | Wall/obstacle edge lines (LOS, collision) | Only `<line>`. Each line should have `id="wall-{序号}"`, **no spaces** (avoid `Line 1`). |
+| `walkable_region` | Walkable floor area | One or more closed `<path>` (`d` ending with `Z`/`z`). Main floor can use `id="walkable"`. |
+| `boxes` | Walkable box-top areas | Closed `<path>`, recommended `id="box-{序号}-walkable"`. |
+| `areas` | Bomb-site / logic zones (polygons only) | Only site contours use **`id` starting with `site-`**, e.g. `site-a`, `site-b`. Decorative text, letter vectors use `id="label-*"` or place in separate `g id="labels"`, **do not** start with `site-` to avoid being written into `TacticalMap.areas`. |
 
-## 绘制顺序建议
+## Drawing order recommendation
 
-为兼顾观感：可先铺 `walkable_region` 与 `boxes`，再画 `walls`，最后叠 `areas` 与 UI（导出时按 Figma 图层顺序即可）。
+For visual appeal: render `walkable_region` and `boxes` first, then `walls`, finally overlay `areas` and UI (follow Figma layer order when exporting).
 
-## 路径 `d` 格式
+## Path `d` format
 
-生成脚本当前解析 **绝对命令**：`M`、`L`、`H`、`V`、`Z`（及 `M` 后连续的隐式 `L` 点对）。复杂曲线（`C` 等）未实现，需先在编辑器中转为折线/简化为直线段再导出。
+The generation script currently parses **absolute commands**: `M`, `L`, `H`, `V`, `Z` (and implicit `L` point pairs after `M`). Complex curves (`C` etc.) are not supported; convert to polylines / simplify to straight segments in an editor before exporting.
 
-## 数据流
+## Data flow
 
-运行 `npm run map:gen` 会读取上述 SVG，生成 `src/shared/data/valorantMap.ts` 中的 `TacticalMap`：`walls`、`walkableFloor`、`boxWalkable`、`areas`、`bounds`。
+Run `npm run map:gen [path/to/map.svg]` to read the SVG above and generate `src/shared/data/valorantMap.ts` with `TacticalMap`: `walls`, `walkableFloor`, `boxWalkable`, `areas`, `bounds`.
+
+## VTracer Workflow (PNG → calibrated SVG)
+
+**Quick pipeline**: PNG minimap → [VTracer](https://www.visioncortex.org/vtracer/) → raw `.svg` → `vtracer_to_map.ts` → calibrated `.svg` → manual annotation → `map_gen.ts`
+
+1. Download map PNG from [valorant-api.com/v1/maps](https://valorant-api.com/v1/maps)
+2. Run through VTracer to get a raw SVG with polygon outlines
+3. Convert: `npm run map:vtrace -- src/assets/maps/raw.svg src/assets/maps/map_calibrated.svg`
+4. Manually add in Figma/editor:
+   - `<g id="areas">`: `<path id="site-a" .../>` and `<path id="site-b" .../>` for bomb sites
+   - `<g id="boxes">`: `<path id="box-N-walkable" .../>` for box-tops if needed
+   - Refine `<g id="walkable_region">` if the auto-generated bounding rect is too coarse
+5. Generate TypeScript data: `npm run map:gen -- src/assets/maps/map_calibrated.svg`
+
+**What's automated vs manual:**
+
+| Component | Automated? | Notes |
+|-----------|-----------|-------|
+| `walls` | ✅ Fully | Polygon edges extracted from VTracer output |
+| `walkable_region` | ⚠️ Rough | Uses full viewBox as default; refine manually |
+| `boxes` | ❌ Manual | VTracer can't distinguish box-tops from walls |
+| `areas` (sites) | ❌ Manual | Requires human annotation of bomb sites |
