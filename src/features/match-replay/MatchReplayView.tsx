@@ -101,7 +101,7 @@ export function MatchReplayView({
   return (
     <div style={styles.root}>
       <aside style={styles.sidebar}>
-        <Link to="/replay" style={styles.backLink}>
+        <Link to="/" style={styles.backLink}>
           ← 对局列表
         </Link>
         <h2 style={styles.h2}>关键帧战术复盘</h2>

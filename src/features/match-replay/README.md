@@ -13,9 +13,9 @@ npm run dev
 
 | 路由 | 页面 |
 |---|---|
-| `/` | 战术板（原 App），右上角有「对局复盘 →」入口 |
-| `/replay` | 对局列表页 `MatchListPage`（从 `MatchSource` 列对局） |
+| `/` | 对局列表页 `MatchListPage`（从 `MatchSource` 列对局）；右下角有「旧版战术板 →」入口 |
 | `/replay/:matchId` | 单局复盘 `MatchReplayView`（以 matchId 作 key 挂载） |
+| `/legacy` | 旧战术板（原 App，沙盘模拟）；右上角有「← 复盘首页」返回 |
 
 ## 数据管线
 

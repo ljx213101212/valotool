@@ -13,7 +13,7 @@ function App() {
   return (
     <>
     <Link
-      to="/replay"
+      to="/"
       style={{
         position: 'fixed', top: 8, right: 12, zIndex: 1000,
         padding: '4px 10px', fontSize: 12, borderRadius: 6,
@@ -21,7 +21,7 @@ function App() {
         border: '1px solid #334155', textDecoration: 'none',
       }}
     >
-      对局复盘 →
+      ← 复盘首页
     </Link>
     <DndAppProvider>
     <AppLayout   left={<LeftTacticalPanel />}

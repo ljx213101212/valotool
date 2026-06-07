@@ -13,9 +13,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<App />} />
-        <Route path="/replay" element={<MatchListPage />} />
+        <Route path="/" element={<MatchListPage />} />
         <Route path="/replay/:matchId" element={<MatchReplayRoute />} />
+        <Route path="/legacy" element={<App />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

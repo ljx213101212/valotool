@@ -29,9 +29,6 @@ export function MatchListPage({ source = defaultMatchSource }: { source?: MatchS
   return (
     <div style={styles.root}>
       <header style={styles.header}>
-        <Link to="/" style={styles.backLink}>
-          ← 战术板
-        </Link>
         <h1 style={styles.h1}>对局复盘</h1>
         <span style={styles.sourceTag}>来源 · {source.label}</span>
       </header>
@@ -54,6 +51,10 @@ export function MatchListPage({ source = defaultMatchSource }: { source?: MatchS
           </Link>
         ))}
       </div>
+
+      <Link to="/legacy" style={styles.legacyLink}>
+        旧版战术板 →
+      </Link>
     </div>
   );
 }
@@ -62,7 +63,7 @@ type CSS = React.CSSProperties;
 const styles = {
   root: { minHeight: '100vh', boxSizing: 'border-box', padding: 24, background: '#0e1116', color: '#e5e7eb', fontFamily: 'system-ui, sans-serif' } as CSS,
   header: { display: 'flex', alignItems: 'baseline', gap: 14, marginBottom: 20 } as CSS,
-  backLink: { fontSize: 13, color: '#93c5fd', textDecoration: 'none' } as CSS,
+  legacyLink: { position: 'fixed', right: 14, bottom: 12, padding: '4px 10px', fontSize: 12, borderRadius: 6, background: 'rgba(17,24,39,0.85)', color: '#93c5fd', border: '1px solid #334155', textDecoration: 'none' } as CSS,
   h1: { margin: 0, fontSize: 22 } as CSS,
   sourceTag: { fontSize: 12, color: '#6b7280' } as CSS,
   note: { fontSize: 14, color: '#9ca3af' } as CSS,
