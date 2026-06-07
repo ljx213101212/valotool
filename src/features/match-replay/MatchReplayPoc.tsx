@@ -127,7 +127,7 @@ export function MatchReplayPoc({ source = defaultMatchSource }: { source?: Match
           >
             {summaries.map((s) => (
               <option key={s.matchId} value={s.matchId}>
-                {(s.mapDisplayName ?? s.mapId)} · {s.isRanked ? '竞技' : s.queueId}
+                {s.mapDisplayName ?? s.mapId ?? '对局'} · {s.isRanked ? '竞技' : s.queueId}
               </option>
             ))}
           </select>

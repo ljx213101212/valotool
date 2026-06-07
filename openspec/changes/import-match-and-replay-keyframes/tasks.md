@@ -5,7 +5,8 @@
 - [ ] 1.3 增加运行时校验/守卫，对缺字段、空 `kills`、非 Bomb 模式（如死斗）优雅降级。
 - [ ] 1.4 为 `deriveRoundMoments` 增加单元测试（击杀排序、下包/拆包帧合并、空回合）。
 - [x] 1.5 抽象 `MatchSource` 接口（`listMatches`/`getMatch`）解耦数据来源；实现 `SampleFileSource`，视图改为消费该接口。
-- [ ] 1.6 实现 `OfficialApiSource`（VAL-MATCH-V1 + RSO）与 `LocalClientSource`（本地 token）作为可平替来源。
+- [x] 1.6 实现 `OfficialApiSource` + 官方→领域 adapter（`normalizeOfficialMatch`：puuid→subject、timeSince*→gameTime/roundTime、从 roundResults 重建顶层 kills），含单元测试；CF Worker 代理 scaffold（`worker/val-proxy.ts`）。
+- [ ] 1.7 接 RSO 取目标 puuid + 部署代理 + 用真实 Production Key 联调官方源；实现 `LocalClientSource`（本地 token，过渡）。
 
 ## 2. 地图坐标标定
 

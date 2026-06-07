@@ -66,6 +66,29 @@ RSO 仅对「已获批的 Production 应用」开放，获批后会收到 RSO �
 3. **国服**：放弃，工具定位国际服。
 4. **下一个可立即做的工程动作**：在数据层抽象出 `MatchSource` 接口（样例文件 / 官方 API / 本地接口三种实现可替换），让复盘视图与数据来源解耦——这样无论审批结果如何都不返工。
 
+## 实现状态（本仓库）
+
+数据来源经 `MatchSource` 抽象（`src/features/match-replay/data/`）：
+
+| 文件 | 状态 |
+|---|---|
+| `matchSource.ts` | 接口 `MatchSource`（`listMatches`/`getMatch`）+ `MatchSummary` |
+| `sampleFileSource.ts` | ✅ 样例源（当前默认） |
+| `officialMatchAdapter.ts` | ✅ 官方→领域 adapter（puuid→subject、timeSince*→time、重建顶层 kills），**已单测** |
+| `officialApiSource.ts` | 🟡 scaffold：调后端代理 + adapter；需 Key/RSO/代理后联调 |
+| `worker/val-proxy.ts` | 🟡 scaffold：CF Worker 代理（持 Key 转发） |
+
+**后端代理契约**（前端 `OfficialApiSource` 与 Worker 约定）：
+
+```
+GET /api/val/matchlist/:puuid  → 透传 Riot matchlists/by-puuid（{ history: [{matchId, gameStartTimeMillis, queueId}] }）
+GET /api/val/match/:matchId    → 透传 Riot match details（原始官方 MatchDto，前端再 normalize）
+```
+
+**联调前置条件**：① Riot Production Key（拿现有 PoC demo 去申请）→ ② RSO 取目标玩家 puuid →
+③ 部署 Worker（`wrangler secret put RIOT_API_KEY` + wrangler 加 `main`/assets 绑定 + `VAL_REGION`）。
+adapter 已用 fixture 单测，故 Key 到位后主要风险只在网络/认证层。
+
 ## 来源
 
 - [Riot Dev Portal · Valorant](https://developer.riotgames.com/docs/valorant)
