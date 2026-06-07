@@ -1,17 +1,23 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 import { initTimelineKeyframeLiveSync } from '@/shared/utils/timelineKeyframeLiveSync'
-// PoC：关键帧战术复盘（真实 match-details 样例）。访问 ?poc=replay 查看，不影响主应用。
-import MatchReplayPoc from '@/features/match-replay/MatchReplayPoc'
+import MatchListPage from '@/features/match-replay/MatchListPage'
+import MatchReplayRoute from '@/features/match-replay/MatchReplayRoute'
 
 initTimelineKeyframeLiveSync()
 
-const isReplayPoc = new URLSearchParams(window.location.search).get('poc') === 'replay'
-
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {isReplayPoc ? <MatchReplayPoc /> : <App />}
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<MatchListPage />} />
+        <Route path="/replay/:matchId" element={<MatchReplayRoute />} />
+        <Route path="/legacy" element={<App />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   </StrictMode>,
 )

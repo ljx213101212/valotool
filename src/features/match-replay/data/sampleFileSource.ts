@@ -25,7 +25,6 @@ export class SampleFileSource implements MatchSource {
 
   private readonly entries: SampleEntry[];
   private readonly byMatchId = new Map<string, MatchDetails>();
-  private readonly urlByMatchId = new Map<string, string>();
 
   constructor(entries: SampleEntry[]) {
     this.entries = entries;
@@ -40,11 +39,11 @@ export class SampleFileSource implements MatchSource {
   }
 
   async getMatch(matchId: string): Promise<MatchDetails> {
+    // 深链直达 /replay/:matchId 时可能未先 listMatches —— 懒加载样例补全缓存后再查
+    if (!this.byMatchId.has(matchId)) await this.listMatches();
     const cached = this.byMatchId.get(matchId);
-    if (cached) return cached;
-    const url = this.urlByMatchId.get(matchId);
-    if (!url) throw new Error(`未知 matchId：${matchId}（请先 listMatches）`);
-    return this.fetchUrl(url);
+    if (!cached) throw new Error(`未知 matchId：${matchId}`);
+    return cached;
   }
 
   private async fetchUrl(url: string): Promise<MatchDetails> {
@@ -52,7 +51,6 @@ export class SampleFileSource implements MatchSource {
     if (!res.ok) throw new Error(`HTTP ${res.status}：${url}`);
     const data = (await res.json()) as MatchDetails;
     this.byMatchId.set(data.matchInfo.matchId, data);
-    this.urlByMatchId.set(data.matchInfo.matchId, url);
     return data;
   }
 }

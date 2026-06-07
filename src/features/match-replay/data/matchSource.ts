@@ -1,9 +1,12 @@
 import type { MatchDetails } from '../types';
 
-/** 对局摘要：用于「选择对局」列表，不含完整回合/击杀数据。 */
+/**
+ * 对局摘要：用于「选择对局」列表，不含完整回合/击杀数据。
+ * mapId 可选——官方 matchlist 在拉取完整对局前不含地图，故允许缺省，取到完整对局后再补。
+ */
 export interface MatchSummary {
   matchId: string;
-  mapId: string;
+  mapId?: string;
   mapDisplayName?: string;
   queueId: string;
   isRanked: boolean;

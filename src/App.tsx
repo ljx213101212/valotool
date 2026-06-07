@@ -1,4 +1,5 @@
 import './App.css';
+import { Link } from 'react-router-dom';
 import { AppLayout } from '@/features/shell/layout/AppLayout';
 import { DndAppProvider } from '@/features/shell/components/DndAppProvider';
 import { LeftTacticalPanel } from '@/features/tactical-panels/components/LeftTacticalPanel';
@@ -11,6 +12,17 @@ function App() {
 
   return (
     <>
+    <Link
+      to="/"
+      style={{
+        position: 'fixed', top: 8, right: 12, zIndex: 1000,
+        padding: '4px 10px', fontSize: 12, borderRadius: 6,
+        background: 'rgba(17,24,39,0.85)', color: '#93c5fd',
+        border: '1px solid #334155', textDecoration: 'none',
+      }}
+    >
+      ← 复盘首页
+    </Link>
     <DndAppProvider>
     <AppLayout   left={<LeftTacticalPanel />}
       main={<Map />}

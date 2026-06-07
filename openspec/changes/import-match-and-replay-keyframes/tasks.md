@@ -5,7 +5,8 @@
 - [ ] 1.3 增加运行时校验/守卫，对缺字段、空 `kills`、非 Bomb 模式（如死斗）优雅降级。
 - [ ] 1.4 为 `deriveRoundMoments` 增加单元测试（击杀排序、下包/拆包帧合并、空回合）。
 - [x] 1.5 抽象 `MatchSource` 接口（`listMatches`/`getMatch`）解耦数据来源；实现 `SampleFileSource`，视图改为消费该接口。
-- [ ] 1.6 实现 `OfficialApiSource`（VAL-MATCH-V1 + RSO）与 `LocalClientSource`（本地 token）作为可平替来源。
+- [x] 1.6 实现 `OfficialApiSource` + 官方→领域 adapter（`normalizeOfficialMatch`：puuid→subject、timeSince*→gameTime/roundTime、从 roundResults 重建顶层 kills），含单元测试；CF Worker 代理 scaffold（`worker/val-proxy.ts`）。
+- [ ] 1.7 接 RSO 取目标 puuid + 部署代理 + 用真实 Production Key 联调官方源；实现 `LocalClientSource`（本地 token，过渡）。
 
 ## 2. 地图坐标标定
 
@@ -21,7 +22,7 @@
 - [x] 3.2 渲染击杀连线（击杀者→死者）、死者标记、装置（下包/拆包）标记。
 - [x] 3.3 提供回合选择与回合内关键时刻（帧）选择/翻页。
 - [ ] 3.4 队伍配色与图例固定化（进攻/防守），并在脱敏与真实数据下都清晰。
-- [ ] 3.5 把视图从 `?poc=replay` 开关升级为正式可达入口（与主 App 布局协调）。
+- [x] 3.5 把视图从 `?poc=replay` 开关升级为正式路由入口：引入 react-router，`/replay` 对局列表页 + `/replay/:matchId` 单局复盘，战术板加「对局复盘」入口；CF 配 SPA fallback。
 
 ## 4. 规格与方向收敛
 

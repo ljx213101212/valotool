@@ -29,7 +29,7 @@ Ascent 已标定 `rotationSteps=1`，A 点下包坐标经变换落在右上（�
 - `mapCalibration.ts`：全 12 图标定 + `gameToNormalized/gameToPixel/viewDirToPixel/rotationDegrees`。
 - `agentUuidMap.ts`：Riot characterId UUID → 项目 agent slug（复用头像；脱敏样例查不到时降级）。
 - `deriveMoments.ts`：`deriveRoundMoments(match, roundNum)` → 有序 moment 列表。
-- `MatchReplayPoc.tsx`：react-konva 渲染（官方小地图底图 + token/朝向/击杀连线/装置标记 + 回合与帧选择）。
+- `MatchListPage.tsx` / `MatchReplayView.tsx`：经 react-router（`/replay`、`/replay/:matchId`）；后者 react-konva 渲染（官方小地图底图 + token/朝向/击杀连线/装置标记 + 回合与帧选择）。
 
 ## 取舍
 
