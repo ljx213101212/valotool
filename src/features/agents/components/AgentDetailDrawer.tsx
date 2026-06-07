@@ -92,7 +92,7 @@ export function AgentDetailDrawer() {
       placement="right"
       open={open}
       onClose={closeDrawer}
-      width={320}
+      size={320}
       rootClassName="agent-detail-drawer"
       styles={drawerStyles}
       destroyOnClose

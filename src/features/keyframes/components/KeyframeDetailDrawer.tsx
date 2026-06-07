@@ -192,7 +192,7 @@ export function KeyframeDetailDrawer() {
       placement="right"
       open={open}
       onClose={closeKeyframeDetail}
-      width={340}
+      size={340}
       rootClassName="keyframe-detail-drawer"
       styles={drawerStyles}
       destroyOnClose
