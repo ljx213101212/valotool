@@ -117,7 +117,7 @@ export function MatchupModule() {
           <span className="matchup__team-count">{defenseAgentIds.length} 人</span>
         </button>
         <Dropdown
-          dropdownRender={() => detailsPanel}
+          popupRender={() => detailsPanel}
           trigger={['click']}
           placement="bottomRight"
         >

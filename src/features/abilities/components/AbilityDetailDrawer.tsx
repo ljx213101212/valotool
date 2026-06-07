@@ -70,7 +70,7 @@ export function AbilityDetailDrawer() {
       placement="right"
       open={open}
       onClose={closeDrawer}
-      width={320}
+      size={320}
       rootClassName="ability-detail-drawer"
       styles={drawerStyles}
       destroyOnClose
