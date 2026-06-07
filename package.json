@@ -10,7 +10,8 @@
     "map:all": "tsx scripts/vtracer_to_map.ts src/assets/maps/bind.svg src/assets/maps/bind_calibrated.svg && tsx scripts/map_gen.ts src/assets/maps/bind_calibrated.svg",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "pnpm run build && wrangler dev",
+    "deploy": "pnpm run build && wrangler deploy"
   },
   "dependencies": {
     "@ant-design/icons": "^6.2.2",
@@ -31,6 +32,7 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.40.0",
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
@@ -44,6 +46,7 @@
     "tsx": "^4.21.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
-    "vite": "^8.0.10"
+    "vite": "^8.0.10",
+    "wrangler": "^4.98.0"
   }
 }
