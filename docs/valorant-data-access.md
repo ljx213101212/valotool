@@ -28,7 +28,7 @@ fightmegg/riot-api 的 `VAL_MATCH` 类型）均印证此结构。
 ## 2. 官方路线落地细节
 
 **Key 政策**：Valorant **不提供 personal key**，只有 Production Key。审批看重「可演示的成品/原型 +
-清晰的用户流程」——**我们已有 PoC（`?poc=replay`），正好是 Riot 想看到的东西**。审批周期约每周一批，
+清晰的用户流程」——**我们已有可演示的复盘视图（`/replay`），正好是 Riot 想看到的东西**。审批周期约每周一批，
 偶尔拖到 3 周。
 
 **端点**（`GET /val/match/v1/...`）：

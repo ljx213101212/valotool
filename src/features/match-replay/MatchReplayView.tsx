@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Stage, Layer, Image as KonvaImage, Circle, Line, Text, Group, RegularPolygon } from 'react-konva';
 import { getCalibration, gameToPixel, viewDirToPixel, rotationDegrees } from './mapCalibration';
 import type { MapCalibration } from './mapCalibration';
 import { agentSlugFromUuid } from './agentUuidMap';
 import { deriveRoundMoments, formatRoundTime } from './deriveMoments';
 import type { MatchDetails, MatchPlayer, ReplayMoment } from './types';
-import type { MatchSource, MatchSummary } from './data/matchSource';
+import type { MatchSource } from './data/matchSource';
 import { defaultMatchSource } from './data/sampleFileSource';
 
 const SIZE = 720;
@@ -30,49 +31,32 @@ function useHtmlImage(src: string | undefined): HTMLImageElement | undefined {
   return img;
 }
 
-export function MatchReplayPoc({ source = defaultMatchSource }: { source?: MatchSource } = {}) {
-  const [summaries, setSummaries] = useState<MatchSummary[]>([]);
-  const [selectedMatchId, setSelectedMatchId] = useState<string>();
+/**
+ * 单局复盘视图。由路由参数 matchId 驱动；在路由层以 key={matchId} 挂载，
+ * 切换对局即重新挂载、状态归零。数据来源经 MatchSource 抽象（样例/官方/本地可替换）。
+ */
+export function MatchReplayView({
+  matchId,
+  source = defaultMatchSource,
+}: {
+  matchId: string;
+  source?: MatchSource;
+}) {
   const [match, setMatch] = useState<MatchDetails>();
   const [error, setError] = useState<string>();
   const [roundNum, setRoundNum] = useState(0);
   const [momentIdx, setMomentIdx] = useState(0);
 
-  // 列出可复盘对局（数据来源经 MatchSource 抽象，样例/官方/本地可替换）
   useEffect(() => {
     let alive = true;
     source
-      .listMatches()
-      .then((list) => {
-        if (!alive) return;
-        setSummaries(list);
-        setSelectedMatchId(list[0]?.matchId);
-      })
-      .catch((e) => alive && setError(String(e)));
-    return () => {
-      alive = false;
-    };
-  }, [source]);
-
-  // 按选中的 matchId 取完整对局
-  useEffect(() => {
-    if (!selectedMatchId) return;
-    let alive = true;
-    source
-      .getMatch(selectedMatchId)
+      .getMatch(matchId)
       .then((d) => alive && setMatch(d))
       .catch((e) => alive && setError(String(e)));
     return () => {
       alive = false;
     };
-  }, [source, selectedMatchId]);
-
-  const selectMatch = (matchId: string) => {
-    setSelectedMatchId(matchId);
-    setMatch(undefined);
-    setRoundNum(0);
-    setMomentIdx(0);
-  };
+  }, [source, matchId]);
 
   const cal = match ? getCalibration(match.matchInfo.mapId) : undefined;
   const minimap = useHtmlImage(cal?.displayIcon);
@@ -117,24 +101,13 @@ export function MatchReplayPoc({ source = defaultMatchSource }: { source?: Match
   return (
     <div style={styles.root}>
       <aside style={styles.sidebar}>
-        <h2 style={styles.h2}>关键帧战术复盘 · PoC</h2>
-        <label style={styles.sourceRow}>
-          <span style={styles.sourceLabel}>对局来源 · {source.label}</span>
-          <select
-            style={styles.matchSelect}
-            value={selectedMatchId ?? ''}
-            onChange={(e) => selectMatch(e.target.value)}
-          >
-            {summaries.map((s) => (
-              <option key={s.matchId} value={s.matchId}>
-                {s.mapDisplayName ?? s.mapId ?? '对局'} · {s.isRanked ? '竞技' : s.queueId}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Link to="/replay" style={styles.backLink}>
+          ← 对局列表
+        </Link>
+        <h2 style={styles.h2}>关键帧战术复盘</h2>
         <div style={styles.meta}>
           {cal.displayName} · {match.matchInfo.isRanked ? '竞技' : match.matchInfo.queueID} ·{' '}
-          {match.players.length} 人 · {rounds.length} 回合
+          {match.players.length} 人 · {rounds.length} 回合 · 来源 {source.label}
         </div>
         <div style={styles.note}>
           数据为真实对局坐标（脱敏样例，玩家名/英雄已打码）。每帧 = Riot 在击杀/下包/拆包瞬间记录的全员位置快照。
@@ -337,9 +310,7 @@ const styles = {
   centered: { alignItems: 'center', justifyContent: 'center', fontSize: 16 } as CSS,
   sidebar: { width: 320, flexShrink: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 } as CSS,
   h2: { margin: 0, fontSize: 18 } as CSS,
-  sourceRow: { display: 'flex', flexDirection: 'column', gap: 4 } as CSS,
-  sourceLabel: { fontSize: 12, color: '#9ca3af' } as CSS,
-  matchSelect: { padding: '6px 8px', fontSize: 13, background: '#111827', color: '#e5e7eb', border: '1px solid #374151', borderRadius: 4 } as CSS,
+  backLink: { fontSize: 12, color: '#93c5fd', textDecoration: 'none' } as CSS,
   meta: { fontSize: 13, color: '#9ca3af' } as CSS,
   note: { fontSize: 12, color: '#6b7280', lineHeight: 1.5 } as CSS,
   section: { border: '1px solid #1f2937', borderRadius: 8, padding: 10, display: 'flex', flexDirection: 'column', gap: 8 } as CSS,
@@ -359,4 +330,4 @@ const styles = {
   canvasCaption: { position: 'absolute', left: 8, bottom: 8, padding: '4px 10px', fontSize: 12, background: 'rgba(0,0,0,0.6)', borderRadius: 4 } as CSS,
 } satisfies Record<string, CSS | ((t: ReplayMoment['type']) => CSS)>;
 
-export default MatchReplayPoc;
+export default MatchReplayView;

@@ -1,16 +1,21 @@
-# match-replay（关键帧战术复盘 · PoC）
+# match-replay（关键帧战术复盘）
 
-验证产品新方向的隔离 PoC：**导入真实 Riot 对局数据 → 在官方小地图上还原关键时刻**，
-取代「手动摆点 / 模拟技能连锁」的沙盘玩法。完全独立，不依赖也不影响主 App。
+产品主线：**导入真实 Riot 对局数据 → 在官方小地图上还原关键时刻**，
+取代「手动摆点 / 模拟技能连锁」的沙盘玩法。
 
 ## 查看
 
 ```
 npm run dev
-# 浏览器打开 http://localhost:5173/?poc=replay
 ```
 
-`?poc=replay` 由 `src/main.tsx` 识别；无此参数时渲染原有 App。
+经 `react-router` 路由（`src/main.tsx`）：
+
+| 路由 | 页面 |
+|---|---|
+| `/` | 战术板（原 App），右上角有「对局复盘 →」入口 |
+| `/replay` | 对局列表页 `MatchListPage`（从 `MatchSource` 列对局） |
+| `/replay/:matchId` | 单局复盘 `MatchReplayView`（以 matchId 作 key 挂载） |
 
 ## 数据管线
 
@@ -33,7 +38,7 @@ npm run dev
    ```
 3. **关键时刻派生**：`deriveMoments.ts` 把一回合拆成有序帧——每次击杀一帧 + 下包/拆包各一帧，
    每帧携带该瞬间的全员存活位置快照（`playerLocations` / `plantPlayerLocations` / `defusePlayerLocations`）。
-4. **渲染**：`MatchReplayPoc.tsx`（react-konva）——官方小地图为底，叠加 token、朝向、击杀连线、装置标记。
+4. **渲染**：`MatchReplayView.tsx`（react-konva）——官方小地图为底，叠加 token、朝向、击杀连线、装置标记。
 
 ## 关键现实（决定形态）
 
