@@ -4,6 +4,8 @@
 - [x] 1.2 引入脱敏真实对局样例 `public/sample/competitive-ascent.json` 用于离线开发。
 - [ ] 1.3 增加运行时校验/守卫，对缺字段、空 `kills`、非 Bomb 模式（如死斗）优雅降级。
 - [ ] 1.4 为 `deriveRoundMoments` 增加单元测试（击杀排序、下包/拆包帧合并、空回合）。
+- [x] 1.5 抽象 `MatchSource` 接口（`listMatches`/`getMatch`）解耦数据来源；实现 `SampleFileSource`，视图改为消费该接口。
+- [ ] 1.6 实现 `OfficialApiSource`（VAL-MATCH-V1 + RSO）与 `LocalClientSource`（本地 token）作为可平替来源。
 
 ## 2. 地图坐标标定
 

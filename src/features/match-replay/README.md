@@ -14,6 +14,10 @@ npm run dev
 
 ## 数据管线
 
+0. **数据来源抽象 `data/matchSource.ts`**：视图只消费 `MatchSource` 接口（`listMatches` + `getMatch`），
+   与具体来源解耦。当前实现 `SampleFileSource`（`data/sampleFileSource.ts`）；后续可平替为
+   `OfficialApiSource`（VAL-MATCH-V1 + RSO，合规）或 `LocalClientSource`（本地 token，过渡）——
+   视图无需改动。详见 `docs/valorant-data-access.md`。
 1. **对局数据**：Riot `match-details` 响应（样例在 `public/sample/competitive-ascent.json`，
    来自 techchrism/valorant-api-docs 的脱敏 fixture：玩家名/英雄已打码，但**坐标真实自洽**）。
    字段类型见 `types.ts`（官方 schema 的忠实子集）。

@@ -5,9 +5,10 @@ import type { MapCalibration } from './mapCalibration';
 import { agentSlugFromUuid } from './agentUuidMap';
 import { deriveRoundMoments, formatRoundTime } from './deriveMoments';
 import type { MatchDetails, MatchPlayer, ReplayMoment } from './types';
+import type { MatchSource, MatchSummary } from './data/matchSource';
+import { defaultMatchSource } from './data/sampleFileSource';
 
 const SIZE = 720;
-const SAMPLE_URL = `${import.meta.env.BASE_URL}sample/competitive-ascent.json`;
 
 const TEAM_COLOR: Record<string, string> = { Blue: '#3b82f6', Red: '#ef4444' };
 function teamColor(teamId: string): string {
@@ -29,21 +30,49 @@ function useHtmlImage(src: string | undefined): HTMLImageElement | undefined {
   return img;
 }
 
-export function MatchReplayPoc() {
+export function MatchReplayPoc({ source = defaultMatchSource }: { source?: MatchSource } = {}) {
+  const [summaries, setSummaries] = useState<MatchSummary[]>([]);
+  const [selectedMatchId, setSelectedMatchId] = useState<string>();
   const [match, setMatch] = useState<MatchDetails>();
   const [error, setError] = useState<string>();
   const [roundNum, setRoundNum] = useState(0);
   const [momentIdx, setMomentIdx] = useState(0);
 
+  // 列出可复盘对局（数据来源经 MatchSource 抽象，样例/官方/本地可替换）
   useEffect(() => {
-    fetch(SAMPLE_URL)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
+    let alive = true;
+    source
+      .listMatches()
+      .then((list) => {
+        if (!alive) return;
+        setSummaries(list);
+        setSelectedMatchId(list[0]?.matchId);
       })
-      .then((d: MatchDetails) => setMatch(d))
-      .catch((e) => setError(String(e)));
-  }, []);
+      .catch((e) => alive && setError(String(e)));
+    return () => {
+      alive = false;
+    };
+  }, [source]);
+
+  // 按选中的 matchId 取完整对局
+  useEffect(() => {
+    if (!selectedMatchId) return;
+    let alive = true;
+    source
+      .getMatch(selectedMatchId)
+      .then((d) => alive && setMatch(d))
+      .catch((e) => alive && setError(String(e)));
+    return () => {
+      alive = false;
+    };
+  }, [source, selectedMatchId]);
+
+  const selectMatch = (matchId: string) => {
+    setSelectedMatchId(matchId);
+    setMatch(undefined);
+    setRoundNum(0);
+    setMomentIdx(0);
+  };
 
   const cal = match ? getCalibration(match.matchInfo.mapId) : undefined;
   const minimap = useHtmlImage(cal?.displayIcon);
@@ -64,8 +93,8 @@ export function MatchReplayPoc() {
     setMomentIdx(0);
   };
 
-  if (error) return <Centered>加载样例失败：{error}</Centered>;
-  if (!match) return <Centered>加载对局样例中…</Centered>;
+  if (error) return <Centered>加载失败：{error}</Centered>;
+  if (!match) return <Centered>加载对局中…（来源：{source.label}）</Centered>;
   if (!cal) return <Centered>缺少该地图标定：{match.matchInfo.mapId}</Centered>;
 
   const rounds = match.roundResults ?? [];
@@ -89,6 +118,20 @@ export function MatchReplayPoc() {
     <div style={styles.root}>
       <aside style={styles.sidebar}>
         <h2 style={styles.h2}>关键帧战术复盘 · PoC</h2>
+        <label style={styles.sourceRow}>
+          <span style={styles.sourceLabel}>对局来源 · {source.label}</span>
+          <select
+            style={styles.matchSelect}
+            value={selectedMatchId ?? ''}
+            onChange={(e) => selectMatch(e.target.value)}
+          >
+            {summaries.map((s) => (
+              <option key={s.matchId} value={s.matchId}>
+                {(s.mapDisplayName ?? s.mapId)} · {s.isRanked ? '竞技' : s.queueId}
+              </option>
+            ))}
+          </select>
+        </label>
         <div style={styles.meta}>
           {cal.displayName} · {match.matchInfo.isRanked ? '竞技' : match.matchInfo.queueID} ·{' '}
           {match.players.length} 人 · {rounds.length} 回合
@@ -294,6 +337,9 @@ const styles = {
   centered: { alignItems: 'center', justifyContent: 'center', fontSize: 16 } as CSS,
   sidebar: { width: 320, flexShrink: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 } as CSS,
   h2: { margin: 0, fontSize: 18 } as CSS,
+  sourceRow: { display: 'flex', flexDirection: 'column', gap: 4 } as CSS,
+  sourceLabel: { fontSize: 12, color: '#9ca3af' } as CSS,
+  matchSelect: { padding: '6px 8px', fontSize: 13, background: '#111827', color: '#e5e7eb', border: '1px solid #374151', borderRadius: 4 } as CSS,
   meta: { fontSize: 13, color: '#9ca3af' } as CSS,
   note: { fontSize: 12, color: '#6b7280', lineHeight: 1.5 } as CSS,
   section: { border: '1px solid #1f2937', borderRadius: 8, padding: 10, display: 'flex', flexDirection: 'column', gap: 8 } as CSS,
