@@ -8,7 +8,7 @@
 
 ## 2. 应用工程（apps/lineup，Taro）
 
-- [ ] 2.1 仓库转 pnpm workspace（根应用构建不变），脚手架 Taro 4 + React + TS，weapp 与 h5 双目标可构建。
+- [x] 2.1 仓库转 pnpm workspace（根应用构建不变），脚手架 Taro 4.2 + React 18 + TS（webpack5），weapp 与 h5 双目标可构建（产物分别输出 dist/weapp、dist/h5）；冒烟首页已从 @valotool/lineup-content 读图池渲染，验证 workspace TS 源码编译链路（h5/mini 的 compile.include 用函数匹配 lineup-content 路径）。
 - [ ] 2.2 基础导航与页面骨架：首页 / 地图选择 / 英雄选择 / 点位列表 / 点位卡。
 
 ## 3. 速查流程
