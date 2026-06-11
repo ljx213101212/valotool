@@ -1,0 +1,92 @@
+[
+  {
+    "id": "ascent-sova-atk-a-default-recon",
+    "map": "ascent",
+    "agent": "sova",
+    "abilitySlot": "E",
+    "side": "attack",
+    "site": "A",
+    "tier": "must-learn",
+    "title": "A点默认寻敌箭（扫A包点+天堂）",
+    "purpose": "进点前侦察 A 包点与天堂位",
+    "technique": "jump-throw",
+    "timing": "队友进 A 主门前 2 秒放出",
+    "origin": "A 主门外侧木箱后，贴墙站定",
+    "target": "箭落 A 包点上方反弹，覆盖包点与天堂",
+    "images": [
+      { "role": "stand", "url": "https://placeholder.invalid/ascent/sova/atk-a-default/stand.webp", "caption": "A 主门外木箱后站位" },
+      { "role": "aim", "url": "https://placeholder.invalid/ascent/sova/atk-a-default/aim.webp", "caption": "准星对齐屋檐左角，1 段蓄力" },
+      { "role": "effect", "url": "https://placeholder.invalid/ascent/sova/atk-a-default/effect.webp", "caption": "覆盖包点 + 天堂" }
+    ],
+    "verifiedPatch": "10.11",
+    "status": "draft",
+    "keywords": ["默认箭", "A主"]
+  },
+  {
+    "id": "ascent-sova-atk-b-main-recon",
+    "map": "ascent",
+    "agent": "sova",
+    "abilitySlot": "E",
+    "side": "attack",
+    "site": "B",
+    "tier": "must-learn",
+    "title": "B主进点寻敌箭（扫B包点+三角箱）",
+    "purpose": "B 主推进前清包点常见架点",
+    "technique": "stand",
+    "origin": "B 主楼梯口贴左墙",
+    "target": "箭打 B 包点后墙反弹至包点中央",
+    "images": [
+      { "role": "stand", "url": "https://placeholder.invalid/ascent/sova/atk-b-main/stand.webp" },
+      { "role": "aim", "url": "https://placeholder.invalid/ascent/sova/atk-b-main/aim.webp", "caption": "2 段蓄力，1 次反弹" },
+      { "role": "effect", "url": "https://placeholder.invalid/ascent/sova/atk-b-main/effect.webp" }
+    ],
+    "verifiedPatch": "10.11",
+    "status": "draft",
+    "keywords": ["B主"]
+  },
+  {
+    "id": "ascent-sova-def-a-retake-recon",
+    "map": "ascent",
+    "agent": "sova",
+    "abilitySlot": "E",
+    "side": "defense",
+    "site": "A",
+    "tier": "must-learn",
+    "title": "A点回防寻敌箭（天堂安全扫包点）",
+    "purpose": "丢点后从天堂回防，先扫再进",
+    "technique": "stand",
+    "origin": "A 天堂窗口后侧安全位",
+    "target": "箭落包点默认下包位上方",
+    "images": [
+      { "role": "stand", "url": "https://placeholder.invalid/ascent/sova/def-a-retake/stand.webp" },
+      { "role": "aim", "url": "https://placeholder.invalid/ascent/sova/def-a-retake/aim.webp", "caption": "1 段蓄力直射" },
+      { "role": "effect", "url": "https://placeholder.invalid/ascent/sova/def-a-retake/effect.webp" }
+    ],
+    "verifiedPatch": "10.11",
+    "status": "draft",
+    "keywords": ["回防", "残局"]
+  },
+  {
+    "id": "ascent-sova-def-mid-open-recon",
+    "map": "ascent",
+    "agent": "sova",
+    "abilitySlot": "E",
+    "side": "defense",
+    "site": "mid",
+    "tier": "must-learn",
+    "title": "开局中路寻敌箭（扫中庭+猫道口）",
+    "purpose": "开局获取中路人数信息",
+    "technique": "jump-throw",
+    "timing": "开局屏障落下立刻放",
+    "origin": "中庭防守方出生口右侧高箱",
+    "target": "箭挂中庭高墙，覆盖中庭与猫道口",
+    "images": [
+      { "role": "stand", "url": "https://placeholder.invalid/ascent/sova/def-mid-open/stand.webp" },
+      { "role": "aim", "url": "https://placeholder.invalid/ascent/sova/def-mid-open/aim.webp", "caption": "满蓄力跳投" },
+      { "role": "effect", "url": "https://placeholder.invalid/ascent/sova/def-mid-open/effect.webp" }
+    ],
+    "verifiedPatch": "10.11",
+    "status": "draft",
+    "keywords": ["开局", "中路"]
+  }
+]

@@ -1,0 +1,157 @@
+[
+  {
+    "slug": "abyss",
+    "uuid": "224b0a95-48b9-f703-1bd8-67aca101a61f",
+    "nameEn": "Abyss",
+    "nameZh": "幽邃地窟",
+    "pinyin": "yousuidiku",
+    "pinyinInitials": "ysdk",
+    "aliases": [
+      "幽邃",
+      "无底洞"
+    ],
+    "inRankedPool": false
+  },
+  {
+    "slug": "ascent",
+    "uuid": "7eaecc1b-4337-bbf6-6ab9-04b8f06b3319",
+    "nameEn": "Ascent",
+    "nameZh": "亚海悬城",
+    "pinyin": "yahaixuancheng",
+    "pinyinInitials": "yhxc",
+    "aliases": [
+      "亚海",
+      "A岛"
+    ],
+    "inRankedPool": true
+  },
+  {
+    "slug": "bind",
+    "uuid": "2c9d57ec-4431-9c5e-2939-8f9ef6dd5cba",
+    "nameEn": "Bind",
+    "nameZh": "源工重镇",
+    "pinyin": "yuangongzhongzhen",
+    "pinyinInitials": "ygzz",
+    "aliases": [
+      "源工",
+      "双传送"
+    ],
+    "inRankedPool": true
+  },
+  {
+    "slug": "breeze",
+    "uuid": "2fb9a4fd-47b8-4e7d-a969-74b4046ebd53",
+    "nameEn": "Breeze",
+    "nameZh": "微风岛屿",
+    "pinyin": "weifengdaoyu",
+    "pinyinInitials": "wfdy",
+    "aliases": [
+      "微风",
+      "大图"
+    ],
+    "inRankedPool": false
+  },
+  {
+    "slug": "corrode",
+    "uuid": "1c18ab1f-420d-0d8b-71d0-77ad3c439115",
+    "nameEn": "Corrode",
+    "nameZh": "盐海矿镇",
+    "pinyin": "yanhaikuangzhen",
+    "pinyinInitials": "yhkz",
+    "aliases": [
+      "盐海"
+    ],
+    "inRankedPool": true
+  },
+  {
+    "slug": "fracture",
+    "uuid": "b529448b-4d60-346e-e89e-00a4c527a405",
+    "nameEn": "Fracture",
+    "nameZh": "裂变峡谷",
+    "pinyin": "liebianxiagu",
+    "pinyinInitials": "lbxg",
+    "aliases": [
+      "裂变",
+      "H图"
+    ],
+    "inRankedPool": false
+  },
+  {
+    "slug": "haven",
+    "uuid": "2bee0dc9-4ffe-519b-1cbd-7fbe763a6047",
+    "nameEn": "Haven",
+    "nameZh": "隐世修所",
+    "pinyin": "yinshixiusuo",
+    "pinyinInitials": "ysxs",
+    "aliases": [
+      "隐世",
+      "隐士修所",
+      "三点图"
+    ],
+    "inRankedPool": true
+  },
+  {
+    "slug": "icebox",
+    "uuid": "e2ad5c54-4114-a870-9641-8ea21279579a",
+    "nameEn": "Icebox",
+    "nameZh": "森寒冬港",
+    "pinyin": "senhandonggang",
+    "pinyinInitials": "shdg",
+    "aliases": [
+      "森寒",
+      "冰图"
+    ],
+    "inRankedPool": true
+  },
+  {
+    "slug": "lotus",
+    "uuid": "2fe4ed3a-450a-948b-6d6b-e89a78e680a9",
+    "nameEn": "Lotus",
+    "nameZh": "莲华古城",
+    "pinyin": "lianhuagucheng",
+    "pinyinInitials": "lhgc",
+    "aliases": [
+      "莲华",
+      "莲花"
+    ],
+    "inRankedPool": true
+  },
+  {
+    "slug": "pearl",
+    "uuid": "fd267378-4d1d-484f-ff52-77821ed10dc2",
+    "nameEn": "Pearl",
+    "nameZh": "深海明珠",
+    "pinyin": "shenhaimingzhu",
+    "pinyinInitials": "shmz",
+    "aliases": [
+      "深海",
+      "珍珠"
+    ],
+    "inRankedPool": false
+  },
+  {
+    "slug": "split",
+    "uuid": "d960549e-485c-e861-8d71-aa9d1aed12a2",
+    "nameEn": "Split",
+    "nameZh": "霓虹町",
+    "pinyin": "nihongting",
+    "pinyinInitials": "nht",
+    "aliases": [
+      "霓虹",
+      "日本图"
+    ],
+    "inRankedPool": false
+  },
+  {
+    "slug": "sunset",
+    "uuid": "92584fbe-486a-b1b2-9faa-39b0f486b498",
+    "nameEn": "Sunset",
+    "nameZh": "日落之城",
+    "pinyin": "riluozhicheng",
+    "pinyinInitials": "rlzc",
+    "aliases": [
+      "日落"
+    ],
+    "inRankedPool": true
+  }
+]

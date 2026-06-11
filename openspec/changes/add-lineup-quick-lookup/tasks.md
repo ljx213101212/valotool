@@ -1,10 +1,10 @@
 ## 1. 内容数据层（packages/lineup-content）
 
-- [ ] 1.1 定义点位内容 zod schema（map/agent/ability/side/site/tier/technique/images[role]/verifiedPatch/status/keywords）。
-- [ ] 1.2 建地图注册表：12 张图（中文名/英文名/拼音/首字母/别名/当前图池标记）。
-- [ ] 1.3 建英雄注册表：全英雄（中文名/英文名/拼音/首字母/社区别名/技能槽位 C-Q-E-X 名称）。
-- [ ] 1.4 内容校验脚本（schema 校验 + 引用完整性 + 必学档每组合 ≤5 条约束告警）。
-- [ ] 1.5 首批样例内容：1 张图 × 1 个英雄 × 攻防（占位图可用），打通端到端。
+- [x] 1.1 定义点位内容 zod schema（map/agent/ability/side/site/tier/technique/images[role]/verifiedPatch/status/keywords）。
+- [x] 1.2 建地图注册表：12 张图（中文名/英文名/拼音/首字母/别名/当前图池标记）；注册表由 `gen-registry.ts` 从 valorant-api.com（en + zh-CN）生成并提交，运行时不依赖网络。图池标记待核实（curated/aliases.ts TODO）。
+- [x] 1.3 建英雄注册表：29 英雄（中文名/英文名/拼音/首字母/社区别名/技能槽位 C-Q-E-X 名称），来源同上。
+- [x] 1.4 内容校验脚本（schema 校验 + 引用完整性 + id 全局唯一 + 必学档每组合 ≤5 条约束告警），`pnpm --filter @valotool/lineup-content check`。
+- [x] 1.5 首批样例内容：亚海悬城 × 猎枭 × 攻防 4 条（占位图），通过校验管线；端到端到 UI 由任务 2/3 承接。
 
 ## 2. 应用工程（apps/lineup，Taro）
 

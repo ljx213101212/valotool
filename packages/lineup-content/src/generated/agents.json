@@ -1,0 +1,971 @@
+[
+  {
+    "slug": "astra",
+    "uuid": "41fb69c1-4189-7b37-f117-bcaf1e96f1bf",
+    "nameEn": "Astra",
+    "nameZh": "星礈",
+    "pinyin": "xingzhui",
+    "pinyinInitials": "xz",
+    "aliases": [
+      "星星姐"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Gravity Well",
+        "nameZh": "重力之阱"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Nova Pulse",
+        "nameZh": "新星脉冲"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Nebula  / Dissipate",
+        "nameZh": "星云/消散"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Astral Form / Cosmic Divide",
+        "nameZh": "星界形态/宇宙分裂"
+      }
+    ]
+  },
+  {
+    "slug": "breach",
+    "uuid": "5f8d3a7f-467b-97f3-062c-13acf203c006",
+    "nameEn": "Breach",
+    "nameZh": "铁臂",
+    "pinyin": "tiebi",
+    "pinyinInitials": "tb",
+    "aliases": [
+      "震爆男"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Aftershock",
+        "nameZh": "剧震余波"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Flashpoint",
+        "nameZh": "闪点爆破"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Fault Line",
+        "nameZh": "山崩地陷"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Rolling Thunder",
+        "nameZh": "惊雷卷地"
+      }
+    ]
+  },
+  {
+    "slug": "brimstone",
+    "uuid": "9f0d8ba9-4140-b941-57d3-a7ad57c6b417",
+    "nameEn": "Brimstone",
+    "nameZh": "炼狱",
+    "pinyin": "lianyu",
+    "pinyinInitials": "ly",
+    "aliases": [
+      "烟爹",
+      "大叔",
+      "brim"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Stim Beacon",
+        "nameZh": "振奋信标"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Incendiary",
+        "nameZh": "燃烧榴弹"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Sky Smoke",
+        "nameZh": "空投烟幕"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Orbital Strike",
+        "nameZh": "天基光束"
+      }
+    ]
+  },
+  {
+    "slug": "chamber",
+    "uuid": "22697a3d-45bf-8dd7-4fec-84a9e28c69d7",
+    "nameEn": "Chamber",
+    "nameZh": "尚勃勒",
+    "pinyin": "shangbole",
+    "pinyinInitials": "sbl",
+    "aliases": [
+      "法国男",
+      "狙男"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Trademark",
+        "nameZh": "贵宾限行"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Headhunter",
+        "nameZh": "金牌猎头"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Rendezvous",
+        "nameZh": "闪转自如"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Tour De Force",
+        "nameZh": "孤高火力"
+      }
+    ]
+  },
+  {
+    "slug": "clove",
+    "uuid": "1dbf2edd-4729-0984-3115-daa5eed44993",
+    "nameEn": "Clove",
+    "nameZh": "暮蝶",
+    "pinyin": "mudie",
+    "pinyinInitials": "md",
+    "aliases": [
+      "不死烟"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Pick-me-up",
+        "nameZh": "虹吸"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Meddle",
+        "nameZh": "整蛊"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Ruse",
+        "nameZh": "霞染"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Not Dead Yet",
+        "nameZh": "化蝶"
+      }
+    ]
+  },
+  {
+    "slug": "cypher",
+    "uuid": "117ed9e3-49f3-6512-3ccf-0cada7e3823b",
+    "nameEn": "Cypher",
+    "nameZh": "零",
+    "pinyin": "ling",
+    "pinyinInitials": "l",
+    "aliases": [
+      "监控男",
+      "帽子哥"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Trapwire",
+        "nameZh": "震慑绊线"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Cyber Cage",
+        "nameZh": "赛博囚笼"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Spycam",
+        "nameZh": "战术监控"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Neural Theft",
+        "nameZh": "神经取析"
+      }
+    ]
+  },
+  {
+    "slug": "deadlock",
+    "uuid": "cc8b64c8-4b25-4ff9-6e7f-37b4da43d235",
+    "nameEn": "Deadlock",
+    "nameZh": "钢锁",
+    "pinyin": "gangsuo",
+    "pinyinInitials": "gs",
+    "aliases": [
+      "锁妹"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Barrier Mesh",
+        "nameZh": "阻域屏障"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Sonic Sensor",
+        "nameZh": "声感陷阱"
+      },
+      {
+        "slot": "E",
+        "nameEn": "GravNet",
+        "nameZh": "重力捕网"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Annihilation",
+        "nameZh": "断魂索道"
+      }
+    ]
+  },
+  {
+    "slug": "fade",
+    "uuid": "dade69b4-4f5a-8528-247b-219e5a1facd6",
+    "nameEn": "Fade",
+    "nameZh": "黑梦",
+    "pinyin": "heimeng",
+    "pinyinInitials": "hm",
+    "aliases": [
+      "噩梦姐"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Prowler",
+        "nameZh": "黯兽"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Seize",
+        "nameZh": "幽爪"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Haunt",
+        "nameZh": "诡眼"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Nightfall",
+        "nameZh": "夜临"
+      }
+    ]
+  },
+  {
+    "slug": "gekko",
+    "uuid": "e370fa57-4757-3604-3648-499e1f642d3f",
+    "nameEn": "Gekko",
+    "nameZh": "盖可",
+    "pinyin": "gaike",
+    "pinyinInitials": "gk",
+    "aliases": [
+      "壁虎",
+      "宠物男"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Mosh Pit",
+        "nameZh": "嗨爆全场"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Wingman",
+        "nameZh": "顽皮搭档"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Dizzy",
+        "nameZh": "炫晕光波"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Thrash",
+        "nameZh": "无敌超鲨"
+      }
+    ]
+  },
+  {
+    "slug": "harbor",
+    "uuid": "95b78ed7-4637-86d9-7e41-71ba8c293152",
+    "nameEn": "Harbor",
+    "nameZh": "海神",
+    "pinyin": "haishen",
+    "pinyinInitials": "hs",
+    "aliases": [
+      "水男"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Storm Surge",
+        "nameZh": "乱涌"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "High Tide",
+        "nameZh": "狂潮"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Cove",
+        "nameZh": "海盾"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Reckoning",
+        "nameZh": "怒涛"
+      }
+    ]
+  },
+  {
+    "slug": "iso",
+    "uuid": "0e38b510-41a8-5780-5e8f-568b2a4f2d6c",
+    "nameEn": "Iso",
+    "nameZh": "壹决",
+    "pinyin": "yijue",
+    "pinyinInitials": "yj",
+    "aliases": [
+      "护盾男"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Contingency",
+        "nameZh": "绝对屏障"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Undercut",
+        "nameZh": "稳态剥离"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Double Tap",
+        "nameZh": "战斗心流"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Kill Contract",
+        "nameZh": "决斗通牒"
+      }
+    ]
+  },
+  {
+    "slug": "jett",
+    "uuid": "add6443a-41bd-e414-f6ad-e58d267f4e95",
+    "nameEn": "Jett",
+    "nameZh": "捷风",
+    "pinyin": "jiefeng",
+    "pinyinInitials": "jf",
+    "aliases": [
+      "风女",
+      "刀女"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Cloudburst",
+        "nameZh": "瞬云"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Updraft",
+        "nameZh": "凌空"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Tailwind",
+        "nameZh": "逐风"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Blade Storm",
+        "nameZh": "飓刃"
+      }
+    ]
+  },
+  {
+    "slug": "kayo",
+    "uuid": "601dbbe7-43ce-be57-2a40-4abd24953621",
+    "nameEn": "KAY/O",
+    "nameZh": "K/O",
+    "pinyin": "K/O",
+    "pinyinInitials": "K/O",
+    "aliases": [
+      "机器人",
+      "k.o",
+      "ko"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "FRAG/ment",
+        "nameZh": "碎片溢出"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "FLASH/drive",
+        "nameZh": "闪存过载"
+      },
+      {
+        "slot": "E",
+        "nameEn": "ZERO/point",
+        "nameZh": "零点嗅探"
+      },
+      {
+        "slot": "X",
+        "nameEn": "NULL/cmd",
+        "nameZh": "无效命令"
+      }
+    ]
+  },
+  {
+    "slug": "killjoy",
+    "uuid": "1e58de9c-4950-5125-93e9-a0aee9f98746",
+    "nameEn": "Killjoy",
+    "nameZh": "奇乐",
+    "pinyin": "qile",
+    "pinyinInitials": "ql",
+    "aliases": [
+      "机器人妹",
+      "kj"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Nanoswarm",
+        "nameZh": "纳米蜂群"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "ALARMBOT",
+        "nameZh": "自动哨兵"
+      },
+      {
+        "slot": "E",
+        "nameEn": "TURRET",
+        "nameZh": "哨戒炮台"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Lockdown",
+        "nameZh": "全面封锁"
+      }
+    ]
+  },
+  {
+    "slug": "miks",
+    "uuid": "7c8a4701-4de6-9355-b254-e09bc2a34b72",
+    "nameEn": "Miks",
+    "nameZh": "迷核",
+    "pinyin": "mihe",
+    "pinyinInitials": "mh",
+    "aliases": [],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "M-pulse",
+        "nameZh": "电音脉冲"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Harmonize",
+        "nameZh": "共振谐律"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Waveform",
+        "nameZh": "声波帷幕"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Bassquake",
+        "nameZh": "音脉强袭"
+      }
+    ]
+  },
+  {
+    "slug": "neon",
+    "uuid": "bb2a4828-46eb-8cd1-e765-15848195d751",
+    "nameEn": "Neon",
+    "nameZh": "霓虹",
+    "pinyin": "nihong",
+    "pinyinInitials": "nh",
+    "aliases": [
+      "电女",
+      "跑男"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Fast Lane",
+        "nameZh": "高速通道"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Relay Bolt",
+        "nameZh": "闪电弹球"
+      },
+      {
+        "slot": "E",
+        "nameEn": "High Gear",
+        "nameZh": "充能疾驰"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Overdrive",
+        "nameZh": "超限暴走"
+      }
+    ]
+  },
+  {
+    "slug": "omen",
+    "uuid": "8e253930-4c05-31dd-1b6c-968525494517",
+    "nameEn": "Omen",
+    "nameZh": "幽影",
+    "pinyin": "youying",
+    "pinyinInitials": "yy",
+    "aliases": [
+      "面具人",
+      "瞬移男"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Shrouded Step",
+        "nameZh": "践影"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Paranoia",
+        "nameZh": "暗魇"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Dark Cover",
+        "nameZh": "黑瘴"
+      },
+      {
+        "slot": "X",
+        "nameEn": "From the Shadows",
+        "nameZh": "离魂"
+      }
+    ]
+  },
+  {
+    "slug": "phoenix",
+    "uuid": "eb93336a-449b-9c1b-0a54-a891f7921d69",
+    "nameEn": "Phoenix",
+    "nameZh": "不死鸟",
+    "pinyin": "businiao",
+    "pinyinInitials": "bsn",
+    "aliases": [
+      "火男"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Blaze",
+        "nameZh": "火冒三丈"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Hot Hands",
+        "nameZh": "火热手感"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Curveball",
+        "nameZh": "闪光曲球"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Run it Back",
+        "nameZh": "再火一回"
+      }
+    ]
+  },
+  {
+    "slug": "raze",
+    "uuid": "f94c3b30-42be-e959-889c-5aa313dba261",
+    "nameEn": "Raze",
+    "nameZh": "雷兹",
+    "pinyin": "leizi",
+    "pinyinInitials": "lz",
+    "aliases": [
+      "火箭妹",
+      "炸弹妹"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Boom Bot",
+        "nameZh": "花车巡游"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Blast Pack",
+        "nameZh": "惊喜翻腾"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Paint Shells",
+        "nameZh": "彩雷飞溅"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Showstopper",
+        "nameZh": "晚安焰火"
+      }
+    ]
+  },
+  {
+    "slug": "reyna",
+    "uuid": "a3bfb853-43b2-7238-a4f1-ad90e9e46bcc",
+    "nameEn": "Reyna",
+    "nameZh": "芮娜",
+    "pinyin": "ruina",
+    "pinyinInitials": "rn",
+    "aliases": [
+      "吸血鬼"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Leer",
+        "nameZh": "睥睨"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Devour",
+        "nameZh": "噬尽"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Dismiss",
+        "nameZh": "逐散"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Empress",
+        "nameZh": "女皇旨令"
+      }
+    ]
+  },
+  {
+    "slug": "sage",
+    "uuid": "569fdd95-4d10-43ab-ca70-79becc718b46",
+    "nameEn": "Sage",
+    "nameZh": "贤者",
+    "pinyin": "xianzhe",
+    "pinyinInitials": "xz",
+    "aliases": [
+      "奶妈"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Barrier Orb",
+        "nameZh": "玉城"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Slow Orb",
+        "nameZh": "薄冰"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Healing Orb",
+        "nameZh": "逢春"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Resurrection",
+        "nameZh": "再起"
+      }
+    ]
+  },
+  {
+    "slug": "skye",
+    "uuid": "6f2a04ca-43e0-be17-7f36-b3908627744d",
+    "nameEn": "Skye",
+    "nameZh": "斯凯",
+    "pinyin": "sikai",
+    "pinyinInitials": "sk",
+    "aliases": [
+      "澳洲妹",
+      "狗妹"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Regrowth",
+        "nameZh": "愈生之息"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Trailblazer",
+        "nameZh": "辟林之虎"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Guiding Light",
+        "nameZh": "引路之隼"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Seekers",
+        "nameZh": "追猎之灵"
+      }
+    ]
+  },
+  {
+    "slug": "sova",
+    "uuid": "320b2a48-4d9b-a075-30f1-1f93a9b638fa",
+    "nameEn": "Sova",
+    "nameZh": "猎枭",
+    "pinyin": "liexiao",
+    "pinyinInitials": "lx",
+    "aliases": [
+      "鸟人",
+      "猎鹰"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Owl Drone",
+        "nameZh": "枭型无人机"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Shock Bolt",
+        "nameZh": "雷击箭"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Recon Bolt",
+        "nameZh": "寻敌箭"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Hunter's Fury",
+        "nameZh": "狂猎之怒"
+      }
+    ]
+  },
+  {
+    "slug": "tejo",
+    "uuid": "b444168c-4e35-8076-db47-ef9bf368f384",
+    "nameEn": "Tejo",
+    "nameZh": "钛狐",
+    "pinyin": "taihu",
+    "pinyinInitials": "th",
+    "aliases": [
+      "导弹男"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Stealth Drone",
+        "nameZh": "潜袭爬虫"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Special Delivery",
+        "nameZh": "特快专递"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Guided Salvo",
+        "nameZh": "精准投放"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Armageddon",
+        "nameZh": "末日审判"
+      }
+    ]
+  },
+  {
+    "slug": "veto",
+    "uuid": "92eeef5d-43b5-1d4a-8d03-b3927a09034b",
+    "nameEn": "Veto",
+    "nameZh": "禁灭",
+    "pinyin": "jinmie",
+    "pinyinInitials": "jm",
+    "aliases": [],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Crosscut",
+        "nameZh": "涡流折跃"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Chokehold",
+        "nameZh": "裂变残片"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Interceptor",
+        "nameZh": "噬源体"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Evolution",
+        "nameZh": "完全进化"
+      }
+    ]
+  },
+  {
+    "slug": "viper",
+    "uuid": "707eab51-4836-f488-046a-cda6bf494859",
+    "nameEn": "Viper",
+    "nameZh": "蝰蛇",
+    "pinyin": "kuishe",
+    "pinyinInitials": "ks",
+    "aliases": [
+      "毒姐",
+      "毒蛇"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Snake Bite",
+        "nameZh": "蛇吻"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Poison Cloud",
+        "nameZh": "瘴云"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Toxic Screen",
+        "nameZh": "毒幕"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Viper's Pit",
+        "nameZh": "蝰腹"
+      }
+    ]
+  },
+  {
+    "slug": "vyse",
+    "uuid": "efba5359-4016-a1e5-7626-b1ae76895940",
+    "nameEn": "Vyse",
+    "nameZh": "维斯",
+    "pinyin": "weisi",
+    "pinyinInitials": "ws",
+    "aliases": [
+      "荆棘"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Razorvine",
+        "nameZh": "剃刀藤蔓"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Shear",
+        "nameZh": "裁断"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Arc Rose",
+        "nameZh": "弧光玫瑰"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Steel Garden",
+        "nameZh": "铁棘禁园"
+      }
+    ]
+  },
+  {
+    "slug": "waylay",
+    "uuid": "df1cb487-4902-002e-5c17-d28e83e78588",
+    "nameEn": "Waylay",
+    "nameZh": "幻棱",
+    "pinyin": "huanleng",
+    "pinyinInitials": "hl",
+    "aliases": [
+      "光女"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "Saturate",
+        "nameZh": "光棱闪爆"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "Lightspeed",
+        "nameZh": "光速飞跃"
+      },
+      {
+        "slot": "E",
+        "nameEn": "Refract",
+        "nameZh": "溯流回光"
+      },
+      {
+        "slot": "X",
+        "nameEn": "Convergent Paths",
+        "nameZh": "时光修罗场"
+      }
+    ]
+  },
+  {
+    "slug": "yoru",
+    "uuid": "7f94d92c-4234-0a36-9646-3a87eb8b5c89",
+    "nameEn": "Yoru",
+    "nameZh": "夜露",
+    "pinyin": "yelu",
+    "pinyinInitials": "yl",
+    "aliases": [
+      "假身男",
+      "日本男"
+    ],
+    "abilities": [
+      {
+        "slot": "C",
+        "nameEn": "FAKEOUT",
+        "nameZh": "出其不意"
+      },
+      {
+        "slot": "Q",
+        "nameEn": "BLINDSIDE",
+        "nameZh": "攻其不备"
+      },
+      {
+        "slot": "E",
+        "nameEn": "GATECRASH",
+        "nameZh": "不请自来"
+      },
+      {
+        "slot": "X",
+        "nameEn": "DIMENSIONAL DRIFT",
+        "nameZh": "神鬼不觉"
+      }
+    ]
+  }
+]
