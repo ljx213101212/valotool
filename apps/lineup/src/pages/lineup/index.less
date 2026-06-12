@@ -1,0 +1,102 @@
+.lineup {
+  &__swiper {
+    height: 480px;
+    background: #e8e9eb;
+  }
+
+  &__slide {
+    position: relative;
+    height: 100%;
+  }
+
+  &__img {
+    width: 100%;
+    height: 100%;
+  }
+
+  &__slide-label {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 8px 20px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 24px;
+  }
+
+  &__caption {
+    position: absolute;
+    bottom: 56px;
+    left: 0;
+    right: 0;
+    padding: 12px 24px;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    font-size: 24px;
+  }
+
+  &__body {
+    padding: 32px;
+  }
+
+  &__title {
+    display: block;
+    font-size: 38px;
+    font-weight: 700;
+  }
+
+  &__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 20px 0 28px;
+  }
+
+  &__badge {
+    padding: 6px 18px;
+    border-radius: 8px;
+    background: #f2f3f5;
+    font-size: 22px;
+    color: #555;
+
+    &--ok {
+      background: #e6f7ee;
+      color: #0a7d43;
+    }
+
+    &--stale {
+      background: #fdf1e0;
+      color: #c77700;
+    }
+  }
+
+  &__rows {
+    border-top: 1px solid #f0f0f0;
+  }
+
+  &__row {
+    display: flex;
+    padding: 20px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  &__row-key {
+    flex-shrink: 0;
+    width: 110px;
+    font-size: 26px;
+    color: #999;
+  }
+
+  &__row-val {
+    font-size: 26px;
+    line-height: 1.5;
+  }
+
+  &__missing {
+    padding: 120px 0;
+    text-align: center;
+    color: #999;
+    font-size: 28px;
+  }
+}

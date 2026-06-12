@@ -1,9 +1,9 @@
-.index {
+.agents {
   padding: 32px;
 
   &__title {
     display: block;
-    font-size: 48px;
+    font-size: 44px;
     font-weight: 700;
   }
 
@@ -14,31 +14,31 @@
     color: #888;
   }
 
-  &__maps {
+  &__grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 24px;
+    gap: 20px;
   }
 
-  &__map {
-    width: 330px;
-    padding: 36px 0;
+  &__item {
+    width: 218px;
+    padding: 28px 0;
     text-align: center;
     border-radius: 16px;
     background: #f2f3f5;
 
-    &--out {
-      opacity: 0.45;
+    &--empty {
+      opacity: 0.4;
     }
   }
 
-  &__map-name {
+  &__name {
     display: block;
-    font-size: 34px;
+    font-size: 30px;
     font-weight: 600;
   }
 
-  &__map-en {
+  &__count {
     display: block;
     margin-top: 6px;
     font-size: 22px;
