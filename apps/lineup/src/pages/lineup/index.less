@@ -40,10 +40,31 @@
     padding: 32px;
   }
 
+  &__title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
   &__title {
     display: block;
     font-size: 38px;
     font-weight: 700;
+  }
+
+  &__fav {
+    flex-shrink: 0;
+    padding: 10px 24px;
+    border-radius: 999px;
+    background: #f2f3f5;
+    color: #666;
+    font-size: 24px;
+
+    &--on {
+      background: #fdf1e0;
+      color: #c77700;
+    }
   }
 
   &__badges {

@@ -9,7 +9,8 @@ export const MAP_ALIASES: Record<string, string[]> = {
   ascent: ['亚海', 'A岛'],
   bind: ['源工', '双传送'],
   haven: ['隐世', '隐士修所', '三点图'],
-  split: ['霓虹', '日本图'],
+  // 注意：不要给 split 加「霓虹」别名——与英雄霓虹（Neon）官方名冲突
+  split: ['日本图'],
   icebox: ['森寒', '冰图'],
   breeze: ['微风', '大图'],
   fracture: ['裂变', 'H图'],

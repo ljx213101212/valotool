@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { View, Text, Swiper, SwiperItem, Image } from '@tarojs/components'
-import { useRouter } from '@tarojs/taro'
+import Taro, { useRouter } from '@tarojs/taro'
 import {
   getAgent,
   getLineup,
@@ -9,11 +10,22 @@ import {
   SITE_LABELS,
   TECHNIQUE_LABELS,
 } from '@valotool/lineup-content'
+import { isFavorite, toggleFavorite } from '../../utils/storage'
+import { reportFirstImage, track } from '../../utils/track'
 import './index.less'
 
 export default function LineupDetail () {
   const { params } = useRouter()
   const lineup = getLineup(params.id ?? '')
+  const [fav, setFav] = useState(() => (lineup ? isFavorite(lineup.id) : false))
+
+  const onToggleFav = () => {
+    if (!lineup) return
+    const next = toggleFavorite(lineup.id)
+    setFav(next)
+    track('favorite', { id: lineup.id, on: next })
+    Taro.showToast({ title: next ? '已收藏' : '已取消收藏', icon: 'none' })
+  }
 
   if (!lineup) {
     return (
@@ -33,7 +45,13 @@ export default function LineupDetail () {
         {lineup.images.map((img, i) => (
           <SwiperItem key={img.role}>
             <View className='lineup__slide'>
-              <Image className='lineup__img' src={img.url} mode='aspectFill' />
+              <Image
+                className='lineup__img'
+                src={img.url}
+                mode='aspectFill'
+                lazyLoad
+                onLoad={() => reportFirstImage('detail')}
+              />
               <View className='lineup__slide-label'>
                 <Text>{`${i + 1}/${lineup.images.length} ${IMAGE_ROLE_LABELS[img.role]}`}</Text>
               </View>
@@ -46,7 +64,15 @@ export default function LineupDetail () {
       </Swiper>
 
       <View className='lineup__body'>
-        <Text className='lineup__title'>{lineup.title}</Text>
+        <View className='lineup__title-row'>
+          <Text className='lineup__title'>{lineup.title}</Text>
+          <View
+            className={`lineup__fav${fav ? ' lineup__fav--on' : ''}`}
+            onClick={onToggleFav}
+          >
+            <Text>{fav ? '★ 已收藏' : '☆ 收藏'}</Text>
+          </View>
+        </View>
         <View className='lineup__badges'>
           <Text className='lineup__badge'>{map?.nameZh}</Text>
           <Text className='lineup__badge'>{agent?.nameZh}</Text>

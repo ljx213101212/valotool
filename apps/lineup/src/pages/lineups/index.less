@@ -62,10 +62,25 @@
   }
 
   &__card {
+    display: flex;
+    gap: 20px;
     padding: 24px;
     border-radius: 16px;
     background: #f7f8fa;
     margin-bottom: 16px;
+  }
+
+  &__card-thumb {
+    flex-shrink: 0;
+    width: 200px;
+    height: 120px;
+    border-radius: 10px;
+    background: #e8e9eb;
+  }
+
+  &__card-info {
+    flex: 1;
+    min-width: 0;
   }
 
   &__card-head {

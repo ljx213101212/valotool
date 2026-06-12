@@ -3,7 +3,8 @@ export default defineAppConfig({
     'pages/index/index',
     'pages/agents/index',
     'pages/lineups/index',
-    'pages/lineup/index'
+    'pages/lineup/index',
+    'pages/favorites/index'
   ],
   window: {
     backgroundTextStyle: 'light',

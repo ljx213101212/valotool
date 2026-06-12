@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
-import { View, Text } from '@tarojs/components'
+import { useEffect, useMemo, useState } from 'react'
+import { View, Text, Image } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import {
   getAgent,
   getMap,
   lineupsFor,
+  thumbUrl,
   SIDE_LABELS,
   SITE_LABELS,
   TIER_LABELS,
@@ -12,10 +13,15 @@ import {
   type Site,
   type Tier,
 } from '@valotool/lineup-content'
+import { addRecent } from '../../utils/storage'
+import { reportFirstImage } from '../../utils/track'
 import './index.less'
 
 const SIDES: Side[] = ['attack', 'defense']
 const TIERS: Tier[] = ['must-learn', 'advanced', 'flashy']
+
+const isSide = (v?: string): v is Side => v === 'attack' || v === 'defense'
+const isSite = (v?: string): v is Site => v === 'A' || v === 'B' || v === 'C' || v === 'mid'
 
 export default function Lineups () {
   const { params } = useRouter()
@@ -24,8 +30,13 @@ export default function Lineups () {
   const map = getMap(mapSlug)
   const agent = getAgent(agentSlug)
 
-  const [side, setSide] = useState<Side>('attack')
-  const [site, setSite] = useState<Site | 'all'>('all')
+  const [side, setSide] = useState<Side>(isSide(params.side) ? params.side : 'attack')
+  const [site, setSite] = useState<Site | 'all'>(isSite(params.site) ? params.site : 'all')
+
+  // 记录最近查询组合，供首页快捷入口
+  useEffect(() => {
+    if (mapSlug && agentSlug) addRecent({ map: mapSlug, agent: agentSlug, side })
+  }, [mapSlug, agentSlug, side])
 
   const all = useMemo(() => lineupsFor(mapSlug, agentSlug, side), [mapSlug, agentSlug, side])
   const sites = useMemo(() => [...new Set(all.map((l) => l.site))], [all])
@@ -79,12 +90,23 @@ export default function Lineups () {
             <Text className='lineups__group-title'>{TIER_LABELS[tier]}</Text>
             {group.map((l) => (
               <View key={l.id} className='lineups__card' onClick={() => goDetail(l.id)}>
-                <View className='lineups__card-head'>
-                  <Text className='lineups__card-site'>{SITE_LABELS[l.site]}</Text>
-                  <Text className='lineups__card-title'>{l.title}</Text>
+                {l.images[0] && (
+                  <Image
+                    className='lineups__card-thumb'
+                    src={thumbUrl(l.images[0].url)}
+                    mode='aspectFill'
+                    lazyLoad
+                    onLoad={() => reportFirstImage('list-thumb')}
+                  />
+                )}
+                <View className='lineups__card-info'>
+                  <View className='lineups__card-head'>
+                    <Text className='lineups__card-site'>{SITE_LABELS[l.site]}</Text>
+                    <Text className='lineups__card-title'>{l.title}</Text>
+                  </View>
+                  <Text className='lineups__card-purpose'>{l.purpose}</Text>
+                  {l.status === 'stale' && <Text className='lineups__card-stale'>⚠️ 待验证</Text>}
                 </View>
-                <Text className='lineups__card-purpose'>{l.purpose}</Text>
-                {l.status === 'stale' && <Text className='lineups__card-stale'>⚠️ 待验证</Text>}
               </View>
             ))}
           </View>

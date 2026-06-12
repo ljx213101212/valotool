@@ -1,6 +1,8 @@
+import { useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import { AGENTS, getMap, lineupCountByAgent } from '@valotool/lineup-content'
+import { prefetchMapFirstImages } from '../../utils/prefetch'
 import './index.less'
 
 export default function Agents () {
@@ -8,6 +10,9 @@ export default function Agents () {
   const mapSlug = params.map ?? ''
   const map = getMap(mapSlug)
   const counts = lineupCountByAgent(mapSlug)
+
+  // 选定地图即预取该图必学点位首图
+  useEffect(() => { prefetchMapFirstImages(mapSlug) }, [mapSlug])
 
   // 有点位内容的英雄排前面
   const agents = [...AGENTS].sort(
