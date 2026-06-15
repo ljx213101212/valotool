@@ -16,8 +16,9 @@
     "dev:h5": "npm run build:h5 -- --watch"
   },
   "browserslist": [
-    "defaults and fully supports es6-module",
-    "maintained node versions"
+    "Android >= 4.4",
+    "iOS >= 9",
+    "Chrome >= 49"
   ],
   "dependencies": {
     "@babel/runtime": "^7.24.4",
