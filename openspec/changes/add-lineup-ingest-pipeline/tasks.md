@@ -37,12 +37,13 @@
 
 - [ ] 6.1 读 staging + 接触表点格子选 stand/aim/effect、改字段、approve/reject 写回。
 
-## 7. 测试（TDD 欠债，需补齐）
+## 7. 测试（还 TDD 欠债，11/11 通过）
 
-- [ ] 7.1 `segment` 手抄时间轴切片单测（endSec 推导、边界）。
-- [ ] 7.2 `capture` 候选 `atSec = startSec + i` 映射单测（用桩 ffmpeg）。
-- [ ] 7.3 `sourceFileSchema` 校验单测（合法/非法 bvid/缺字段）。
-- [ ] 7.4 `extract` parseQuery 硬字段集成测（含未命中 side 的 warning）。
+- [x] 7.1 `segment` 手抄时间轴切片单测（endSec 推导、末段取时长、无时间轴抛错）。
+- [x] 7.2 `capture` 候选 `atSec = startSec + i` 映射单测（抽出纯函数 `toCandidates`）。
+- [x] 7.3 `sourceFileSchema` 校验单测（合法/非法 bvid/缺 credit/错 platform）。
+- [x] 7.4 `extract` parseQuery 硬字段集成测（命中 side/site + 未命中 side 的 warning）。
+- [ ] 7.5 后续新增功能改为**先写测试**（promote/真 extractor 等）。
 
 ## 8. 规格同步
 

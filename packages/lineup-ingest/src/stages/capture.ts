@@ -10,6 +10,11 @@ import {
 
 const MAX_SEC = 90; // 单段最长取帧时长，挡住时间轴空档造成的超长段
 
+/** 候选帧 → {path, atSec}。第 i 张 = 段起点后第 i 秒（与接触表第 i 格对应）。纯函数，便于测试。 */
+export function toCandidates(paths: string[], startSec: number): FrameCandidate[] {
+  return paths.map((path, i) => ({ path, atSec: startSec + i }));
+}
+
 async function exists(p: string): Promise<boolean> {
   try {
     await access(p);
@@ -39,7 +44,6 @@ export async function captureFrames(seg: Segment, cap: RawCapture, ctx: Pipeline
     await buildContactSheet(dir, paths.length, sheet);
   }
 
-  // 第 i 张 ≈ startSec + i 秒（与接触表第 i 格对应）
-  const candidates: FrameCandidate[] = paths.map((path, i) => ({ path, atSec: seg.startSec + i }));
+  const candidates = toCandidates(paths, seg.startSec);
   return { ...seg, candidates, contactSheet: paths.length ? sheet : undefined };
 }
