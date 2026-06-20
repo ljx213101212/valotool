@@ -33,9 +33,13 @@
 - [ ] 5.2 选中帧落 `raw-images/{id}__{role}.png`，交棒现有 `ingest-images`。
 - [ ] 5.3 预检 `MUST_LEARN_CAP`（每 {map,agent} must-learn ≤ 5）。
 
-## 6. 人审 UI
+## 6. 人审 UI（已端到端验证）
 
-- [ ] 6.1 读 staging + 接触表点格子选 stand/aim/effect、改字段、approve/reject 写回。
+- [x] 6.1 核心纯函数 `review/core.ts`（applyReview / draftToLineupInput / validateForApproval）+ 单测。
+- [x] 6.2 `node:http` 服务 `review/server.ts`：GET /api/drafts、POST /api/draft 写回、/work/* 静态（防越界）。
+- [x] 6.3 单文件 vanilla `review.html`：候选缩略图 [S]/[A]/[E] 指派三帧、接触表概览、字段编辑、approve/reject。
+- [x] 6.4 approve 闸门：lineupSchema 预校验，缺字段拒绝 approve 并报字段、保持 pending；`verifiedPatch` 改为审核员可编辑。
+- [x] 6.5 `pnpm review` 启动；curl 验证 serves HTML/drafts/帧、闸门拒绝不完整/接受完整并写回。
 
 ## 7. 测试（还 TDD 欠债，11/11 通过）
 

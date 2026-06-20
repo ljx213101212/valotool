@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>点位草稿人审</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.5 system-ui, sans-serif; color: #1a1a1a; }
+  #app { display: grid; grid-template-columns: 260px 1fr; height: 100vh; }
+  #list { border-right: 1px solid #ddd; overflow: auto; background: #fafafa; }
+  #list .item { padding: 8px 12px; border-bottom: 1px solid #eee; cursor: pointer; }
+  #list .item:hover { background: #eef; }
+  #list .item.active { background: #dde7ff; }
+  .badge { font-size: 11px; padding: 1px 6px; border-radius: 8px; }
+  .pending { background: #fde68a; } .approved { background: #bbf7d0; } .rejected { background: #fecaca; }
+  #editor { overflow: auto; padding: 16px 20px; }
+  #editor h2 { margin: 0 0 4px; }
+  .muted { color: #888; font-size: 12px; }
+  .ro { display: inline-block; margin-right: 12px; }
+  .slots { display: flex; gap: 12px; margin: 10px 0; }
+  .slot { width: 200px; }
+  .slot img { width: 200px; height: 112px; object-fit: cover; border: 2px solid #ccc; background: #eee; }
+  .slot .lbl { font-weight: 600; }
+  #contact { max-width: 100%; border: 1px solid #ccc; margin: 8px 0; }
+  .cands { display: grid; grid-template-columns: repeat(auto-fill, 132px); gap: 8px; }
+  .cand img { width: 132px; height: 74px; object-fit: cover; display: block; border: 1px solid #ccc; }
+  .cand .btns { display: flex; }
+  .cand .btns button { flex: 1; font-size: 11px; padding: 2px 0; cursor: pointer; }
+  .cand .btns button.on { background: #2563eb; color: #fff; }
+  form { display: grid; grid-template-columns: 90px 1fr; gap: 6px 10px; align-items: center; max-width: 640px; margin-top: 12px; }
+  form label { color: #444; text-align: right; }
+  input, select, textarea { width: 100%; padding: 4px 6px; font: inherit; }
+  textarea { min-height: 44px; }
+  .actions { margin: 16px 0; display: flex; gap: 10px; }
+  .actions button { padding: 6px 16px; font: inherit; cursor: pointer; }
+  .approve { background: #16a34a; color: #fff; border: none; }
+  .reject { background: #dc2626; color: #fff; border: none; }
+  .warn { color: #b45309; } .err { color: #dc2626; white-space: pre-wrap; }
+  details { margin: 6px 0; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="list"></div>
+  <div id="editor"><p class="muted">从左侧选一条草稿开始审核。</p></div>
+</div>
+<script>
+const ROLES = ['stand', 'aim', 'effect'];
+const ENUMS = {
+  abilitySlot: ['', 'C', 'Q', 'E', 'X'],
+  tier: ['', 'must-learn', 'advanced', 'flashy'],
+  status: ['', 'verified', 'stale', 'draft'],
+  technique: ['', 'stand', 'crouch', 'jump-throw', 'run-jump-throw', 'hold-jump-throw', 'walk-throw', 'placed'],
+};
+let drafts = [], cur = null, work = null;
+
+const workUrl = (p) => p ? '/work/' + String(p).replace(/^\.work\//, '') : '';
+
+async function load() {
+  drafts = await (await fetch('/api/drafts')).json();
+  renderList();
+}
+
+function renderList() {
+  document.getElementById('list').innerHTML = drafts.map((d, i) =>
+    `<div class="item ${i === cur ? 'active' : ''}" onclick="select(${i})">
+       <div>${d.fields.title || d.draftId}</div>
+       <span class="badge ${d.reviewStatus}">${d.reviewStatus}</span>
+       <span class="muted">${d.fields.side || '?'} / ${d.fields.site || '?'}</span>
+     </div>`).join('');
+}
+
+function select(i) {
+  cur = i;
+  const d = drafts[i];
+  work = { fields: { ...d.fields }, frames: { ...d.frames } };
+  renderList();
+  renderEditor(d);
+}
+
+function opt(name, val) {
+  return ENUMS[name].map((o) => `<option ${o === (val || '') ? 'selected' : ''}>${o}</option>`).join('');
+}
+
+function renderEditor(d) {
+  const f = work.fields;
+  const slots = ROLES.map((r) =>
+    `<div class="slot"><div class="lbl">${r}</div>
+       <img src="${workUrl(work.frames[r])}" alt="(未指派)" /></div>`).join('');
+  const cands = (d.candidates || []).map((c) => {
+    const on = (r) => ROLES.find((x) => work.frames[x] === c.path) === r ? 'on' : '';
+    return `<div class="cand">
+       <img src="${workUrl(c.path)}" title="${c.atSec}s" />
+       <div class="btns">
+         ${ROLES.map((r) => `<button class="${on(r)}" onclick="assign('${r}','${c.path}')">${r[0].toUpperCase()}</button>`).join('')}
+       </div></div>`;
+  }).join('');
+  const row = (label, html) => `<label>${label}</label>${html}`;
+  const inp = (k) => `<input id="f_${k}" value="${(f[k] ?? '').toString().replace(/"/g, '&quot;')}" oninput="edit('${k}',this.value)" />`;
+  const sel = (k) => `<select id="f_${k}" onchange="edit('${k}',this.value)">${opt(k, f[k])}</select>`;
+  document.getElementById('editor').innerHTML = `
+    <h2>${f.title || d.draftId}</h2>
+    <div class="muted">
+      <span class="ro">map: <b>${f.map}</b></span><span class="ro">agent: <b>${f.agent}</b></span>
+      <span class="ro">side: <b>${f.side || '—'}</b></span><span class="ro">site: <b>${f.site || '—'}</b></span>
+    </div>
+    <div class="muted">来源：<a href="${d.provenance.url}" target="_blank">${d.provenance.creator}</a>
+      ${d.provenance.startSec}s–${d.provenance.endSec}s</div>
+    ${d.warnings && d.warnings.length ? `<div class="warn">⚠ ${d.warnings.join(' / ')}</div>` : ''}
+    <h3>指派三帧</h3>
+    <div class="slots">${slots}</div>
+    <details open><summary>接触表（整段 1fps 概览）</summary>
+      <img id="contact" src="${workUrl(d.contactSheet)}" /></details>
+    <h4>候选帧（点 S/A/E 指派）</h4>
+    <div class="cands">${cands}</div>
+    <form>
+      ${row('id', inp('id'))}
+      ${row('abilitySlot', sel('abilitySlot'))}
+      ${row('tier', sel('tier'))}
+      ${row('status', sel('status'))}
+      ${row('verifiedPatch', `<input id="f_verifiedPatch" placeholder="如 12.11" value="${f.verifiedPatch ?? ''}" oninput="edit('verifiedPatch',this.value)" />`)}
+      ${row('title', inp('title'))}
+      ${row('technique', sel('technique'))}
+      ${row('timing', inp('timing'))}
+      ${row('origin', inp('origin'))}
+      ${row('target', inp('target'))}
+      ${row('purpose', `<textarea id="f_purpose" oninput="edit('purpose',this.value)">${f.purpose ?? ''}</textarea>`)}
+    </form>
+    <div class="actions">
+      <button onclick="save('pending')">保存</button>
+      <button class="approve" onclick="save('approved')">✓ 通过</button>
+      <button class="reject" onclick="save('rejected')">✕ 退回</button>
+    </div>
+    <div id="msg"></div>`;
+}
+
+function edit(k, v) { work.fields[k] = v === '' ? undefined : v; }
+function assign(role, path) {
+  // 同一帧若已指派别的 role，先清掉，保证一帧一角色
+  for (const r of ROLES) if (work.frames[r] === path) delete work.frames[r];
+  work.frames[role] = path;
+  renderEditor(drafts[cur]);
+}
+
+async function save(status) {
+  const d = drafts[cur];
+  const r = await fetch('/api/draft', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ file: d.file, draftId: d.draftId, patch: { fields: work.fields, frames: work.frames, reviewStatus: status } }),
+  });
+  const out = await r.json();
+  drafts[cur] = { file: d.file, ...out.draft };
+  work = { fields: { ...drafts[cur].fields }, frames: { ...drafts[cur].frames } };
+  renderList();
+  const msg = document.getElementById('msg');
+  if (out.ok) msg.innerHTML = `<span style="color:#16a34a">已保存（${drafts[cur].reviewStatus}）</span>`;
+  else msg.innerHTML = `<div class="err">无法通过，缺字段：\n- ${out.issues.join('\n- ')}</div>`;
+}
+
+load();
+</script>
+</body>
+</html>

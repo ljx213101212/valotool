@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "tsx --test \"src/**/*.test.ts\"",
     "ingest": "tsx src/cli.ts run",
+    "review": "tsx src/review/server.ts",
     "promote": "tsx scripts/promote.ts"
   },
   "dependencies": {

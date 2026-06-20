@@ -72,3 +72,17 @@
 
 - **WHEN** 任意草稿生成
 - **THEN** 其 `provenance` SHALL 含 `videoId`、`url`、`creator` 及该段 `startSec`/`endSec`
+
+### Requirement: 人审从候选指派三帧并补全字段
+
+系统 SHALL 提供本地人审工具，读取 staging 草稿及其候选帧/接触表，支持指派 stand/aim/effect、编辑软字段、approve/reject 写回。标记 approved 前 SHALL 用 `lineupSchema` 预校验整条，未通过不得置为 approved。
+
+#### Scenario: 审核通过前校验
+
+- **WHEN** 审核员把草稿标记 approved，但缺必填字段（如 `purpose` 为空、未指派三帧、`id` 非 kebab）
+- **THEN** 系统 SHALL 拒绝该 approve、指出缺失字段，草稿保持 `pending`，但已编辑的字段/帧仍写回
+
+#### Scenario: 指派三帧写回
+
+- **WHEN** 审核员为草稿选定 stand/aim/effect 三张候选并保存
+- **THEN** 草稿 `frames` SHALL 含三个 role→候选路径，并持久化到其 staging 文件
