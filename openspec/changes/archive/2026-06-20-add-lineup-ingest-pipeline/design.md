@@ -39,3 +39,13 @@
 - 真实 LLM extractor（DeepSeek，便宜中文）与 OCR（OCR 在人审**选定帧后**再跑，不在候选全集上跑）。
 - 候选帧 PNG 偏大（~669M/视频），可改 JPG 省 ~10x。
 - 版权：帧仅作 bootstrap，正式上线前热门点位自录。
+
+## 人审 UI（task 6）
+
+本地 dev 工具，**不进小程序构建**。零前端构建依赖：`node:http` 服务 + 单文件 vanilla HTML。
+
+- **核心逻辑抽成纯函数** `src/review/core.ts`（`applyReview` 合并编辑、`draftToLineupInput` 由 frames 拼 images、`validateForApproval` 用 `lineupSchema` 预校验），React/HTML 只是薄壳，便于 TDD。
+- **服务** `src/review/server.ts`：`GET /api/drafts` 聚合 `staging/*.json`；`POST /api/draft` 合并编辑并写回；`GET /work/*` 静态服务 `.work` 下的候选帧与接触表（路径越界防护）。
+- **审核动作**：从候选缩略图按 [S]/[A]/[E] 指派三帧；编辑软字段（id/abilitySlot/tier/status/title/purpose/technique/timing/origin/target）；side/site/map/agent 来自 extract 只读展示。
+- **approve 闸门**：标 approved 前用 `lineupSchema` 预校验整条；缺字段/未指派帧则**拒绝 approve、保持 pending 并回报缺失字段**，编辑内容仍写回。
+- 出口仍是 `promote`（task 5）消费 approved 草稿。id 由审核员在此指派（kebab，promote 再校验唯一）。

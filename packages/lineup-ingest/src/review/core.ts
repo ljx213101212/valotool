@@ -1,0 +1,45 @@
+import { IMAGE_ROLES, lineupSchema } from '@valotool/lineup-content';
+import type { DraftLineup, FrameRole } from '../types';
+
+const SIDE_ABBR: Record<string, string> = { attack: 'atk', defense: 'def' };
+
+/** 为缺失字段填默认值（不覆盖已有），降低人审负担：自动 id + 常见 technique/tier/status。 */
+export function suggestDefaults(draft: DraftLineup): DraftLineup['fields'] {
+  const f = draft.fields;
+  const idx = draft.draftId.split('-').pop() ?? '0';
+  const autoId = [f.map, f.agent, f.side ? SIDE_ABBR[f.side] : undefined, f.site?.toLowerCase(), idx]
+    .filter(Boolean)
+    .join('-');
+  return { id: autoId, technique: 'stand', status: 'draft', tier: 'must-learn', ...f } as DraftLineup['fields'];
+}
+
+export interface ReviewPatch {
+  fields?: Record<string, unknown>;
+  frames?: Partial<Record<FrameRole, string>>;
+  reviewStatus?: DraftLineup['reviewStatus'];
+}
+
+/** 合并一次审核编辑（字段/帧/状态），返回新草稿，不改原对象。 */
+export function applyReview(draft: DraftLineup, patch: ReviewPatch): DraftLineup {
+  return {
+    ...draft,
+    fields: { ...draft.fields, ...(patch.fields ?? {}) } as DraftLineup['fields'],
+    frames: { ...draft.frames, ...(patch.frames ?? {}) },
+    reviewStatus: patch.reviewStatus ?? draft.reviewStatus,
+  };
+}
+
+/** 由 fields + 指派的三帧拼成 Lineup 形状的对象（images 按 stand→aim→effect 排序）。 */
+export function draftToLineupInput(draft: DraftLineup): Record<string, unknown> {
+  const images = (IMAGE_ROLES as readonly FrameRole[])
+    .filter((r) => draft.frames[r])
+    .map((r) => ({ role: r, url: draft.frames[r] }));
+  return { ...draft.fields, images };
+}
+
+/** approve 闸门：用 lineupSchema 预校验整条，返回是否通过与缺失字段。 */
+export function validateForApproval(draft: DraftLineup): { ok: boolean; issues: string[] } {
+  const r = lineupSchema.safeParse(draftToLineupInput(draft));
+  if (r.success) return { ok: true, issues: [] };
+  return { ok: false, issues: r.error.issues.map((i) => `${i.path.join('.') || '(root)'}: ${i.message}`) };
+}

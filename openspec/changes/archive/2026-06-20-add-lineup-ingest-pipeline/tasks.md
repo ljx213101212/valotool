@@ -1,0 +1,65 @@
+## 1. 采集源与契约
+
+- [x] 1.1 `SourceVideo` zod 契约（bvid/平台/url/creator/creatorUid/recordedPatch/hints/credit/手抄 segments）。
+- [x] 1.2 首批真实采集源 `sources/sova.json`（无敌猎枭王 ascent/breeze/haven 三图，64 段）。
+- [x] 1.3 `check:sources` 校验脚本（zod safeParse + 报错指明字段）。
+- [ ] 1.4 扩充采集源覆盖更多角色/地图（向 100–300 条目标推进）。
+
+## 2. 管线骨架
+
+- [x] 2.1 IR 类型：`RawCapture`/`Segment`/`CapturedSegment`/`FrameCandidate`/`DraftLineup`/`Provenance`/`PipelineCtx`。
+- [x] 2.2 编排 `runSource`：fetch → segment →（capture → extract）* → stage。
+- [x] 2.3 各 stage 签名 + `MockExtractor` 占位；`typecheck`(strict) 通过。
+- [x] 2.4 CLI `run <sources.json> [bvid]`，按 bvid 单跑。
+
+## 3. fetch + capture（已端到端实跑）
+
+- [x] 3.1 `adapters/bilibili.download`：`yt-dlp --cookies-from-browser` 过 412 风控，仅视频流，`ffprobe` 取时长，幂等。
+- [x] 3.2 `segment`：优先手抄时间轴切片（endSec 由下一段推），章节/自动为 fallback。
+- [x] 3.3 `capture`：1fps 候选帧 + 同批帧拼接触表，格子↔候选 1:1，不预指派三帧，幂等。
+- [x] 3.4 ascent 实跑验证：65M mp4、845 候选帧、29 接触表、29 草稿落 staging。
+- [ ] 3.5（可选）候选/接触表改 JPG 省 ~10x 磁盘。
+
+## 4. extract（hybrid）
+
+- [x] 4.1 复用 `parseQuery` 从标题确定性抽 side/site（ascent 24/29 命中）；溯源写入 provenance。
+- [x] 4.2 `LlmExtractor` 接口 + `prompts/extract-lineup`；OCR 容错跳过不阻断。
+- [ ] 4.2 接真实 LLM extractor（DeepSeek/通义）填软字段，补回无 side 字样穿点。
+- [ ] 4.3 OCR 接入：在人审**选定帧后**对选中帧跑，不在候选全集上跑。
+
+## 5. 出口 promote（已实跑闭环）
+
+- [x] 5.1 `promote`：staging 已 approved 草稿 → `buildLineup`（lineupSchema 校验）→ 合并进 `data/lineups/{map}-{agent}.json`（按 id 去重、按 tier 排序）。
+- [x] 5.2 选中帧 copy 成 `raw-images/{id}__{role}.png`，images url 用 CDN 模式交棒现有 `ingest-images`。
+- [x] 5.3 预检 `MUST_LEARN_CAP`（每 {map,agent} must-learn ≤ 5）。
+- [x] 5.4 纯逻辑 4 单测（buildLineup/mergeLineups/mustLearnViolations）；用真实 approved 草稿实跑闭环（ascent-sova 2→3 条）。
+
+## 6. 人审 UI（已端到端验证）
+
+- [x] 6.1 核心纯函数 `review/core.ts`（applyReview / draftToLineupInput / validateForApproval）+ 单测。
+- [x] 6.2 `node:http` 服务 `review/server.ts`：GET /api/drafts、POST /api/draft 写回、/work/* 静态（防越界）。
+- [x] 6.3 单文件 vanilla `review.html`：候选缩略图 [S]/[A]/[E] 指派三帧、接触表概览、字段编辑、approve/reject。
+- [x] 6.4 approve 闸门：lineupSchema 预校验，缺字段拒绝 approve 并报字段、保持 pending；`verifiedPatch` 改为审核员可编辑。
+- [x] 6.5 `pnpm review` 启动；curl 验证 serves HTML/drafts/帧、闸门拒绝不完整/接受完整并写回。
+
+## 7. 测试（还 TDD 欠债，11/11 通过）
+
+- [x] 7.1 `segment` 手抄时间轴切片单测（endSec 推导、末段取时长、无时间轴抛错）。
+- [x] 7.2 `capture` 候选 `atSec = startSec + i` 映射单测（抽出纯函数 `toCandidates`）。
+- [x] 7.3 `sourceFileSchema` 校验单测（合法/非法 bvid/缺 credit/错 platform）。
+- [x] 7.4 `extract` parseQuery 硬字段集成测（命中 side/site + 未命中 side 的 warning）。
+- [ ] 7.5 后续新增功能改为**先写测试**（promote/真 extractor 等）。
+
+## 8. 规格同步
+
+- [x] 8.1 本 change 的 `specs/lineup-ingestion/spec.md` 增量。
+- [x] 8.2 archive 时把 delta 同步进 `openspec/specs/`。
+
+## 9. 本 change 不含（已 deferred，下一版独立 change）
+
+本 change 交付的是**半自动管线 + 人审闭环**（video→候选→人审→promote→data/lineups），已端到端验证。以下为有意 deferred 的增强，另立 change：
+
+- [ ] 真 LLM extractor（DeepSeek/通义，自动填软字段）+ OCR（task 4.2/4.3）。
+- [ ] 一键发布流水线：审批后一条指令跑完 promote+ingest+上传 COS+rebuild。
+- [ ] 数据运行时从 COS/接口加载（去掉 weapp 静态打包，内容热更新免重新构建）。
+- [ ] 候选/接触表改 JPG 省盘（3.5）；扩充采集源（1.4）。

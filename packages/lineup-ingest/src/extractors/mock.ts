@@ -5,12 +5,11 @@ import type { ExtractInput, ExtractResult, LlmExtractor } from './types';
  * 用于打通管线、跑 eval、本地无网开发。
  */
 export class MockExtractor implements LlmExtractor {
-  async extract(input: ExtractInput): Promise<ExtractResult> {
-    const purpose = input.subtitleText.trim().slice(0, 40) || 'TODO 用途（mock）';
+  async extract(_input: ExtractInput): Promise<ExtractResult> {
     return {
-      fields: { purpose },
+      fields: {},
       confidence: 0.1,
-      warnings: ['MockExtractor：未接真实 LLM，软字段为占位'],
+      warnings: ['MockExtractor：未接真实 LLM，软字段待人审填写'],
     };
   }
 }
