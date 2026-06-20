@@ -1,6 +1,18 @@
 import { IMAGE_ROLES, lineupSchema } from '@valotool/lineup-content';
 import type { DraftLineup, FrameRole } from '../types';
 
+const SIDE_ABBR: Record<string, string> = { attack: 'atk', defense: 'def' };
+
+/** 为缺失字段填默认值（不覆盖已有），降低人审负担：自动 id + 常见 technique/tier/status。 */
+export function suggestDefaults(draft: DraftLineup): DraftLineup['fields'] {
+  const f = draft.fields;
+  const idx = draft.draftId.split('-').pop() ?? '0';
+  const autoId = [f.map, f.agent, f.side ? SIDE_ABBR[f.side] : undefined, f.site?.toLowerCase(), idx]
+    .filter(Boolean)
+    .join('-');
+  return { id: autoId, technique: 'stand', status: 'draft', tier: 'must-learn', ...f } as DraftLineup['fields'];
+}
+
 export interface ReviewPatch {
   fields?: Record<string, unknown>;
   frames?: Partial<Record<FrameRole, string>>;

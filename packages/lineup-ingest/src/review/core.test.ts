@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyReview, validateForApproval } from './core';
+import { applyReview, suggestDefaults, validateForApproval } from './core';
 import type { DraftLineup } from '../types';
 
 function baseDraft(): DraftLineup {
@@ -50,6 +50,22 @@ test('validateForApproval：缺字段/无帧 → 拒绝并报字段', () => {
   const v = validateForApproval(baseDraft());
   assert.equal(v.ok, false);
   assert.ok(v.issues.length > 0);
+});
+
+test('suggestDefaults：自动生成 id + 常见默认', () => {
+  const f = suggestDefaults(baseDraft());
+  assert.equal(f.id, 'ascent-sova-atk-a-0');
+  assert.equal(f.technique, 'stand');
+  assert.equal(f.tier, 'must-learn');
+  assert.equal(f.status, 'draft');
+});
+
+test('suggestDefaults：已有值不被覆盖', () => {
+  const d = baseDraft();
+  d.fields = { ...d.fields, id: 'custom-id', technique: 'jump-throw' };
+  const f = suggestDefaults(d);
+  assert.equal(f.id, 'custom-id');
+  assert.equal(f.technique, 'jump-throw');
 });
 
 test('validateForApproval：非 kebab 的 id 被拒', () => {

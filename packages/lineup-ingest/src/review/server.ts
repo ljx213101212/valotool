@@ -2,7 +2,7 @@ import { createServer, type IncomingMessage } from 'node:http';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { applyReview, validateForApproval, type ReviewPatch } from './core';
+import { applyReview, suggestDefaults, validateForApproval, type ReviewPatch } from './core';
 import type { DraftLineup } from '../types';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -47,7 +47,9 @@ const server = createServer(async (req, res) => {
       const files = (await readdir(STAGING).catch(() => [])).filter((f) => f.endsWith('.json'));
       const flat: unknown[] = [];
       for (const file of files) {
-        for (const d of await loadStaging(file)) flat.push({ file, ...d });
+        for (const d of await loadStaging(file)) {
+          flat.push({ file, ...d, fields: suggestDefaults(d) });
+        }
       }
       res.writeHead(200, { 'content-type': MIME['.json'] });
       res.end(JSON.stringify(flat));
