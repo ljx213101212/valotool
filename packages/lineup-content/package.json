@@ -1,0 +1,22 @@
+{
+  "name": "@valotool/lineup-content",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "gen:registry": "tsx scripts/gen-registry.ts",
+    "check": "tsx scripts/validate-content.ts",
+    "test": "tsx --test \"src/**/*.test.ts\"",
+    "ingest": "tsx scripts/ingest-images.ts"
+  },
+  "dependencies": {
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "pinyin-pro": "^3.27.0",
+    "sharp": "^0.35.1",
+    "tsx": "^4.21.0"
+  }
+}

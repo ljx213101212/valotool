@@ -1,0 +1,53 @@
+.favorites {
+  padding: 32px;
+
+  &__card {
+    display: flex;
+    gap: 20px;
+    padding: 24px;
+    border-radius: 16px;
+    background: #f7f8fa;
+    margin-bottom: 16px;
+  }
+
+  &__thumb {
+    flex-shrink: 0;
+    width: 200px;
+    height: 120px;
+    border-radius: 10px;
+    background: #e8e9eb;
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    display: block;
+    font-size: 30px;
+    font-weight: 600;
+  }
+
+  &__meta {
+    display: block;
+    margin-top: 10px;
+    font-size: 24px;
+    color: #888;
+  }
+
+  &__stale {
+    display: block;
+    margin-top: 8px;
+    font-size: 22px;
+    color: #c77700;
+  }
+
+  &__empty {
+    padding: 120px 0;
+    text-align: center;
+    color: #999;
+    font-size: 26px;
+    line-height: 1.8;
+  }
+}
