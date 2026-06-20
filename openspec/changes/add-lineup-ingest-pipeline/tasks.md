@@ -27,11 +27,12 @@
 - [ ] 4.2 接真实 LLM extractor（DeepSeek/通义）填软字段，补回无 side 字样穿点。
 - [ ] 4.3 OCR 接入：在人审**选定帧后**对选中帧跑，不在候选全集上跑。
 
-## 5. 出口 promote
+## 5. 出口 promote（已实跑闭环）
 
-- [ ] 5.1 `promote`：staging 已 approved 草稿 → `lineupSchema` 校验 → 合并进 `data/lineups/{map}-{agent}.json`。
-- [ ] 5.2 选中帧落 `raw-images/{id}__{role}.png`，交棒现有 `ingest-images`。
-- [ ] 5.3 预检 `MUST_LEARN_CAP`（每 {map,agent} must-learn ≤ 5）。
+- [x] 5.1 `promote`：staging 已 approved 草稿 → `buildLineup`（lineupSchema 校验）→ 合并进 `data/lineups/{map}-{agent}.json`（按 id 去重、按 tier 排序）。
+- [x] 5.2 选中帧 copy 成 `raw-images/{id}__{role}.png`，images url 用 CDN 模式交棒现有 `ingest-images`。
+- [x] 5.3 预检 `MUST_LEARN_CAP`（每 {map,agent} must-learn ≤ 5）。
+- [x] 5.4 纯逻辑 4 单测（buildLineup/mergeLineups/mustLearnViolations）；用真实 approved 草稿实跑闭环（ascent-sova 2→3 条）。
 
 ## 6. 人审 UI（已端到端验证）
 
