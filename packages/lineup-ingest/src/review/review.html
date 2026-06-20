@@ -40,6 +40,7 @@
   .approve { background: #16a34a; color: #fff; border: none; }
   .reject { background: #dc2626; color: #fff; border: none; }
   .warn { color: #b45309; } .err { color: #dc2626; white-space: pre-wrap; }
+  .bad { border: 2px solid #dc2626 !important; background: #fff5f5; }
   details { margin: 6px 0; }
 </style>
 </head>
@@ -103,9 +104,9 @@ function opt(name, val) {
 
 function ctrl(k, type, hint) {
   const f = work.fields;
-  if (type === 'select') return `<select onchange="edit('${k}',this.value)">${opt(k, f[k])}</select>`;
-  if (type === 'textarea') return `<textarea placeholder="${esc(hint)}" oninput="edit('${k}',this.value)">${f[k] ?? ''}</textarea>`;
-  return `<input placeholder="${esc(hint)}" value="${esc(f[k])}" oninput="edit('${k}',this.value)" />`;
+  if (type === 'select') return `<select id="f_${k}" onchange="edit('${k}',this.value)">${opt(k, f[k])}</select>`;
+  if (type === 'textarea') return `<textarea id="f_${k}" placeholder="${esc(hint)}" oninput="edit('${k}',this.value)">${f[k] ?? ''}</textarea>`;
+  return `<input id="f_${k}" placeholder="${esc(hint)}" value="${esc(f[k])}" oninput="edit('${k}',this.value)" />`;
 }
 
 function renderEditor(d) {
@@ -173,8 +174,15 @@ async function save(status) {
   work = { fields: { ...drafts[cur].fields }, frames: { ...drafts[cur].frames } };
   renderList();
   const msg = document.getElementById('msg');
-  if (out.ok) msg.innerHTML = `<span style="color:#16a34a">已保存（${drafts[cur].reviewStatus}）</span>`;
-  else msg.innerHTML = `<div class="err">无法通过，缺字段：\n- ${out.issues.join('\n- ')}</div>`;
+  document.querySelectorAll('.bad').forEach((e) => e.classList.remove('bad'));
+  if (out.ok) {
+    msg.innerHTML = `<span style="color:#16a34a">已保存（${drafts[cur].reviewStatus}）</span>`;
+  } else {
+    const keys = out.issues.map((s) => s.split(':')[0].trim());
+    keys.forEach((k) => document.getElementById('f_' + k)?.classList.add('bad'));
+    document.getElementById('f_' + keys[0])?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    msg.innerHTML = `<div class="err">无法通过，缺这些必填（已标红）：\n- ${out.issues.join('\n- ')}</div>`;
+  }
 }
 
 load();
