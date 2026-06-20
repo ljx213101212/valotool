@@ -53,4 +53,13 @@
 ## 8. 规格同步
 
 - [x] 8.1 本 change 的 `specs/lineup-ingestion/spec.md` 增量。
-- [ ] 8.2 archive 时把 delta 同步进 `openspec/specs/`。
+- [x] 8.2 archive 时把 delta 同步进 `openspec/specs/`。
+
+## 9. 本 change 不含（已 deferred，下一版独立 change）
+
+本 change 交付的是**半自动管线 + 人审闭环**（video→候选→人审→promote→data/lineups），已端到端验证。以下为有意 deferred 的增强，另立 change：
+
+- [ ] 真 LLM extractor（DeepSeek/通义，自动填软字段）+ OCR（task 4.2/4.3）。
+- [ ] 一键发布流水线：审批后一条指令跑完 promote+ingest+上传 COS+rebuild。
+- [ ] 数据运行时从 COS/接口加载（去掉 weapp 静态打包，内容热更新免重新构建）。
+- [ ] 候选/接触表改 JPG 省盘（3.5）；扩充采集源（1.4）。
