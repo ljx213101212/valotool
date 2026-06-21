@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtemp } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { VlmExtractor } from './vlm';
 import type { ExtractInput } from './types';
 
@@ -75,4 +78,32 @@ test('网络异常 → 降级 + warning，不抛', async () => {
   const r = await extractor(stub).extract(input);
   assert.deepEqual(r.fields, {});
   assert.ok(r.warnings.some((w) => w.includes('请求失败')));
+});
+
+test('缓存命中：第二次不再调用 API', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'vlmcache-'));
+  let calls = 0;
+  const stub = (async () => {
+    calls++;
+    return new Response(JSON.stringify({ choices: [{ message: { content: '{"abilitySlot":"E"}' } }] }), { status: 200 });
+  }) as unknown as typeof fetch;
+  const ex = new VlmExtractor({ baseUrl: 'x', apiKey: 'k', model: 'm', fetchImpl: stub, readImage: async () => 'B', cacheDir: dir });
+  const r1 = await ex.extract(input);
+  const r2 = await ex.extract(input);
+  assert.equal(calls, 1, '第二次应走缓存');
+  assert.equal(r1.fields.abilitySlot, 'E');
+  assert.equal(r2.fields.abilitySlot, 'E');
+});
+
+test('失败结果不缓存：每次都重试', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'vlmcache-'));
+  let calls = 0;
+  const stub = (async () => {
+    calls++;
+    return new Response('busy', { status: 500 });
+  }) as unknown as typeof fetch;
+  const ex = new VlmExtractor({ baseUrl: 'x', apiKey: 'k', model: 'm', fetchImpl: stub, readImage: async () => 'B', cacheDir: dir, maxRetries: 0 });
+  await ex.extract(input);
+  await ex.extract(input);
+  assert.equal(calls, 2, '失败不缓存，第二次仍调用');
 });

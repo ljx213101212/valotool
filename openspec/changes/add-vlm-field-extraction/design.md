@@ -17,7 +17,7 @@ extract 在**人审之前**跑,此时只有候选帧全集(每段几十张),没�
 
 ## 缓存与幂等
 
-VLM 调用按「接触表内容」缓存到 `.work/<bvid>/vlm/<segId>.json`,重跑命中不重复付费。`INGEST_EXTRACTOR=vlm` 时启用真模型,缺省 `mock` 保持现状、无 key 可开发。
+VLM 调用按「模型 + prompt + 图像内容」哈希缓存到 flat `.work/.vlm-cache/<hash>.json`,**仅缓存成功结果**;重跑命中不重复付费、断点续跑,prompt/模型一变即自然失效(比 per-bvid/segId 更稳:跨视频去重、对调 prompt 鲁棒)。`INGEST_EXTRACTOR=vlm` 时启用真模型,缺省 `mock` 保持现状、无 key 可开发。
 
 ## eval:有它才算工程
 

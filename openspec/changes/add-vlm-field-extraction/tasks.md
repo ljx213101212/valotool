@@ -7,8 +7,8 @@
 
 - [x] 2.1 OpenAI 兼容多模态客户端（env `VLM_BASE_URL`/`VLM_API_KEY`/`VLM_MODEL`，默认 deepseek），图像 base64，注入式 `fetch`/`readImage` 便于测试。
 - [x] 2.2 输出解析 + 逐字段校验 `vlm-parse`（合法保留 / 非法丢弃记 warning / 坏 JSON 降级）。
-- [ ] 2.3 调用缓存到 `.work/<bvid>/vlm/<segId>.json`，幂等不重复付费。
-- [x] 2.4 cli 按 `INGEST_EXTRACTOR=vlm|mock` 选 extractor，缺 key 回退 mock。
+- [x] 2.3 调用缓存：按「模型+prompt+图像内容」哈希存 flat `.work/.vlm-cache/`，仅缓存成功结果；命中不重复付费、断点续跑（比 per-segId 更稳，prompt/模型变即失效）。
+- [x] 2.4 cli/eval 共享 `extractorFromEnv`（INGEST_EXTRACTOR=vlm|mock，缺 key 回退 mock）。
 
 ## 3. eval 骨架
 

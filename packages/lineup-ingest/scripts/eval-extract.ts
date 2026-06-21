@@ -13,16 +13,14 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { AGENTS, MAPS } from '@valotool/lineup-content';
 import type { DraftLineup } from '../src/types.ts';
-import { MockExtractor } from '../src/extractors/mock.ts';
-import { VlmExtractor, vlmConfigFromEnv } from '../src/extractors/vlm.ts';
+import { extractorFromEnv } from '../src/extractors/vlm.ts';
 import { categoricalAccuracy, compareFields, type FieldComparison } from '../src/eval/score.ts';
 
 const PKG = join(dirname(fileURLToPath(import.meta.url)), '..');
 const STAGING = join(PKG, 'staging');
 
-const cfg = process.env.INGEST_EXTRACTOR === 'vlm' ? vlmConfigFromEnv() : null;
-const extractor = cfg ? new VlmExtractor(cfg) : new MockExtractor();
-console.log(`extractor = ${cfg ? `vlm(${cfg.model})` : 'mock'}\n`);
+const { extractor, label } = extractorFromEnv(join(PKG, '.work', '.vlm-cache'));
+console.log(`extractor = ${label}\n`);
 
 const files = (await readdir(STAGING).catch(() => [])).filter((f) => f.endsWith('.json'));
 const truth: DraftLineup[] = [];
