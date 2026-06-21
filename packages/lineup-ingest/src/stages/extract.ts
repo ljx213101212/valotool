@@ -17,8 +17,10 @@ export async function extract(
   const parsed = parseQuery(seg.title ?? '');
 
   const soft = await ctx.extractor.extract({
+    title: seg.title,
     subtitleText: seg.subtitleText,
     ocrText: [],
+    images: seg.contactSheet ? [seg.contactSheet] : [],
     hints: src.hints,
     vocab: { maps: MAPS.map((m) => m.slug), agents: AGENTS.map((a) => a.slug) },
   });
