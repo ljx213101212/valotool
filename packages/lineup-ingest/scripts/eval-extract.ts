@@ -7,6 +7,7 @@
  *   INGEST_EXTRACTOR=vlm VLM_API_KEY=sk-... \
  *     pnpm --filter @valotool/lineup-ingest eval               # 真 VLM
  */
+import '../src/env.ts';
 import { readdir, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';

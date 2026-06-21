@@ -1,3 +1,4 @@
+import '../env';
 import { createServer, type IncomingMessage } from 'node:http';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';

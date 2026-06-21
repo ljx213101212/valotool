@@ -1,3 +1,4 @@
+import './env';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { sourceFileSchema } from './types';
