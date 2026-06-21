@@ -3,6 +3,9 @@ import type { ExtractInput, ExtractResult, LlmExtractor } from './types';
 import { parseVlmOutput } from './vlm-parse';
 import { buildExtractPrompt } from '../prompts/extract-lineup';
 
+/** 可退避重试的状态码：限流 / 服务暂不可用 */
+const RETRYABLE = new Set([429, 503]);
+
 export interface VlmConfig {
   baseUrl: string;
   apiKey: string;
@@ -11,6 +14,10 @@ export interface VlmConfig {
   fetchImpl?: typeof fetch;
   /** 注入点：path → base64，测试可桩掉文件读取 */
   readImage?: (path: string) => Promise<string>;
+  /** 429/503 最大重试次数（默认 3） */
+  maxRetries?: number;
+  /** 注入点：退避等待，测试可桩为 no-op */
+  sleep?: (ms: number) => Promise<void>;
 }
 
 /** 从 env 取配置；无 key 返回 null（调用方回退 mock）。 */
@@ -38,18 +45,30 @@ export class VlmExtractor implements LlmExtractor {
       content.push({ type: 'image_url', image_url: { url: `data:image/png;base64,${b64}` } });
     }
 
+    const sleep = this.cfg.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+    const maxRetries = this.cfg.maxRetries ?? 3;
+    const reqInit = {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${this.cfg.apiKey}` },
+      body: JSON.stringify({ model: this.cfg.model, messages: [{ role: 'user', content }], temperature: 0 }),
+    };
+
     let res: Response;
-    try {
-      res = await doFetch(`${this.cfg.baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', authorization: `Bearer ${this.cfg.apiKey}` },
-        body: JSON.stringify({ model: this.cfg.model, messages: [{ role: 'user', content }], temperature: 0 }),
-      });
-    } catch (e) {
-      return { fields: {}, confidence: 0, warnings: [`VLM 请求失败：${(e as Error).message}`] };
+    for (let attempt = 0; ; attempt++) {
+      try {
+        res = await doFetch(`${this.cfg.baseUrl}/chat/completions`, reqInit);
+      } catch (e) {
+        return { fields: {}, confidence: 0, warnings: [`VLM 请求失败：${(e as Error).message}`] };
+      }
+      if (RETRYABLE.has(res.status) && attempt < maxRetries) {
+        await sleep(1000 * 2 ** attempt); // 1s, 2s, 4s
+        continue;
+      }
+      break;
     }
     if (!res.ok) {
-      return { fields: {}, confidence: 0, warnings: [`VLM HTTP ${res.status}`] };
+      const body = await res.text().catch(() => '');
+      return { fields: {}, confidence: 0, warnings: [`VLM HTTP ${res.status}: ${body.slice(0, 400)}`] };
     }
 
     const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };

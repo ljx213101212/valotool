@@ -47,6 +47,27 @@ test('非 200 → 降级为空 + warning，不抛', async () => {
   assert.ok(r.warnings.some((w) => w.includes('HTTP 500')));
 });
 
+test('429 限流 → 退避重试后成功', async () => {
+  let calls = 0;
+  const stub = (async () => {
+    calls++;
+    if (calls < 3) return new Response('{"error":{"code":"1305"}}', { status: 429 });
+    return new Response(JSON.stringify({ choices: [{ message: { content: '{"abilitySlot":"E"}' } }] }), { status: 200 });
+  }) as unknown as typeof fetch;
+  const ex = new VlmExtractor({
+    baseUrl: 'https://x',
+    apiKey: 'k',
+    model: 'glm-4.6v-flash',
+    fetchImpl: stub,
+    readImage: async () => 'B',
+    sleep: async () => {},
+    maxRetries: 5,
+  });
+  const r = await ex.extract(input);
+  assert.equal(calls, 3);
+  assert.equal(r.fields.abilitySlot, 'E');
+});
+
 test('网络异常 → 降级 + warning，不抛', async () => {
   const stub = (async () => {
     throw new Error('ECONNREFUSED');

@@ -24,8 +24,8 @@
 
 ## 5. 接真模型 & 验证（需 key）
 
-- [ ] 5.1 配 env 接真 DeepSeek-V4，对 ascent 已审段跑 eval、出首个真报告。
-- [ ] 5.2 据 eval 调 prompt / 决定是否退化到「抽样全分辨率帧」。
+- [x] 5.1 接真模型出首个 eval 报告。**坑：DeepSeek API（api.deepseek.com）实测只收 text、不收 image_url（"V4 多模态"是营销稿），改用智谱 glm-4.6v-flash（免费、OpenAI 兼容、确实能读图）**。首报告（ascent-0，1 条）：abilitySlot ✓(E)、purpose 准、technique ✗(placed vs stand)、origin 略偏。加了 429/503 退避重试（免费档常限流）。
+- [ ] 5.2 据 eval 调 prompt / 决定是否退化到「抽样全分辨率帧」（待 ground truth 攒厚再调）。
 
 ## 6. 规格同步
 
