@@ -10,6 +10,7 @@
     "ingest": "tsx src/cli.ts run",
     "review": "tsx src/review/server.ts",
     "eval": "tsx scripts/eval-extract.ts",
+    "timeline": "tsx scripts/parse-timeline.ts",
     "promote": "tsx scripts/promote.ts"
   },
   "dependencies": {
