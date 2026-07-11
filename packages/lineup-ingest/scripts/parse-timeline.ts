@@ -1,18 +1,32 @@
 /**
- * 把时间轴草稿文件解析成 sources 的 segments JSON。
+ * 把时间轴草稿文件解析成 segments JSON，或连同元数据生成可直接 ingest 的 source JSON。
  * 默认读 sources/_timeline.txt（把 B站时间轴粘进去、存盘），也可传路径：
  *   pnpm --filter @valotool/lineup-ingest timeline
  *   pnpm --filter @valotool/lineup-ingest timeline 某个文件.txt
- * 输出（stdout）= segments JSON，粘进 sources/<角色>.json 的 "segments"。
+ *   pnpm --filter @valotool/lineup-ingest timeline 某个文件.txt --source \
+ *     --bvid BV... --title "标题" --creator "UP主" --map ascent --agent jett
+ * 默认 stdout = segments JSON；--source stdout = 单视频 SourceVideo[] JSON。
  */
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseTimeline } from '../src/timeline.ts';
+import { buildBilibiliTimelineSource, parseTimeline, parseTimelineCliArgs } from '../src/timeline.ts';
 
 const PKG = join(dirname(fileURLToPath(import.meta.url)), '..');
-const arg = process.argv[2];
-const file = arg ? resolve(process.cwd(), arg) : join(PKG, 'sources', '_timeline.txt');
+let args;
+try {
+  args = parseTimelineCliArgs(process.argv.slice(2));
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
+}
+
+if (args.help) {
+  console.log('用法：timeline [时间轴文件] [--source --bvid BV... --title 标题 --creator UP主 --map 地图slug --agent 英雄slug] [--output|-o 输出文件]');
+  process.exit(0);
+}
+
+const file = args.timelinePath ? resolve(process.cwd(), args.timelinePath) : join(PKG, 'sources', '_timeline.txt');
 
 const text = await readFile(file, 'utf8').catch(() => null);
 if (text === null) {
@@ -25,7 +39,19 @@ if (!text.trim()) {
 }
 
 const { segments, skipped } = parseTimeline(text);
-process.stdout.write(JSON.stringify(segments, null, 2) + '\n');
+try {
+  const output = args.source ? buildBilibiliTimelineSource(text, args.source) : segments;
+  const json = JSON.stringify(output, null, 2) + '\n';
+  if (args.outputPath) {
+    await writeFile(resolve(process.cwd(), args.outputPath), json, 'utf8');
+    console.error(`已写入 ${args.outputPath}`);
+  } else {
+    process.stdout.write(json);
+  }
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
+}
 
 console.error(`\n—— 读自 ${file}`);
 console.error(`—— 解析出 ${segments.length} 段`);

@@ -25,6 +25,42 @@ pnpm --filter @valotool/lineup-ingest typecheck       # 类型检查
 pnpm --filter @valotool/lineup-ingest ingest sources/sova.json   # 跑管线（外部 adapter 待实现）
 ```
 
+## 时间轴录入
+
+旧用法只把 `mm:ss 标题` 草稿解析为 `segments`，便于补进已有 source：
+
+```bash
+pnpm --filter @valotool/lineup-ingest timeline path/to/timeline.txt
+```
+
+使用 `--source` 会直接输出单视频 `SourceVideo[]` JSON，可保存到 `sources/<agent>.json` 后运行 `check:sources` 与 `ingest`。BVID 会生成标准 Bilibili URL 和来源致谢，不需要也不能手填 URL：
+
+```bash
+pnpm --filter @valotool/lineup-ingest timeline path/to/timeline.txt --source \
+  --bvid BV1Tz4y1e7NK \
+  --title "捷风 Ascent 进点合集" \
+  --creator "UP 主名" \
+  --map ascent \
+  --agent jett \
+  --creator-uid 107743511 \
+  --patch 12.11 \
+  --note "可选录入备注"
+```
+
+`--bvid`、`--title`、`--creator`、`--map`、`--agent` 为必填；`--creator-uid`、`--patch`、`--note` 为可选。地图和英雄必须使用项目已注册的 slug，且 `BV0000000000` 这类占位 BVID 会被拒绝。
+
+`--output`（或 `-o`）可将输出写入文件而非 stdout：
+
+```bash
+# 输出到文件
+pnpm --filter @valotool/lineup-ingest timeline draft.txt --source \
+  --bvid BV1Tz4y1e7NK --title "标题" --creator "UP主" --map ascent --agent jett \
+  --output sources/jett.json
+
+# 或使用简写
+pnpm --filter @valotool/lineup-ingest timeline draft.txt -o segments.json
+```
+
 ## 现状
 
 骨架已通。`segment`(手抄时间轴) / `stage` / `check:sources` 为真实现；

@@ -6,6 +6,7 @@ import App from './App.tsx'
 import { initTimelineKeyframeLiveSync } from '@/shared/utils/timelineKeyframeLiveSync'
 import MatchListPage from '@/features/match-replay/MatchListPage'
 import MatchReplayRoute from '@/features/match-replay/MatchReplayRoute'
+import TimelineIngestPage from '@/features/timeline-ingest/TimelineIngestPage'
 
 initTimelineKeyframeLiveSync()
 
@@ -15,6 +16,7 @@ createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path="/" element={<MatchListPage />} />
         <Route path="/replay/:matchId" element={<MatchReplayRoute />} />
+        <Route path="/timeline-ingest" element={<TimelineIngestPage />} />
         <Route path="/legacy" element={<App />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

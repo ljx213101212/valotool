@@ -142,6 +142,19 @@
     "inRankedPool": false
   },
   {
+    "slug": "summit",
+    "uuid": "756da597-416b-c0f2-f47b-afbdf28670bc",
+    "nameEn": "Summit",
+    "nameZh": "天枢云阙",
+    "pinyin": "tianshuyunque",
+    "pinyinInitials": "tsyq",
+    "aliases": [
+      "天枢",
+      "云阙"
+    ],
+    "inRankedPool": true
+  },
+  {
     "slug": "sunset",
     "uuid": "92584fbe-486a-b1b2-9faa-39b0f486b498",
     "nameEn": "Sunset",

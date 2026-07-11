@@ -14,6 +14,12 @@ importers:
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@valotool/lineup-content':
+        specifier: workspace:*
+        version: link:packages/lineup-content
+      '@valotool/lineup-ingest':
+        specifier: workspace:*
+        version: link:packages/lineup-ingest
       '@xzdarcy/react-timeline-editor':
         specifier: ^1.0.0
         version: 1.0.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
