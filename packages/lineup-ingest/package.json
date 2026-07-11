@@ -1,0 +1,27 @@
+{
+  "name": "@valotool/lineup-ingest",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./timeline": "./src/timeline.ts"
+  },
+  "scripts": {
+    "check:sources": "tsx scripts/check-sources.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "tsx --test \"src/**/*.test.ts\"",
+    "ingest": "tsx src/cli.ts run",
+    "review": "tsx src/review/server.ts",
+    "eval": "tsx scripts/eval-extract.ts",
+    "timeline": "tsx scripts/parse-timeline.ts",
+    "promote": "tsx scripts/promote.ts"
+  },
+  "dependencies": {
+    "@valotool/lineup-content": "workspace:*",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0",
+    "typescript": "~6.0.2"
+  }
+}

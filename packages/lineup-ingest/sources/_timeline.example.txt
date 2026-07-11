@@ -1,0 +1,8 @@
+# 时间轴草稿模板（参考用）。实际用 sources/_timeline.txt（已 gitignore）。
+# 用法：把 B站简介的时间轴粘进 _timeline.txt，每行「mm:ss 标题」，存盘后：
+#   pnpm --filter @valotool/lineup-ingest timeline
+# 以 # 开头或无时间戳的行会被自动跳过。
+
+0:22 进攻A包电箭
+1:00 中路探测箭
+2:15 B点封烟

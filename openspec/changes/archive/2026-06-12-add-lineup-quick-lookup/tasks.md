@@ -1,0 +1,37 @@
+## 1. 内容数据层（packages/lineup-content）
+
+- [x] 1.1 定义点位内容 zod schema（map/agent/ability/side/site/tier/technique/images[role]/verifiedPatch/status/keywords）。
+- [x] 1.2 建地图注册表：12 张图（中文名/英文名/拼音/首字母/别名/当前图池标记）；注册表由 `gen-registry.ts` 从 valorant-api.com（en + zh-CN）生成并提交，运行时不依赖网络。图池标记待核实（curated/aliases.ts TODO）。
+- [x] 1.3 建英雄注册表：29 英雄（中文名/英文名/拼音/首字母/社区别名/技能槽位 C-Q-E-X 名称），来源同上。
+- [x] 1.4 内容校验脚本（schema 校验 + 引用完整性 + id 全局唯一 + 必学档每组合 ≤5 条约束告警），`pnpm --filter @valotool/lineup-content check`。
+- [x] 1.5 首批样例内容：亚海悬城 × 猎枭 × 攻防 4 条（占位图），通过校验管线；端到端到 UI 由任务 2/3 承接。
+
+## 2. 应用工程（apps/lineup，Taro）
+
+- [x] 2.1 仓库转 pnpm workspace（根应用构建不变），脚手架 Taro 4.2 + React 18 + TS（webpack5），weapp 与 h5 双目标可构建（产物分别输出 dist/weapp、dist/h5）；冒烟首页已从 @valotool/lineup-content 读图池渲染，验证 workspace TS 源码编译链路（h5/mini 的 compile.include 用函数匹配 lineup-content 路径）。
+- [x] 2.2 基础导航与页面骨架：首页（含地图九宫格）/ 英雄选择 / 点位列表 / 点位卡 四页跳转打通。
+
+## 3. 速查流程
+
+- [x] 3.1 首页：搜索框（大按钮）+ 最近查询 chips（本地存储，点击直达对应清单）+ 我的收藏入口。
+- [x] 3.2 地图九宫格（图池置顶、非图池降透明度）→ 英雄网格（有内容优先、无内容置灰 toast）→ 点位列表（必学/进阶/花活分组、攻防 tab + 站点筛选）。
+- [x] 3.3 点位卡：三图 Swiper（role 标签 + caption 蒙层）+ 技能/手法/时机/站哪/落点/用途 + 版本标签（✅已验证 / ⚠️待验证）。
+- [x] 3.4 结构化搜索：`parseQuery` 封闭词表贪婪最长匹配（中文/英文/slug/拼音/首字母/黑话别名 + 攻防/站点 token），未识别片段进 unmatched 并 toast 提示；7 个单测覆盖。
+- [x] 3.5 收藏：详情页 ☆/★ 切换（本地 storage），收藏列表页（useDidShow 重读）。
+
+## 4. 性能与图片
+
+- [x] 4.1 图片多尺寸约定与 CDN URL 规则（ingest-images.ts：原图→1600w webp + 480w thumb）；前端清单/收藏页用 thumbUrl 缩略图 + lazyLoad，详情大图 lazyLoad。
+- [x] 4.2 进英雄页即预取该图必学点位首图（去重、静默失败）；埋点 first_image_ms（清单缩略图/详情大图首次加载，console + 本地留存 50 条，上线后可换自定义分析）。
+
+## 5. 内容生产（与开发并行）
+
+- [x] 5.1 定义截图规范：1920×1080、画质中高、清晰准星；自定义对局开 无限技能+回合不限时+幽灵模式；文件命名 `{点位id}__{stand|aim|effect}.png` 交给 ingest 脚本。
+- [ ] 5.2 首批真实内容：移交内容运营（拍摄规范 + ingest 脚本已就绪），不阻塞本 change 归档。
+- [ ] 5.3 竞品调研已取消（成本考量）；策展规则维持「必学 ≤5」现状，后续按真实用户反馈调整。
+
+## 6. 验证与上架准备
+
+- [x] 6.1 lint + 类型检查（含 app tsc --noEmit）+ 25 单测 + 内容校验通过；weapp/h5 双端构建通过，H5 全流程人工验收通过；weapp 真机预览待正式 AppID。
+- [x] 6.2 上架材料清单见 docs/小程序上架清单.md（注册/提审为人工操作）。
+- [x] 6.3 埋点就绪：first_image_ms / search / favorite（本地）；留存率用微信小程序后台自带统计。

@@ -1,0 +1,114 @@
+[
+  {
+    "id": "ascent-sova-atk-a-main-shock",
+    "map": "ascent",
+    "agent": "sova",
+    "abilitySlot": "Q",
+    "side": "attack",
+    "site": "A",
+    "tier": "must-learn",
+    "title": "A大电箭（1楼箱子后清点）",
+    "purpose": "进攻 A 大推进前，用雷击箭清理 A 大常见架枪点",
+    "technique": "stand",
+    "timing": "队友进 A 大前",
+    "origin": "A 大 1 楼箱子后",
+    "target": "A 大斜坡 / 常见架点位置",
+    "images": [
+      {
+        "role": "stand",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-sova-atk-a-main-shock/stand.webp",
+        "caption": "A 大 1 楼箱子后站位"
+      },
+      {
+        "role": "aim",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-sova-atk-a-main-shock/aim.webp",
+        "caption": "准星对齐点"
+      },
+      {
+        "role": "effect",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-sova-atk-a-main-shock/effect.webp",
+        "caption": "电箭落点"
+      }
+    ],
+    "verifiedPatch": "12.11",
+    "status": "verified",
+    "keywords": [
+      "电箭",
+      "雷击箭",
+      "A大",
+      "清点"
+    ]
+  },
+  {
+    "id": "ascent-sova-atk-mid-recon",
+    "map": "ascent",
+    "agent": "sova",
+    "abilitySlot": "E",
+    "side": "attack",
+    "site": "mid",
+    "tier": "must-learn",
+    "title": "中路探测箭（探整个CT）",
+    "purpose": "进攻中路时探测整个 CT 区域人数",
+    "technique": "stand",
+    "timing": "开局推进中路前",
+    "origin": "中路进攻方一侧",
+    "target": "覆盖整个 CT 区域",
+    "images": [
+      {
+        "role": "stand",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-sova-atk-mid-recon/stand.webp",
+        "caption": "中路站位"
+      },
+      {
+        "role": "aim",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-sova-atk-mid-recon/aim.webp",
+        "caption": "准星对齐点"
+      },
+      {
+        "role": "effect",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-sova-atk-mid-recon/effect.webp",
+        "caption": "探测箭覆盖 CT"
+      }
+    ],
+    "verifiedPatch": "12.11",
+    "status": "verified",
+    "keywords": [
+      "探测箭",
+      "寻敌箭",
+      "中路",
+      "探CT"
+    ]
+  },
+  {
+    "id": "ascent-sova-atk-a-main-detect",
+    "map": "ascent",
+    "agent": "sova",
+    "abilitySlot": "E",
+    "side": "attack",
+    "site": "A",
+    "tier": "must-learn",
+    "title": "进攻a点内第一支",
+    "purpose": "帮助决斗进A点",
+    "technique": "stand",
+    "timing": "决斗进A包点前",
+    "origin": "A大外",
+    "target": "A点箱子后方",
+    "images": [
+      {
+        "role": "stand",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-sova-atk-a-main-detect/stand.webp"
+      },
+      {
+        "role": "aim",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-sova-atk-a-main-detect/aim.webp"
+      },
+      {
+        "role": "effect",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-sova-atk-a-main-detect/effect.webp"
+      }
+    ],
+    "verifiedPatch": "12.11",
+    "status": "verified",
+    "keywords": []
+  }
+]
