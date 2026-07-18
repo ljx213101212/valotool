@@ -1,7 +1,8 @@
 # lineup-ingestion Specification
 
 ## Purpose
-TBD - created by archiving change add-lineup-ingest-pipeline. Update Purpose after archive.
+
+定义从 B 站攻略视频半自动录入结构化点位的管线：fetch → segment → capture → extract → stage → 人审 → promote。核心目标是降低数据准备的人工成本，把人的角色从创作者降为审核员。
 ## Requirements
 ### Requirement: 采集源以结构化清单声明
 
@@ -28,12 +29,22 @@ TBD - created by archiving change add-lineup-ingest-pipeline. Update Purpose aft
 
 ### Requirement: 切片优先采用手抄时间轴
 
-系统 SHALL 在切片时优先使用源清单里的手抄时间轴，每段 `endSec` 由下一段 `startSec` 推得、末段取视频时长；无手抄时间轴时回退到章节或自动检测。
+系统 SHALL 在切片时优先使用源清单里的手抄时间轴，每段 `endSec` 由下一段 `startSec` 推得、末段取视频时长；无手抄时间轴时，SHALL 回退到视频章节信息；无章节时，SHALL 尝试从字幕自动分段；无任何分段信息时 SHALL 报错。
 
 #### Scenario: 按手抄时间轴切片
 
 - **WHEN** 源含 N 条 `segments`
 - **THEN** 系统 SHALL 产出 N 个切片，第 i 段为 `[segments[i].startSec, segments[i+1].startSec)`，末段右界为视频时长
+
+#### Scenario: 章节信息回退分段
+
+- **WHEN** 源无手抄时间轴，但 `fetch` 阶段从 yt-dlp 提取到 N 个章节
+- **THEN** 系统 SHALL 以章节起止时间为边界产出 N 个切片，标题取章节标题
+
+#### Scenario: 字幕自动分段回退
+
+- **WHEN** 源无手抄时间轴、无章节，但下载到字幕文件
+- **THEN** 系统 SHALL 解析字幕按停顿/关键词切分，产出切片（每段 ≥ 5 秒、≤ 90 秒）
 
 ### Requirement: 时间轴命令可生成可摄取的采集源清单
 
@@ -63,18 +74,28 @@ TBD - created by archiving change add-lineup-ingest-pipeline. Update Purpose aft
 - **WHEN** 录入者在未提供完整来源模式选项的情况下运行时间轴命令
 - **THEN** stdout SHALL 仅包含解析后的 `startSec` 与 `title` 段数组，不包含来源元数据包装
 
-### Requirement: 取帧产出候选集与接触表，不预先指派角色
+### Requirement: 取帧产出候选集与接触表，VLM 可预选帧
 
-系统 SHALL 在 capture 阶段对每段按 1fps 抽候选帧，并用同批帧拼一张接触表；候选与接触表格子 1:1 对应（`atSec = startSec + i`）。系统 SHALL NOT 在此阶段自动指派 stand/aim/effect，该指派交人审。
+系统 SHALL 在 capture 阶段对每段按 1fps 抽候选帧，并用同批帧拼一张接触表；候选与接触表格子 1:1 对应（`atSec = startSec + i`）。extract 阶段 SHALL 调用 extractor 的 `selectFrames` 方法尝试自动指派 stand/aim/effect 帧；自动指派失败（无 VLM / 低置信）时帧留空交人审。VLM 预选帧为默认值，人审可覆盖。
 
 #### Scenario: 候选数与段时长一致
 
 - **WHEN** 某段时长为 D 秒（D ≤ 上限）
-- **THEN** 系统 SHALL 产出约 D 张候选帧与 1 张接触表，且草稿的 `frames` 为空、`candidates` 非空
+- **THEN** 系统 SHALL 产出约 D 张候选帧与 1 张接触表
+
+#### Scenario: VLM 预选帧为默认值
+
+- **WHEN** VLM extractor 可用，且 `selectFrames` 返回帧指派
+- **THEN** 草稿 `frames` SHALL 含 VLM 选定的角色→路径，人审时显示为已选默认值
+
+#### Scenario: 无 VLM 时帧留空
+
+- **WHEN** 使用 MockExtractor 或 VLM 不可用
+- **THEN** 草稿 `frames` SHALL 为空，人审从接触表手动指派
 
 ### Requirement: hybrid 结构化抽取，硬字段确定性来
 
-系统 SHALL 复用现有 `parseQuery` 从段标题确定性抽取 `side`/`site`，软字段交可替换的 LLM extractor；无法从标题确定的字段 SHALL 记入 warning 而非编造。
+系统 SHALL 复用现有 `parseQuery` 从段标题确定性抽取 `side`/`site`；软字段（`abilitySlot`/`technique`/`origin`/`target`/`purpose`/`timing`）SHALL 由可替换的 extractor 抽取，其默认实现为读取该段画面的**多模态 VLM**。无法确定的字段 SHALL 记入 warning 而非编造；VLM 输出 SHALL 经 schema 校验，非法字段丢弃并告警，不使整段失败。
 
 #### Scenario: 标题确定性解析攻防与站点
 
@@ -85,6 +106,11 @@ TBD - created by archiving change add-lineup-ingest-pipeline. Update Purpose aft
 
 - **WHEN** 段标题不含进攻/防守字样（如「a二楼上看二楼下」）
 - **THEN** 系统 SHALL 在草稿 warning 标注「未能从标题确定 side」，不臆造 side
+
+#### Scenario: VLM 输出经 schema 校验
+
+- **WHEN** VLM 返回的 `abilitySlot`/`technique` 不在枚举内，或 JSON 解析失败
+- **THEN** 系统 SHALL 丢弃非法字段（坏 JSON 则整体降级为空软字段）、记 warning，并保留已确定的硬字段，不中断该段
 
 ### Requirement: 草稿隔离于 staging，人审通过才入正式数据
 
@@ -104,16 +130,54 @@ TBD - created by archiving change add-lineup-ingest-pipeline. Update Purpose aft
 - **WHEN** 任意草稿生成
 - **THEN** 其 `provenance` SHALL 含 `videoId`、`url`、`creator` 及该段 `startSec`/`endSec`
 
-### Requirement: 人审从候选指派三帧并补全字段
+### Requirement: 人审从候选指派帧并补全字段，区分必填与选填
 
-系统 SHALL 提供本地人审工具，读取 staging 草稿及其候选帧/接触表，支持指派 stand/aim/effect、编辑软字段、approve/reject 写回。标记 approved 前 SHALL 用 `lineupSchema` 预校验整条，未通过不得置为 approved。
+系统 SHALL 提供本地人审工具，读取 staging 草稿及其候选帧/接触表，支持指派帧角色、编辑软字段、approve/reject 写回。标记 approved 前 SHALL 用 `lineupSchema` 预校验整条，并校验必填帧角色（stand/aim/effect）均已指派；agent-specific 选填帧未指派不阻塞 approve。
 
 #### Scenario: 审核通过前校验
 
-- **WHEN** 审核员把草稿标记 approved，但缺必填字段（如 `purpose` 为空、未指派三帧、`id` 非 kebab）
-- **THEN** 系统 SHALL 拒绝该 approve、指出缺失字段，草稿保持 `pending`，但已编辑的字段/帧仍写回
+- **WHEN** 审核员把草稿标记 approved，但缺必填字段（如 `purpose` 为空、必填帧未指派、`id` 非 kebab）
+- **THEN** 系统 SHALL 拒绝该 approve、指出缺失字段/帧，草稿保持 `pending`，但已编辑的字段/帧仍写回
 
-#### Scenario: 指派三帧写回
+#### Scenario: 指派帧写回
 
-- **WHEN** 审核员为草稿选定 stand/aim/effect 三张候选并保存
-- **THEN** 草稿 `frames` SHALL 含三个 role→候选路径，并持久化到其 staging 文件
+- **WHEN** 审核员为草稿选定帧并保存
+- **THEN** 草稿 `frames` SHALL 含角色→候选路径，并持久化到其 staging 文件
+
+#### Scenario: 必填帧缺失时拒绝 approve
+
+- **WHEN** 审核员标记 approved，但 stand/aim/effect 中任一未指派
+- **THEN** 系统 SHALL 拒绝 approve，指出缺失帧角色，草稿保持 pending
+
+#### Scenario: 选填帧缺失不阻塞 approve
+
+- **WHEN** 审核员标记 approved，stand/aim/effect 已指派但 agent-specific 帧（如 Jett 的 smoke_request）未指派
+- **THEN** 系统 SHALL 通过校验，允许 approve
+
+### Requirement: 软字段由多模态 VLM 读帧抽取
+
+系统 SHALL 支持把段的画面（默认该段接触表图）输入多模态 VLM 抽取软字段；模型经 env 配置（base url / key / model）、provider 无关；调用结果 SHALL 可缓存以便幂等重跑不重复付费；无配置时 SHALL 回退到占位 extractor，不阻断管线。
+
+#### Scenario: 缺模型配置时降级
+
+- **WHEN** 未配置 VLM（无 key）
+- **THEN** 管线 SHALL 用占位 extractor 继续产出草稿（软字段留空交人审），不报错
+
+#### Scenario: 重跑命中缓存
+
+- **WHEN** 对同一段以相同画面再次抽取且缓存已存在
+- **THEN** 系统 SHALL 复用缓存结果，不重复调用 VLM
+
+### Requirement: 抽取质量有 eval 量化
+
+系统 SHALL 提供 eval：以人审 `approved` 草稿的软字段为 ground truth，对类别字段（`abilitySlot`/`technique`）计算精确命中率，对自由文本字段并排导出供人工判定，并输出报告。
+
+#### Scenario: 类别字段命中率
+
+- **WHEN** 存在 N 条人审 ground truth
+- **THEN** eval SHALL 对每条跑 extractor，按 `abilitySlot`/`technique` 是否等于 ground truth 统计命中率并报告
+
+#### Scenario: ground truth 为空
+
+- **WHEN** 尚无人审 approved 草稿
+- **THEN** eval SHALL 提示无 ground truth 并退出，不报错

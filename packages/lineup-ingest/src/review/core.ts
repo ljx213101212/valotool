@@ -1,4 +1,4 @@
-import { IMAGE_ROLES, lineupSchema } from '@valotool/lineup-content';
+import { IMAGE_ROLES, lineupSchema, getAgentFrameRoles } from '@valotool/lineup-content';
 import type { DraftLineup } from '../types';
 
 const SIDE_ABBR: Record<string, string> = { attack: 'atk', defense: 'def' };
@@ -44,9 +44,27 @@ export function draftToLineupInput(draft: DraftLineup): Record<string, unknown> 
   return { ...draft.fields, images };
 }
 
-/** approve 闸门：用 lineupSchema 预校验整条，返回是否通过与缺失字段。 */
+/** approve 闸门：用 lineupSchema 预校验整条，并校验必填帧角色。返回是否通过与缺失字段。 */
 export function validateForApproval(draft: DraftLineup): { ok: boolean; issues: string[] } {
+  const issues: string[] = [];
+
+  // 校验必填帧角色
+  const agentSlug = draft.fields.agent ?? '';
+  const frameRoles = getAgentFrameRoles(agentSlug);
+  const requiredRoles = frameRoles.filter((r) => r.required).map((r) => r.role);
+  for (const role of requiredRoles) {
+    if (!draft.frames[role]) {
+      issues.push(`缺少必填帧: ${role}`);
+    }
+  }
+
+  // 校验 lineupSchema
   const r = lineupSchema.safeParse(draftToLineupInput(draft));
-  if (r.success) return { ok: true, issues: [] };
-  return { ok: false, issues: r.error.issues.map((i) => `${i.path.join('.') || '(root)'}: ${i.message}`) };
+  if (!r.success) {
+    for (const i of r.error.issues) {
+      issues.push(`${i.path.join('.') || '(root)'}: ${i.message}`);
+    }
+  }
+
+  return { ok: issues.length === 0, issues };
 }

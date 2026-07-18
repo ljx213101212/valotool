@@ -8,9 +8,9 @@ import { getAgentFrameRoles, AGENTS } from '@valotool/lineup-content';
 import type { DraftLineup } from '../types';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const CWD = process.cwd();
-const STAGING = join(CWD, 'staging');
-const WORK = resolve(CWD, '.work');
+const PKG = resolve(HERE, '..', '..');
+const STAGING = join(PKG, 'staging');
+const WORK = join(PKG, '.work');
 const PORT = Number(process.env.PORT ?? 5180);
 
 const MIME: Record<string, string> = {
