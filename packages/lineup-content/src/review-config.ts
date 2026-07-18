@@ -2,6 +2,8 @@ export interface FrameRoleConfig {
   role: string;
   label: string;
   description?: string;
+  /** 必填帧：approve 闸门校验，缺失时拒绝 approve。默认 false。 */
+  required?: boolean;
 }
 
 export interface AgentReviewConfig {
@@ -9,14 +11,17 @@ export interface AgentReviewConfig {
 }
 
 export const DEFAULT_FRAME_ROLES: FrameRoleConfig[] = [
-  { role: 'stand', label: '站哪', description: '玩家所站位置' },
-  { role: 'aim', label: '瞄哪', description: '准星瞄准位置' },
-  { role: 'effect', label: '落点效果', description: '技能落点 / 生效效果' },
+  { role: 'stand', label: '站哪', description: '玩家所站位置', required: true },
+  { role: 'aim', label: '瞄哪', description: '准星瞄准位置', required: true },
+  { role: 'effect', label: '落点效果', description: '技能落点 / 生效效果', required: true },
 ];
 
 export const AGENT_REVIEW_CONFIGS: Record<string, AgentReviewConfig> = {
   jett: {
     frameRoles: [
+      { role: 'stand', label: '站哪', description: '玩家所站位置', required: true },
+      { role: 'aim', label: '瞄哪', description: '准星瞄准位置', required: true },
+      { role: 'effect', label: '落点效果', description: '技能落点 / 生效效果', required: true },
       { role: 'smoke_request', label: '向队友要什么技能', description: '需要队友配合的技能' },
       { role: 'trigger_timing', label: '触发时机', description: '何时触发' },
       { role: 'smoke_landing', label: '瞬云落点', description: '瞬云烟雾落点位置' },

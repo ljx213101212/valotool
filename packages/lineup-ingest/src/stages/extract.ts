@@ -4,8 +4,8 @@ import type { CapturedSegment, DraftLineup, PipelineCtx, SourceVideo } from '../
 /**
  * CapturedSegment → DraftLineup。
  * 硬字段确定性来：用现有 parseQuery 从标题锁 side/site；
- * 软字段交 LLM extractor。OCR 待人审选定帧后再跑（不在候选全集上跑）。
- * 三帧不在此指派，挂上 candidates + 接触表交人审。
+ * 软字段交 LLM extractor（多模态 VLM）。
+ * VLM 预选 stand/aim/effect 帧作为默认值，人审可覆盖。
  */
 export async function extract(
   seg: CapturedSegment,
@@ -25,6 +25,25 @@ export async function extract(
     vocab: { maps: MAPS.map((m) => m.slug), agents: AGENTS.map((a) => a.slug) },
   });
 
+  // VLM 预选帧（stand/aim/effect），失败不影响主流程
+  let frames: DraftLineup['frames'] = {};
+  try {
+    const frameResult = await ctx.extractor.selectFrames({
+      candidates: seg.candidates,
+      contactSheet: seg.contactSheet,
+      title: seg.title,
+      agentSlug: src.hints?.agent ?? '',
+    });
+    for (const sel of frameResult.selections) {
+      frames[sel.role] = sel.framePath;
+    }
+    if (frameResult.selections.length) {
+      ctx.log(`  → VLM 预选了 ${frameResult.selections.length} 帧`);
+    }
+  } catch {
+    // selectFrames 失败不阻断
+  }
+
   const warnings = [...soft.warnings];
   if (!parsed.side) warnings.push('未能从标题确定 side');
   if (!parsed.site) warnings.push('未能从标题确定 site');
@@ -40,7 +59,7 @@ export async function extract(
       title: seg.title,
       verifiedPatch: src.recordedPatch,
     },
-    frames: {}, // 人审从 candidates 指派
+    frames,
     candidates: seg.candidates,
     contactSheet: seg.contactSheet,
     provenance: {

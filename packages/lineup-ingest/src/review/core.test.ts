@@ -75,3 +75,23 @@ test('validateForApproval：非 kebab 的 id 被拒', () => {
   });
   assert.equal(validateForApproval(d).ok, false);
 });
+
+test('validateForApproval：缺必填帧 stand 时拒绝，且报告缺失角色', () => {
+  const d = applyReview(baseDraft(), {
+    fields: COMPLETE,
+    frames: { aim: 'a.png', effect: 'e.png' }, // 缺 stand
+  });
+  const v = validateForApproval(d);
+  assert.equal(v.ok, false);
+  assert.ok(v.issues.some((i) => i.includes('stand')), `期望含 stand 缺失，实际: ${v.issues.join(', ')}`);
+});
+
+test('validateForApproval：必填帧齐全但无 agent-specific 帧 → 通过', () => {
+  const d = applyReview(baseDraft(), {
+    fields: { ...COMPLETE, agent: 'jett' },
+    frames: { stand: 's.png', aim: 'a.png', effect: 'e.png' },
+    // Jett smoke_request/dash_direction 等均未指派
+  });
+  const v = validateForApproval(d);
+  assert.equal(v.ok, true, v.issues.join('; '));
+});
