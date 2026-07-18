@@ -31,7 +31,7 @@ export const sourceFileSchema = z.array(sourceVideoSchema);
 
 // ───────────────────────── pipeline 中间表示（IR） ─────────────────────────
 
-export type FrameRole = 'stand' | 'aim' | 'effect';
+export type FrameRole = string;
 
 export interface Chapter {
   index: number;

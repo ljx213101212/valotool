@@ -4,6 +4,7 @@ import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { applyReview, suggestDefaults, validateForApproval, type ReviewPatch } from './core';
+import { getAgentFrameRoles, AGENTS } from '@valotool/lineup-content';
 import type { DraftLineup } from '../types';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -38,6 +39,16 @@ const server = createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', 'http://localhost');
     const p = url.pathname;
 
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204);
+      res.end();
+      return;
+    }
+
     if (req.method === 'GET' && p === '/') {
       res.writeHead(200, { 'content-type': MIME['.html'] });
       res.end(await readFile(join(HERE, 'review.html')));
@@ -49,11 +60,22 @@ const server = createServer(async (req, res) => {
       const flat: unknown[] = [];
       for (const file of files) {
         for (const d of await loadStaging(file)) {
-          flat.push({ file, ...d, fields: suggestDefaults(d) });
+          const fields = suggestDefaults(d);
+          const frameRoles = getAgentFrameRoles(fields.agent ?? '');
+          flat.push({ file, ...d, fields, frameRoles });
         }
       }
       res.writeHead(200, { 'content-type': MIME['.json'] });
       res.end(JSON.stringify(flat));
+      return;
+    }
+
+    if (req.method === 'GET' && p === '/api/config') {
+      const config = Object.fromEntries(
+        AGENTS.map((a) => [a.slug, { agent: a, frameRoles: getAgentFrameRoles(a.slug) }]),
+      );
+      res.writeHead(200, { 'content-type': MIME['.json'] });
+      res.end(JSON.stringify(config));
       return;
     }
 

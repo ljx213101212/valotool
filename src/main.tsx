@@ -7,6 +7,7 @@ import { initTimelineKeyframeLiveSync } from '@/shared/utils/timelineKeyframeLiv
 import MatchListPage from '@/features/match-replay/MatchListPage'
 import MatchReplayRoute from '@/features/match-replay/MatchReplayRoute'
 import TimelineIngestPage from '@/features/timeline-ingest/TimelineIngestPage'
+import LineupReviewPage from '@/features/lineup-review/LineupReviewPage'
 
 initTimelineKeyframeLiveSync()
 
@@ -17,6 +18,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/" element={<MatchListPage />} />
         <Route path="/replay/:matchId" element={<MatchReplayRoute />} />
         <Route path="/timeline-ingest" element={<TimelineIngestPage />} />
+        <Route path="/lineup-review" element={<LineupReviewPage />} />
         <Route path="/legacy" element={<App />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

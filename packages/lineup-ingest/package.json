@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./timeline": "./src/timeline.ts"
+    "./timeline": "./src/timeline.ts",
+    "./review": "./src/review/core.ts",
+    "./types": "./src/types.ts"
   },
   "scripts": {
     "check:sources": "tsx scripts/check-sources.ts",

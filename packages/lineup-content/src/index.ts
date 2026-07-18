@@ -5,4 +5,5 @@ export * from './data';
 export * from './labels';
 export * from './search';
 export * from './images';
+export * from './review-config';
 export { MAP_ALIASES, AGENT_ALIASES, RANKED_POOL } from './curated/aliases';
