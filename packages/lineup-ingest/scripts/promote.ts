@@ -6,6 +6,7 @@
  *     → 按 {map}-{agent}.json 合并进 lineup-content/data/lineups（去重+排序+MUST_LEARN_CAP 预检）
  * 之后照常： pnpm --filter @valotool/lineup-content ingest && ... check
  */
+import '../src/env.ts';
 import { copyFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';

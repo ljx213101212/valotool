@@ -1,0 +1,109 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtemp } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { VlmExtractor } from './vlm';
+import type { ExtractInput } from './types';
+
+const input: ExtractInput = {
+  title: '进攻a点内第一支',
+  subtitleText: '',
+  ocrText: [],
+  images: ['contact.png'],
+  hints: { map: 'ascent', agent: 'sova' },
+  vocab: { maps: ['ascent'], agents: ['sova'] },
+};
+
+function extractor(stub: typeof fetch) {
+  return new VlmExtractor({
+    baseUrl: 'https://api.deepseek.com',
+    apiKey: 'k',
+    model: 'deepseek-v4-flash',
+    fetchImpl: stub,
+    readImage: async () => 'BASE64',
+  });
+}
+
+test('请求结构正确：含 model、文字 + 图像 content', async () => {
+  let seenBody: any;
+  const stub = (async (_url: string, init: any) => {
+    seenBody = JSON.parse(init.body);
+    return new Response(JSON.stringify({ choices: [{ message: { content: '{"abilitySlot":"E","origin":"A大箱后"}' } }] }), { status: 200 });
+  }) as unknown as typeof fetch;
+
+  const r = await extractor(stub).extract(input);
+  assert.equal(seenBody.model, 'deepseek-v4-flash');
+  const parts = seenBody.messages[0].content;
+  assert.ok(parts.some((p: any) => p.type === 'text'));
+  const img = parts.find((p: any) => p.type === 'image_url');
+  assert.ok(img && img.image_url.url.startsWith('data:image/png;base64,BASE64'));
+  assert.equal(r.fields.abilitySlot, 'E');
+  assert.equal(r.fields.origin, 'A大箱后');
+});
+
+test('非 200 → 降级为空 + warning，不抛', async () => {
+  const stub = (async () => new Response('boom', { status: 500 })) as unknown as typeof fetch;
+  const r = await extractor(stub).extract(input);
+  assert.deepEqual(r.fields, {});
+  assert.equal(r.confidence, 0);
+  assert.ok(r.warnings.some((w) => w.includes('HTTP 500')));
+});
+
+test('429 限流 → 退避重试后成功', async () => {
+  let calls = 0;
+  const stub = (async () => {
+    calls++;
+    if (calls < 3) return new Response('{"error":{"code":"1305"}}', { status: 429 });
+    return new Response(JSON.stringify({ choices: [{ message: { content: '{"abilitySlot":"E"}' } }] }), { status: 200 });
+  }) as unknown as typeof fetch;
+  const ex = new VlmExtractor({
+    baseUrl: 'https://x',
+    apiKey: 'k',
+    model: 'glm-4.6v-flash',
+    fetchImpl: stub,
+    readImage: async () => 'B',
+    sleep: async () => {},
+    maxRetries: 5,
+  });
+  const r = await ex.extract(input);
+  assert.equal(calls, 3);
+  assert.equal(r.fields.abilitySlot, 'E');
+});
+
+test('网络异常 → 降级 + warning，不抛', async () => {
+  const stub = (async () => {
+    throw new Error('ECONNREFUSED');
+  }) as unknown as typeof fetch;
+  const r = await extractor(stub).extract(input);
+  assert.deepEqual(r.fields, {});
+  assert.ok(r.warnings.some((w) => w.includes('请求失败')));
+});
+
+test('缓存命中：第二次不再调用 API', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'vlmcache-'));
+  let calls = 0;
+  const stub = (async () => {
+    calls++;
+    return new Response(JSON.stringify({ choices: [{ message: { content: '{"abilitySlot":"E"}' } }] }), { status: 200 });
+  }) as unknown as typeof fetch;
+  const ex = new VlmExtractor({ baseUrl: 'x', apiKey: 'k', model: 'm', fetchImpl: stub, readImage: async () => 'B', cacheDir: dir });
+  const r1 = await ex.extract(input);
+  const r2 = await ex.extract(input);
+  assert.equal(calls, 1, '第二次应走缓存');
+  assert.equal(r1.fields.abilitySlot, 'E');
+  assert.equal(r2.fields.abilitySlot, 'E');
+});
+
+test('失败结果不缓存：每次都重试', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'vlmcache-'));
+  let calls = 0;
+  const stub = (async () => {
+    calls++;
+    return new Response('busy', { status: 500 });
+  }) as unknown as typeof fetch;
+  const ex = new VlmExtractor({ baseUrl: 'x', apiKey: 'k', model: 'm', fetchImpl: stub, readImage: async () => 'B', cacheDir: dir, maxRetries: 0 });
+  await ex.extract(input);
+  await ex.extract(input);
+  assert.equal(calls, 2, '失败不缓存，第二次仍调用');
+});

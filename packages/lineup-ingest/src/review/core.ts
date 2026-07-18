@@ -1,5 +1,5 @@
 import { IMAGE_ROLES, lineupSchema } from '@valotool/lineup-content';
-import type { DraftLineup, FrameRole } from '../types';
+import type { DraftLineup } from '../types';
 
 const SIDE_ABBR: Record<string, string> = { attack: 'atk', defense: 'def' };
 
@@ -15,23 +15,30 @@ export function suggestDefaults(draft: DraftLineup): DraftLineup['fields'] {
 
 export interface ReviewPatch {
   fields?: Record<string, unknown>;
-  frames?: Partial<Record<FrameRole, string>>;
+  frames?: Record<string, string | undefined>;
   reviewStatus?: DraftLineup['reviewStatus'];
 }
 
 /** 合并一次审核编辑（字段/帧/状态），返回新草稿，不改原对象。 */
 export function applyReview(draft: DraftLineup, patch: ReviewPatch): DraftLineup {
+  const mergedFrames = { ...draft.frames };
+  if (patch.frames) {
+    for (const [k, v] of Object.entries(patch.frames)) {
+      if (v === undefined) delete mergedFrames[k];
+      else mergedFrames[k] = v;
+    }
+  }
   return {
     ...draft,
     fields: { ...draft.fields, ...(patch.fields ?? {}) } as DraftLineup['fields'],
-    frames: { ...draft.frames, ...(patch.frames ?? {}) },
+    frames: mergedFrames,
     reviewStatus: patch.reviewStatus ?? draft.reviewStatus,
   };
 }
 
 /** 由 fields + 指派的三帧拼成 Lineup 形状的对象（images 按 stand→aim→effect 排序）。 */
 export function draftToLineupInput(draft: DraftLineup): Record<string, unknown> {
-  const images = (IMAGE_ROLES as readonly FrameRole[])
+  const images = (IMAGE_ROLES as readonly string[])
     .filter((r) => draft.frames[r])
     .map((r) => ({ role: r, url: draft.frames[r] }));
   return { ...draft.fields, images };

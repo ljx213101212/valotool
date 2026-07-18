@@ -1,8 +1,9 @@
+import './env';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { sourceFileSchema } from './types';
 import { runSource } from './pipeline';
-import { MockExtractor } from './extractors/mock';
+import { extractorFromEnv } from './extractors/vlm';
 
 // 用法: tsx src/cli.ts run <sources/xxx.json> [bvid]   ← bvid 只跑指定一条
 const [cmd, file, only] = process.argv.slice(2);
@@ -17,7 +18,8 @@ if (cmd === 'run') {
   const sources = (await loadSources(file)).filter((s) => !only || s.id === only);
   if (!sources.length) throw new Error(`无匹配的源${only ? `（bvid=${only}）` : ''}`);
 
-  const extractor = new MockExtractor();
+  const { extractor, label } = extractorFromEnv(join('.work', '.vlm-cache'));
+  console.log(`[ingest] extractor=${label}`);
   for (const src of sources) {
     const ctx = {
       workDir: join('.work', src.id),

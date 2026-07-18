@@ -20,6 +20,8 @@ export const MAPS_CATALOG: MapCatalogEntry[] = [
   { id: 'lotus', label: '莲华古城', accent: '#059669', thumbFile: '/assets/map-thumbs/lotus.webp' },
   { id: 'sunset', label: '日落之城', accent: '#dc2626', thumbFile: '/assets/map-thumbs/sunset.webp' },
   { id: 'abyss', label: '幽邃地窟', accent: '#475569', thumbFile: '/assets/map-thumbs/abyss.webp' },
+  { id: 'corrode', label: '盐海矿镇', accent: '#5b21b6', thumbFile: '/assets/map-thumbs/corrode.webp' },
+  { id: 'summit', label: '天枢云阙', accent: '#0891b2', thumbFile: '/assets/map-thumbs/summit.webp' },
 ];
 
 export function getMapById(id: string): MapCatalogEntry | undefined {

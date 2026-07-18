@@ -19,6 +19,7 @@ export const MAP_ALIASES: Record<string, string[]> = {
   sunset: ['日落'],
   abyss: ['幽邃', '无底洞'],
   corrode: ['盐海'],
+  summit: ['天枢', '云阙'],
 };
 
 /**
@@ -33,6 +34,7 @@ export const RANKED_POOL: string[] = [
   'lotus',
   'sunset',
   'corrode',
+  'summit',
 ];
 
 /** 英雄 slug → 社区别名 */

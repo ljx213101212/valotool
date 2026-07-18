@@ -55,6 +55,9 @@ export function MatchListPage({ source = defaultMatchSource }: { source?: MatchS
       <Link to="/legacy" style={styles.legacyLink}>
         旧版战术板 →
       </Link>
+      <Link to="/timeline-ingest" style={{ ...styles.legacyLink, right: 120 }}>
+        时间轴录入 →
+      </Link>
     </div>
   );
 }

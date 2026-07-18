@@ -15,4 +15,17 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
+  server: {
+    proxy: {
+      '/api/lineup-review': {
+        target: 'http://localhost:5180',
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/api\/lineup-review/, '/api'),
+      },
+      '/work': {
+        target: 'http://localhost:5180',
+        changeOrigin: true,
+      },
+    },
+  },
 })

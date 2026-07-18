@@ -52,6 +52,7 @@ export async function download(source: SourceVideo, workDir: string): Promise<Do
       [
         '--cookies-from-browser', COOKIES_BROWSER,
         '--no-playlist', '--no-warnings', '--no-progress', '--retries', '3',
+        '-S', 'vcodec:avc',
         '-f', 'bv*[height<=720]/bv*/b',
         '--remux-video', 'mp4',
         '-o', join(workDir, 'video.%(ext)s'),
