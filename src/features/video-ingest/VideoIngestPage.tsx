@@ -209,7 +209,7 @@ export default function VideoIngestPage() {
                         onChange={(v) => setAgentSlugs((prev) => ({ ...prev, [seg.segmentId]: v }))}
                         placeholder="选择英雄"
                         style={{ width: 140 }}
-                        options={AGENTS.map((a) => ({ value: a.slug, label: a.name }))}
+                        options={AGENTS.map((a) => ({ value: a.slug, label: a.nameZh }))}
                       />
                     </div>
                     {seg.contactSheet && (
