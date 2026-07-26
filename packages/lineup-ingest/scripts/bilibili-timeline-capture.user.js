@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         B站时间轴捕获工具 (ValoTool)
 // @namespace    valotool.lineup-ingest
-// @version      2.0.0
+// @version      2.3.0
 // @description  在 B站视频页一键捕获当前播放时间，生成 lineup-ingest 时间轴数据
 // @author       valotool
 // @match        *://www.bilibili.com/video/*
@@ -114,7 +114,14 @@
     if (attrs) {
       for (var key in attrs) {
         if (key === 'style' && typeof attrs[key] === 'object') {
-          for (var sk in attrs[key]) { e.style[sk] = attrs[key][sk]; }
+          for (var sk in attrs[key]) {
+            // use setProperty with important for button padding/margin to override B站 resets
+            if (tag === 'button' && (sk === 'padding' || sk === 'margin' || sk === 'marginLeft' || sk === 'marginRight')) {
+              e.style.setProperty(sk, String(attrs[key][sk]), 'important');
+            } else {
+              e.style[sk] = attrs[key][sk];
+            }
+          }
         } else if (key === 'on') {
           for (var ek in attrs[key]) { e.addEventListener(ek, attrs[key][ek]); }
         } else if (key === '$') {
@@ -146,7 +153,7 @@
     var s = {
       background: '#60a5fa', color: '#fff', border: 'none', borderRadius: '6px',
       padding: '6px 14px', cursor: 'pointer', fontFamily: 'system-ui, sans-serif',
-      fontSize: '13px', fontWeight: 500,
+      fontSize: '13px', fontWeight: 500, boxSizing: 'border-box',
     };
     for (var k in ext) s[k] = ext[k];
     return s;
@@ -201,11 +208,17 @@
   var bvid = '';
   var segments = [];
   var nextId = 1;
-  var metaFields = { map: '', agent: '', creatorUid: '', recordedPatch: '', note: '' };
+  var metaFields = { map: '', agent: '', creatorUid: '', recordedPatch: '', note: '', cloudPath: '' };
+  var metaExpanded = false;
+
+  function toggleMetaSection() {
+    metaExpanded = !metaExpanded;
+    refreshPanel();
+  }
 
   function loadState(newBvid) {
     bvid = newBvid;
-    metaFields = { map: '', agent: '', creatorUid: '', recordedPatch: '', note: '' };
+    metaFields = { map: '', agent: '', creatorUid: '', recordedPatch: '', note: '', cloudPath: '' };
     if (!bvid) { segments = []; nextId = 1; refreshPanel(); return; }
     var raw = localStorage.getItem(LS_PREFIX + bvid);
     if (raw) {
@@ -312,6 +325,34 @@
     var a = document.createElement('a');
     a.href = url; a.download = filename; a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function resolveCloudUrl(service) {
+    var raw = (metaFields.cloudPath || '').trim();
+    if (!raw) return null;
+
+    if (service === 'gdrive') {
+      // 支持 folder ID 或 folder URL
+      var m = raw.match(/\/folders\/([a-zA-Z0-9_-]{10,})/);
+      if (m) return 'https://drive.google.com/drive/folders/' + m[1];
+      if (/^[a-zA-Z0-9_-]{15,}$/.test(raw)) return 'https://drive.google.com/drive/folders/' + raw;
+      return null;
+    }
+    if (service === 'baidu') {
+      var p = raw;
+      if (!p.startsWith('/')) p = '/' + p;
+      return 'https://pan.baidu.com/disk/main#/index?category=all&path=' + encodeURIComponent(p);
+    }
+    return null;
+  }
+
+  function saveToCloud(service, fallbackUrl, label) {
+    var json = toSourceJSON();
+    var filename = (bvid || 'output') + '.json';
+    downloadText(json, filename);
+    var targetUrl = resolveCloudUrl(service) || fallbackUrl;
+    window.open(targetUrl, '_blank');
+    toast('已下载，请拖拽到 ' + label + ' 窗口');
   }
 
   // ============================================================
@@ -479,38 +520,69 @@
   // 播放器内嵌按钮 (全屏可见)
   // ============================================================
   var playerBtn = null;
-  var playerBtnParent = null;
+  var playerBtnAttached = false;
+
+  function findControlTime() {
+    return document.querySelector('.bpx-player-ctrl-time')
+        || document.querySelector('[class*="player-ctrl-time"]')
+        || null;
+  }
 
   function createPlayerBtn() {
     if (playerBtn) return;
     playerBtn = h('button', {
       id: 'vtc-player-btn',
-      title: '时间轴捕获 (F8 捕获 / F9 开关)',
+      title: 'ValoTool 时间轴 (F8 捕获 / F9 开关)',
       style: {
-        position: 'absolute', top: '8px', right: '8px', zIndex: 999,
-        display: 'flex', alignItems: 'center', gap: '4px',
-        background: 'rgba(96, 165, 250, 0.88)', borderRadius: '8px',
-        padding: '5px 10px', fontSize: '12px', fontWeight: 600, cursor: 'pointer',
-        border: 'none', color: '#fff', fontFamily: 'system-ui, sans-serif',
-        boxShadow: '0 1px 6px rgba(0,0,0,0.3)', whiteSpace: 'nowrap',
+        display: 'inline-flex', alignItems: 'center', gap: '3px',
+        background: 'rgba(96,165,250,0.25)', borderRadius: '5px',
+        padding: '2px 7px', fontSize: '11px', fontWeight: 600, cursor: 'pointer',
+        border: 'none', color: '#60a5fa', fontFamily: 'system-ui, sans-serif',
+        whiteSpace: 'nowrap', verticalAlign: 'middle', margin: '0 6px',
+        transition: 'background 0.15s',
       },
-      on: { click: function (e) { e.stopPropagation(); showPanel(!panelVisible); } },
+      on: {
+        click: function (e) { e.stopPropagation(); showPanel(!panelVisible); },
+        mouseenter: function () { this.style.background = 'rgba(96,165,250,0.4)'; },
+        mouseleave: function () { this.style.background = 'rgba(96,165,250,0.25)'; },
+      },
     }, [
       h('span', { $: '⏱' }),
-      h('span', { id: 'vtc-player-badge', $: String(segments.length), style: { background: 'rgba(255,255,255,0.25)', borderRadius: 8, padding: '0 5px', fontSize: 10, minWidth: 16, textAlign: 'center' } }),
+      h('span', { id: 'vtc-player-badge', $: String(segments.length), style: { opacity: 0.85 } }),
     ]);
-    attachPlayerBtn();
+    tryAttachToControlBar();
   }
 
-  function attachPlayerBtn() {
-    if (!playerBtn) return;
-    var container = findPlayerContainer();
-    if (container && container !== playerBtnParent) {
-      // remove from old parent
+  function tryAttachToControlBar() {
+    if (!playerBtn || playerBtnAttached) return;
+    var timeEl = findControlTime();
+    if (timeEl && timeEl.parentNode) {
+      // remove from old position first
       if (playerBtn.parentNode) playerBtn.parentNode.removeChild(playerBtn);
-      container.appendChild(playerBtn);
-      playerBtnParent = container;
-      log('按钮已挂载到播放器容器');
+      timeEl.parentNode.insertBefore(playerBtn, timeEl.nextSibling);
+      playerBtnAttached = true;
+      log('按钮已挂载到控制栏时间右侧');
+      return;
+    }
+    // fallback: try player container
+    var container = findPlayerContainer();
+    if (container) {
+      if (playerBtn.parentNode && playerBtn.parentNode !== container) {
+        playerBtn.parentNode.removeChild(playerBtn);
+      }
+      if (!playerBtn.parentNode) {
+        playerBtn.style.position = 'absolute';
+        playerBtn.style.top = '8px';
+        playerBtn.style.right = '8px';
+        playerBtn.style.zIndex = '999';
+        playerBtn.style.background = 'rgba(96,165,250,0.85)';
+        playerBtn.style.color = '#fff';
+        playerBtn.style.borderRadius = '8px';
+        playerBtn.style.padding = '4px 10px';
+        container.appendChild(playerBtn);
+        playerBtnAttached = true;
+        log('按钮已挂载到播放器容器 (fallback)');
+      }
     }
   }
 
@@ -519,9 +591,9 @@
     if (badge) badge.textContent = String(segments.length);
   }
 
-  // 监听全屏变化，重新挂载按钮
   function onFullscreenChange() {
-    setTimeout(attachPlayerBtn, 300);
+    playerBtnAttached = false;
+    setTimeout(tryAttachToControlBar, 500);
   }
 
   // ============================================================
@@ -545,14 +617,14 @@
 
     // ---- 标题栏 (可拖拽) ----
     var titleBar = h('div', { style: {
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
       padding: '10px 14px', cursor: 'move', userSelect: 'none',
       background: '#111827', borderBottom: '1px solid #1f2937', flexShrink: 0,
     }, on: { mousedown: startDrag } });
 
-    titleBar.appendChild(h('div', { style: { display: 'flex', alignItems: 'center', gap: 8 } }, [
+    titleBar.appendChild(h('div', { style: { display: 'flex', alignItems: 'center', gap: '14px' } }, [
       h('span', { $: '⏱ 时间轴捕获', style: { fontWeight: 700, fontSize: 14, color: '#60a5fa' } }),
-      h('span', { $: segments.length + ' 段', style: { fontSize: 11, color: '#6b7280' } }),
+      h('span', { $: segments.length + ' 段', style: { fontSize: 11, color: '#6b7280', background: '#1f2937', padding: '1px 8px', borderRadius: 10 } }),
     ]));
 
     var closeBtn = h('button', {
@@ -573,12 +645,12 @@
 
     // ---- 当前时间 + 捕获 ----
     var timeBar = h('div', { style: { padding: '10px 14px', borderBottom: '1px solid #1f2937', flexShrink: 0 } });
-    timeBar.appendChild(h('div', { $: '当前播放时间', style: { fontSize: 10, color: '#6b7280', marginBottom: 2 } }));
-    timeBar.appendChild(h('div', { id: 'vtc-time', $: '--:--', style: { fontVariantNumeric: 'tabular-nums', fontSize: 28, fontWeight: 700, color: '#60a5fa', fontFamily: 'monospace', marginBottom: 8 } }));
+    timeBar.appendChild(h('div', { $: '当前播放时间', style: { fontSize: 10, color: '#6b7280', marginBottom: 4 } }));
 
-    var capRow = h('div', { style: { display: 'flex', gap: 8, alignItems: 'center' } });
-    capRow.appendChild(h('button', { $: '📷 捕获当前时间 (F8)', style: btnStyle({ flex: 1, fontSize: 13, padding: '7px 12px' }), on: { click: doCapture } }));
-    timeBar.appendChild(capRow);
+    var timeRow = h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' } });
+    timeRow.appendChild(h('div', { id: 'vtc-time', $: '--:--', style: { fontVariantNumeric: 'tabular-nums', fontSize: 28, fontWeight: 700, color: '#60a5fa', fontFamily: 'monospace', lineHeight: 1 } }));
+    timeRow.appendChild(h('button', { $: '📷 捕获', title: 'F8 捕获当前时间', style: btnStyle({ padding: '8px 18px', fontSize: 13, borderRadius: 8 }), on: { click: doCapture } }));
+    timeBar.appendChild(timeRow);
     panelEl.appendChild(timeBar);
 
     // ---- 段落列表 ----
@@ -592,28 +664,60 @@
     }
     panelEl.appendChild(listWrap);
 
-    // ---- 底部: 元信息 + 导出 ----
-    var footer = h('div', { style: { borderTop: '1px solid #1f2937', padding: '10px 14px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6, maxHeight: '200px', overflowY: 'auto' } });
-    footer.appendChild(h('div', { $: '元信息 (用于 SourceJSON 导出)', style: { fontSize: 10, color: '#6b7280', fontWeight: 600 } }));
+    // ---- 底部: 元信息 (可折叠) + 导出 ----
+    var footer = h('div', { style: { borderTop: '1px solid #1f2937', flexShrink: 0 } });
 
-    var metaGrid = h('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 } });
-    metaGrid.appendChild(buildMetaSelect('地图', 'map', MAP_LIST));
-    metaGrid.appendChild(buildMetaSelect('英雄', 'agent', AGENT_LIST));
-    metaGrid.appendChild(buildMetaInput('UP主UID', 'creatorUid'));
-    metaGrid.appendChild(buildMetaInput('录制版本', 'recordedPatch'));
-    footer.appendChild(metaGrid);
-    footer.appendChild(buildMetaInput('备注', 'note'));
+    // 折叠开关
+    var metaToggle = h('div', { style: {
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
+      padding: '8px 14px', cursor: 'pointer', userSelect: 'none',
+      color: '#6b7280', fontSize: 11, fontWeight: 600,
+    }, on: { click: toggleMetaSection } }, [
+      h('span', { $: (metaExpanded ? '▾' : '▸') + ' 元信息 (用于 SourceJSON 导出)', style: { color: '#9ca3af' } }),
+    ]);
+    footer.appendChild(metaToggle);
 
-    // export buttons
-    var row1 = h('div', { style: { display: 'flex', gap: 5, marginTop: 2 } });
-    row1.appendChild(h('button', { $: '📋 复制纯文本', style: btnStyle({ flex: 1, fontSize: 11, background: '#1f2937' }), on: { click: function () { copyText(toTimelineText()); } } }));
-    row1.appendChild(h('button', { $: '📋 复制 SourceJSON', style: btnStyle({ flex: 1, fontSize: 11, background: '#1f2937' }), on: { click: function () { copyText(toSourceJSON()); } } }));
-    footer.appendChild(row1);
+    // 折叠内容
+    if (metaExpanded) {
+      var metaBody = h('div', { style: { padding: '0 14px 10px 14px', display: 'flex', flexDirection: 'column', gap: '6px' } });
 
-    var row2 = h('div', { style: { display: 'flex', gap: 5 } });
-    row2.appendChild(h('button', { $: '⬇ 下载 .txt', style: btnStyle({ flex: 1, fontSize: 11 }), on: { click: function () { downloadText(toTimelineText(), (bvid || 'timeline') + '.txt'); } } }));
-    row2.appendChild(h('button', { $: '⬇ 下载 .json', style: btnStyle({ flex: 1, fontSize: 11 }), on: { click: function () { downloadText(toSourceJSON(), (bvid || 'output') + '.json'); } } }));
-    footer.appendChild(row2);
+      var metaGrid = h('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' } });
+      metaGrid.appendChild(buildMetaSelectFull('地图', 'map', MAP_LIST));
+      metaGrid.appendChild(buildMetaSelectFull('英雄', 'agent', AGENT_LIST));
+      metaGrid.appendChild(buildMetaInput('UP主UID', 'creatorUid'));
+      metaGrid.appendChild(buildMetaInput('录制版本', 'recordedPatch'));
+      metaBody.appendChild(metaGrid);
+      metaBody.appendChild(buildMetaInput('备注', 'note'));
+
+      footer.appendChild(metaBody);
+    }
+
+    // 导出按钮 (始终可见)
+    var exportArea = h('div', { style: { padding: '8px 14px 12px 14px', display: 'flex', flexDirection: 'column', gap: '6px' } });
+    var row1 = h('div', { style: { display: 'flex', gap: '8px' } });
+    row1.appendChild(h('button', { $: '📋 复制纯文本', style: btnStyle({ flex: 1, fontSize: 11, marginRight: 4, background: '#1f2937' }), on: { click: function () { copyText(toTimelineText()); } } }));
+    row1.appendChild(h('button', { $: '📋 复制 SourceJSON', style: btnStyle({ flex: 1, fontSize: 11, marginLeft: 4, background: '#1f2937' }), on: { click: function () { copyText(toSourceJSON()); } } }));
+    exportArea.appendChild(row1);
+
+    var row2 = h('div', { style: { display: 'flex', gap: '8px' } });
+    row2.appendChild(h('button', { $: '⬇ 下载 .txt', style: btnStyle({ flex: 1, fontSize: 11, marginRight: 4 }), on: { click: function () { downloadText(toTimelineText(), (bvid || 'timeline') + '.txt'); } } }));
+    row2.appendChild(h('button', { $: '⬇ 下载 .json', style: btnStyle({ flex: 1, fontSize: 11, marginLeft: 4 }), on: { click: function () { downloadText(toSourceJSON(), (bvid || 'output') + '.json'); } } }));
+    exportArea.appendChild(row2);
+
+    // 云盘路径
+    var cloudPathInput = h('input', { type: 'text', value: metaFields.cloudPath || '', placeholder: 'GD: 文件夹ID 或 URL / BD: /路径', style: inputStyle({ flex: 1, fontSize: 10, padding: '2px 6px' }) });
+    cloudPathInput.addEventListener('change', function () { metaFields.cloudPath = cloudPathInput.value; saveState(); });
+    exportArea.appendChild(h('div', { style: { display: 'flex', alignItems: 'center', gap: '6px' } }, [
+      h('span', { $: '云盘路径:', style: { fontSize: 10, color: '#6b7280', flexShrink: 0 } }),
+      cloudPathInput,
+    ]));
+
+    // 云盘保存按钮
+    var row3 = h('div', { style: { display: 'flex', gap: '8px' } });
+    row3.appendChild(h('button', { $: '☁ 保存到 Google Drive', style: btnStyle({ flex: 1, fontSize: 11, marginRight: 4, background: '#1f2937' }), on: { click: function () { saveToCloud('gdrive', 'https://drive.google.com/drive/my-drive', 'Google Drive'); } } }));
+    row3.appendChild(h('button', { $: '☁ 保存到百度网盘', style: btnStyle({ flex: 1, fontSize: 11, marginLeft: 4, background: '#1f2937' }), on: { click: function () { saveToCloud('baidu', 'https://pan.baidu.com/disk/main#/index?category=all', '百度网盘'); } } }));
+    exportArea.appendChild(row3);
+    footer.appendChild(exportArea);
 
     panelEl.appendChild(footer);
 
@@ -646,19 +750,19 @@
   }
 
   function buildSegmentRow(seg, idx) {
-    var row = h('div', { style: { display: 'flex', alignItems: 'center', gap: 3, padding: '5px 14px', borderBottom: '1px solid #1f2937', fontSize: 11, minHeight: 34 } });
-    row.appendChild(h('span', { $: String(idx + 1), style: { color: '#6b7280', minWidth: 18, textAlign: 'right', flexShrink: 0 } }));
+    var row = h('div', { style: { display: 'flex', alignItems: 'center', gap: '3px', padding: '4px 10px', borderBottom: '1px solid #1f2937', fontSize: 11, minHeight: 34 } });
+    row.appendChild(h('span', { $: String(idx + 1), style: { color: '#6b7280', minWidth: 12, textAlign: 'right', fontSize: 10, flexShrink: 0 } }));
 
     // time
-    var dec = h('button', { $: '◀', title: '减 1 秒', style: btnStyle({ padding: '1px 2px', fontSize: 9, background: 'transparent', color: '#9ca3af' }), on: { click: function () { updateTime(seg.id, seg.startSec - 1); } } });
-    var ti = h('input', { type: 'text', value: formatTime(seg.startSec), style: inputStyle({ width: 44, textAlign: 'center', fontSize: 10, padding: '2px 3px', color: '#60a5fa' }) });
+    var dec = h('button', { $: '◀', title: '减 1 秒', style: btnStyle({ padding: '0 1px', fontSize: 8, background: 'transparent', color: '#9ca3af' }), on: { click: function () { updateTime(seg.id, seg.startSec - 1); } } });
+    var ti = h('input', { type: 'text', value: formatTime(seg.startSec), style: inputStyle({ width: '80px', textAlign: 'center', fontSize: 10, padding: '1px 1px', color: '#60a5fa', fontFamily: 'monospace' }) });
     ti.addEventListener('change', function () {
       var parts = ti.value.split(':').map(Number);
       if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) updateTime(seg.id, parts[0] * 60 + parts[1]);
       else if (parts.length === 3) updateTime(seg.id, parts[0] * 3600 + parts[1] * 60 + parts[2]);
     });
-    var inc = h('button', { $: '▶', title: '加 1 秒', style: btnStyle({ padding: '1px 2px', fontSize: 9, background: 'transparent', color: '#9ca3af' }), on: { click: function () { updateTime(seg.id, seg.startSec + 1); } } });
-    row.appendChild(h('div', { style: { display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 } }, [dec, ti, inc]));
+    var inc = h('button', { $: '▶', title: '加 1 秒', style: btnStyle({ padding: '0 1px', fontSize: 8, background: 'transparent', color: '#9ca3af' }), on: { click: function () { updateTime(seg.id, seg.startSec + 1); } } });
+    row.appendChild(h('div', { style: { display: 'flex', alignItems: 'center', gap: '1px', flexShrink: 0 } }, [dec, ti, inc]));
 
     // title
     var titleInput = h('input', { type: 'text', value: seg.title, placeholder: '输入标题...', style: inputStyle({ flex: 1, fontSize: 11, minWidth: 0 }) });
@@ -680,15 +784,15 @@
     return row;
   }
 
-  function buildMetaSelect(label, key, options) {
-    var wrap = h('div', { style: { display: 'flex', flexDirection: 'column', gap: 2 } });
+  function buildMetaSelectFull(label, key, options) {
+    var wrap = h('div', { style: { display: 'flex', flexDirection: 'column', gap: '2px' } });
     wrap.appendChild(h('span', { $: label, style: { fontSize: 10, color: '#9ca3af' } }));
     wrap.appendChild(buildSelect(options, metaFields[key] || '', function (v) { metaFields[key] = v; saveState(); }));
     return wrap;
   }
 
   function buildMetaInput(label, key) {
-    var wrap = h('div', { style: { display: 'flex', flexDirection: 'column', gap: 2 } });
+    var wrap = h('div', { style: { display: 'flex', flexDirection: 'column', gap: '2px' } });
     wrap.appendChild(h('span', { $: label, style: { fontSize: 10, color: '#9ca3af' } }));
     var inp = h('input', { type: 'text', value: metaFields[key] || '', placeholder: label, style: inputStyle({ fontSize: 11 }) });
     inp.addEventListener('change', function () { metaFields[key] = inp.value; saveState(); });
@@ -771,7 +875,8 @@
       loadState(newBvid);
     }
     // 路由变化时重新挂载按钮
-    setTimeout(attachPlayerBtn, 500);
+    playerBtnAttached = false;
+    setTimeout(tryAttachToControlBar, 500);
   }
 
   function patchHistory() {
@@ -820,7 +925,7 @@
       // 周期性重试挂载按钮 (页面可能异步加载播放器)
       var retryCount = 0;
       var retryInterval = setInterval(function () {
-        attachPlayerBtn();
+        tryAttachToControlBar();
         retryCount++;
         if (retryCount > 20 || findPlayerContainer()) clearInterval(retryInterval);
       }, 1000);
