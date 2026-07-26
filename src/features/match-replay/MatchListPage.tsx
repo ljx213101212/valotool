@@ -58,6 +58,9 @@ export function MatchListPage({ source = defaultMatchSource }: { source?: MatchS
       <Link to="/timeline-ingest" style={{ ...styles.legacyLink, right: 120 }}>
         时间轴录入 →
       </Link>
+      <Link to="/video-ingest" style={{ ...styles.legacyLink, right: 222 }}>
+        视频点位录入 →
+      </Link>
     </div>
   );
 }

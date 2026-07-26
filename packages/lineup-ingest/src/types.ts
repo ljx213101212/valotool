@@ -65,10 +65,11 @@ export interface FrameCandidate {
   atSec: number;
 }
 
-/** capture 阶段产物：切片 + 候选帧（镜头切变取）+ 接触表 */
+/** capture 阶段产物：切片 + 候选帧（镜头切变取）+ 接触表 + 视频片段 */
 export type CapturedSegment = Segment & {
   candidates: FrameCandidate[];
   contactSheet?: string;
+  clipPath?: string;
 };
 
 /** 溯源信息，贯穿到 DraftLineup（版权/致谢/回查用） */
@@ -105,5 +106,7 @@ export interface PipelineCtx {
   /** 每个视频独立工作目录，如 .work/<bvid> */
   workDir: string;
   extractor: LlmExtractor;
+  /** 可选的视频分析 extractor，如可用则优先于 extractor 用于帧预选 */
+  videoExtractor?: LlmExtractor;
   log: (msg: string) => void;
 }

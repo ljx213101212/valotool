@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { sourceFileSchema } from './types';
 import { runSource } from './pipeline';
 import { extractorFromEnv } from './extractors/vlm';
+import { videoExtractorFromEnv } from './extractors/video-vlm';
 
 const PKG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const WORK = join(PKG_ROOT, '.work');
@@ -24,11 +25,13 @@ if (cmd === 'run') {
   if (!sources.length) throw new Error(`无匹配的源${only ? `（bvid=${only}）` : ''}`);
 
   const { extractor, label } = extractorFromEnv(join(WORK, '.vlm-cache'));
-  console.log(`[ingest] extractor=${label}`);
+  const videoEx = videoExtractorFromEnv(join(WORK, '.vlm-cache'));
+  console.log(`[ingest] extractor=${label}${videoEx ? `, video=${videoEx.label}` : ''}`);
   for (const src of sources) {
     const ctx = {
       workDir: join(WORK, src.id),
       extractor,
+      videoExtractor: videoEx?.extractor,
       log: (m: string) => console.log('[ingest]', m),
     };
     const drafts = await runSource(src, ctx, join(STAGING, `${src.id}.json`));
