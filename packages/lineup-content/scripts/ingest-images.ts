@@ -11,12 +11,39 @@
  * 用法：pnpm --filter @valotool/lineup-content ingest
  *       CDN_BASE=https://cdn.example.com pnpm --filter @valotool/lineup-content ingest
  */
+import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, readdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { ALL_LINEUPS } from '../src/data/index.ts';
 import { IMAGE_ROLES } from '../src/schema.ts';
+
+// 加载 .env.local / .env（与 lineup-ingest 共用根目录 env 文件）
+function loadEnv() {
+  const root = dirname(fileURLToPath(import.meta.url));
+  let dir = root;
+  for (;;) {
+    for (const name of ['.env.local', '.env']) {
+      const f = join(dir, name);
+      if (!existsSync(f)) continue;
+      for (const line of readFileSync(f, 'utf8').split('\n')) {
+        const m = line.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
+        if (!m) continue;
+        const key = m[1];
+        let val = m[2].trim();
+        if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+          val = val.slice(1, -1);
+        }
+        if (process.env[key] === undefined) process.env[key] = val;
+      }
+    }
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+}
+loadEnv();
 
 const PKG_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const RAW_DIR = join(PKG_ROOT, 'raw-images');

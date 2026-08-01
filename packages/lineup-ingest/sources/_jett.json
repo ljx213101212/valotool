@@ -1,0 +1,32 @@
+[
+  {
+    "id": "BV1Z1Mw6ZEhx",
+    "platform": "bilibili",
+    "url": "https://www.bilibili.com/video/BV1Z1Mw6ZEhx",
+    "title": "捷风 天枢云阙 进攻",
+    "creator": "糖浆_OvO",
+    "hints": {
+      "map": "summit",
+      "agent": "jett"
+    },
+    "credit": "点位演示来源：B站 @糖浆_OvO（BV1Z1Mw6ZEhx）",
+    "segments": [
+      {
+        "startSec": 12,
+        "title": "A包点进点 - 飞箱上"
+      },
+      {
+        "startSec": 34,
+        "title": "A包点进点 - 飞点内"
+      },
+      {
+        "startSec": 50,
+        "title": "B包点进点  - 飞箱前"
+      },
+      {
+        "startSec": 67,
+        "title": "B包点进点 - 飞凹槽"
+      }
+    ]
+  }
+]

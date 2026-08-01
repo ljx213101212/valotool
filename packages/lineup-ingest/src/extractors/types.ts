@@ -31,6 +31,8 @@ export interface FrameSelectionInput {
   title?: string;
   /** agent slug，决定需要识别哪些帧角色 */
   agentSlug: string;
+  /** 视频片段路径（可选，供视频分析 extractor 使用） */
+  videoPath?: string;
 }
 
 export interface FrameSelection {

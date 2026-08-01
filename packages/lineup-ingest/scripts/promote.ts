@@ -49,7 +49,7 @@ for (const d of approved) {
   for (const r of ROLES) {
     const src = d.frames[r];
     if (src) {
-      await copyFile(join(PKG, src), join(RAW, `${lineup.id}__${r}.png`));
+      await copyFile(src, join(RAW, `${lineup.id}__${r}.png`));
       copied++;
     }
   }
@@ -71,5 +71,32 @@ for (const [key, incoming] of byKey) {
 
 console.log(
   `\n完成：${approved.length} 条 approved，复制 ${copied} 帧到 raw-images。\n` +
-    `下一步：CDN_BASE=<你的CDN> pnpm --filter @valotool/lineup-content ingest 生成 webp 并上传，再 pnpm --filter @valotool/lineup-content check。`,
+    `下一步：pnpm --filter @valotool/lineup-content ingest 生成 webp 并上传，再 pnpm --filter @valotool/lineup-content check。`,
 );
+
+// 4) 自动注册 data/lineups 新文件到 ALL_LINEUPS
+{
+  const datadir = join(CONTENT, 'data', 'lineups');
+  const dataFiles = (await readdir(datadir)).filter((f) => f.endsWith('.json')).sort();
+  const indexFile = join(CONTENT, 'src', 'data', 'index.ts');
+  let src = await readFile(indexFile, 'utf8');
+
+  for (const f of dataFiles) {
+    const key = f.replace('.json', '');
+    const varName = key.replace(/-([a-z])/g, (_, c) => (c as string).toUpperCase());
+    const importLine = `import ${varName} from '../../data/lineups/${f}';`;
+    if (!src.includes(importLine)) {
+      src = `import ${varName} from '../../data/lineups/${f}';\n` + src;
+      console.log(`✓ 注册 ${key} → ALL_LINEUPS`);
+    }
+  }
+
+  const arrayLine = dataFiles
+    .map((f) => `...${f.replace('.json', '').replace(/-([a-z])/g, (_, c) => (c as string).toUpperCase())}`)
+    .join(', ');
+  src = src.replace(
+    /(export const ALL_LINEUPS: Lineup\[\] = \[).*?(\] as Lineup\[\];)/s,
+    `$1${arrayLine}$2`,
+  );
+  await writeFile(indexFile, src);
+}

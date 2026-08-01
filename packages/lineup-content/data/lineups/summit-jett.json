@@ -1,0 +1,64 @@
+[
+  {
+    "id": "summit-jett-atk-a-0",
+    "map": "summit",
+    "agent": "jett",
+    "abilitySlot": "E",
+    "side": "attack",
+    "site": "A",
+    "tier": "must-learn",
+    "title": "A进攻1",
+    "purpose": "探查敌人位置",
+    "technique": "placed",
+    "origin": "小房子门口",
+    "target": "小房子内",
+    "images": [
+      {
+        "role": "stand",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/summit-jett-atk-a-0/stand.webp"
+      },
+      {
+        "role": "aim",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/summit-jett-atk-a-0/aim.webp"
+      },
+      {
+        "role": "effect",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/summit-jett-atk-a-0/effect.webp"
+      }
+    ],
+    "verifiedPatch": "12.11",
+    "status": "draft",
+    "keywords": []
+  },
+  {
+    "id": "summit-jett-atk-a-1",
+    "map": "summit",
+    "agent": "jett",
+    "abilitySlot": "E",
+    "side": "attack",
+    "site": "A",
+    "tier": "must-learn",
+    "title": "A进攻2",
+    "purpose": "探查敌人位置",
+    "technique": "stand",
+    "origin": "小房子门口",
+    "target": "敌人必经之路",
+    "images": [
+      {
+        "role": "stand",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/summit-jett-atk-a-1/stand.webp"
+      },
+      {
+        "role": "aim",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/summit-jett-atk-a-1/aim.webp"
+      },
+      {
+        "role": "effect",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/summit-jett-atk-a-1/effect.webp"
+      }
+    ],
+    "verifiedPatch": "12.11",
+    "status": "draft",
+    "keywords": []
+  }
+]

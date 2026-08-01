@@ -1,0 +1,49 @@
+[
+  {
+    "id": "BV1taKA66EEj",
+    "platform": "bilibili",
+    "url": "https://www.bilibili.com/video/BV1taKA66EEj",
+    "title": "《全网最细！捷风天枢云阙进点大全，看完横着走》_VALORANT",
+    "creator": "西希里电竞_无畏契约",
+    "hints": {
+      "map": "summit",
+      "agent": "jett"
+    },
+    "credit": "点位演示来源：B站 @西希里电竞_无畏契约（uid 3546908798749134，BV1taKA66EEj）",
+    "segments": [
+      {
+        "startSec": 69.158443,
+        "title": "A进攻1"
+      },
+      {
+        "startSec": 87.578167,
+        "title": "A进攻2"
+      },
+      {
+        "startSec": 112.093479,
+        "title": "A进攻3"
+      },
+      {
+        "startSec": 125.324756,
+        "title": "A进攻4"
+      },
+      {
+        "startSec": 250.203839,
+        "title": "B进攻1"
+      },
+      {
+        "startSec": 271.689129,
+        "title": "B进攻2"
+      },
+      {
+        "startSec": 364.55441,
+        "title": "B进攻3"
+      },
+      {
+        "startSec": 378.933922,
+        "title": "B进攻4"
+      }
+    ],
+    "creatorUid": "3546908798749134"
+  }
+]

@@ -1,10 +1,14 @@
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+import { getAgentFrameRoles } from '@valotool/lineup-content';
 import type { ExtractInput, ExtractResult, FrameSelectionInput, FrameSelectionResult, LlmExtractor, SubtitleSegmentsResult } from './types';
 import { MockExtractor } from './mock';
 import { parseVlmOutput } from './vlm-parse';
 import { buildExtractPrompt } from '../prompts/extract-lineup';
+import { buildFrameSelectionPrompt } from '../prompts/video-frame';
+import { buildJettFramePrompt } from '../prompts/video-frame/jett';
+import { buildDefaultFramePrompt } from '../prompts/video-frame/default';
 
 /** 可退避重试的状态码：限流 / 服务暂不可用 */
 const RETRYABLE = new Set([429, 503]);

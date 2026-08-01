@@ -4,8 +4,15 @@ import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { applyReview, suggestDefaults, validateForApproval, type ReviewPatch } from './core';
-import { getAgentFrameRoles, AGENTS } from '@valotool/lineup-content';
-import type { DraftLineup } from '../types';
+import { getAgentFrameRoles, AGENTS, MAPS } from '@valotool/lineup-content';
+import type { DraftLineup, SourceVideo } from '../types';
+import { sourceVideoSchema } from '../types';
+import { fetchSource } from '../stages/fetch';
+import { segment } from '../stages/segment';
+import { captureFrames } from '../stages/capture';
+import { extract } from '../stages/extract';
+import { videoExtractorFromEnv } from '../extractors/video-vlm';
+import { extractorFromEnv } from '../extractors/vlm';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PKG = resolve(HERE, '..', '..');
@@ -71,9 +78,14 @@ const server = createServer(async (req, res) => {
     }
 
     if (req.method === 'GET' && p === '/api/config') {
-      const config = Object.fromEntries(
-        AGENTS.map((a) => [a.slug, { agent: a, frameRoles: getAgentFrameRoles(a.slug) }]),
-      );
+      const config = {
+        agents: Object.fromEntries(
+          AGENTS.map((a) => [a.slug, { slug: a.slug, nameZh: a.nameZh, nameEn: a.nameEn, frameRoles: getAgentFrameRoles(a.slug) }]),
+        ),
+        maps: Object.fromEntries(
+          MAPS.map((m) => [m.slug, { slug: m.slug, nameZh: m.nameZh, nameEn: m.nameEn }]),
+        ),
+      };
       res.writeHead(200, { 'content-type': MIME['.json'] });
       res.end(JSON.stringify(config));
       return;
@@ -125,6 +137,88 @@ const server = createServer(async (req, res) => {
       }
       res.writeHead(200, { 'content-type': MIME[abs.slice(abs.lastIndexOf('.'))] ?? 'application/octet-stream' });
       res.end(data);
+      return;
+    }
+
+    // POST /api/source-video — 接收油猴 SourceVideo JSON，执行 fetch + capture
+    if (req.method === 'POST' && p === '/api/source-video') {
+      const body = await readBody(req);
+      let src: unknown;
+      try { src = JSON.parse(body); } catch {
+        res.writeHead(400, { 'content-type': MIME['.json'] });
+        res.end(JSON.stringify({ error: 'JSON 解析失败' }));
+        return;
+      }
+      const parsed = sourceVideoSchema.safeParse(src);
+      if (!parsed.success) {
+        res.writeHead(400, { 'content-type': MIME['.json'] });
+        res.end(JSON.stringify({ error: 'SourceVideo 校验失败', details: parsed.error.issues }));
+        return;
+      }
+      const source: SourceVideo = parsed.data;
+      const { extractor } = extractorFromEnv(join(WORK, '.vlm-cache'));
+      const ctx = { workDir: join(WORK, source.id), extractor, log: () => {} };
+      try {
+        const cap = await fetchSource(source, ctx);
+        const segs = await segment(cap, ctx);
+        const captured = [];
+        for (const seg of segs) {
+          captured.push(await captureFrames(seg, cap, ctx));
+        }
+        res.writeHead(200, { 'content-type': MIME['.json'] });
+        res.end(JSON.stringify({
+          videoId: source.id,
+          title: source.title,
+          segments: captured.map((c) => ({
+            segmentId: c.segmentId,
+            title: c.title,
+            startSec: c.startSec,
+            endSec: c.endSec,
+            candidateCount: c.candidates.length,
+            clipPath: c.clipPath,
+            contactSheet: c.contactSheet,
+          })),
+        }));
+      } catch (e) {
+        res.writeHead(500, { 'content-type': MIME['.json'] });
+        res.end(JSON.stringify({ error: String(e) }));
+      }
+      return;
+    }
+
+    // POST /api/video-analyze — 对指定段调用 Gemini 视频分析，返回帧预选
+    if (req.method === 'POST' && p === '/api/video-analyze') {
+      const { videoId, segmentId, title, agentSlug } = JSON.parse(await readBody(req)) as {
+        videoId: string; segmentId: string; title: string; agentSlug: string;
+      };
+      const videoEx = videoExtractorFromEnv(join(WORK, '.vlm-cache'));
+      if (!videoEx) {
+        res.writeHead(400, { 'content-type': MIME['.json'] });
+        res.end(JSON.stringify({ error: '未配置 GEMINI_API_KEY' }));
+        return;
+      }
+      const ctx = { workDir: join(WORK, videoId), extractor: videoEx.extractor, log: console.log };
+      const segDir = join(WORK, videoId);
+      // 从 staging 读已有的 candidates
+      const stagingFile = join(STAGING, `${videoId}.json`);
+      const drafts = (await readFile(stagingFile, 'utf8').then((s) => JSON.parse(s) as DraftLineup[]).catch(() => []));
+      const existing = drafts.find((d) => d.draftId === segmentId);
+      const candidates = existing?.candidates ?? [];
+      const clipPath = join(segDir, 'clips', `${segmentId}.mp4`);
+
+      try {
+        const result = await videoEx.extractor.selectFrames({
+          candidates,
+          videoPath: clipPath,
+          title,
+          agentSlug,
+        });
+        res.writeHead(200, { 'content-type': MIME['.json'] });
+        res.end(JSON.stringify(result));
+      } catch (e) {
+        res.writeHead(500, { 'content-type': MIME['.json'] });
+        res.end(JSON.stringify({ error: String(e) }));
+      }
       return;
     }
 
