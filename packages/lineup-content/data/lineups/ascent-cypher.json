@@ -1,0 +1,95 @@
+[
+  {
+    "id": "ascent-cypher-def-b-0",
+    "map": "ascent",
+    "agent": "cypher",
+    "abilitySlot": "Q",
+    "side": "defense",
+    "site": "B",
+    "tier": "must-learn",
+    "title": " B通单向烟",
+    "purpose": "探查敌人位置",
+    "technique": "placed",
+    "origin": "B通楼梯拐角处",
+    "target": "B通小路尽头",
+    "images": [
+      {
+        "role": "stand",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-cypher-def-b-0/stand.webp"
+      },
+      {
+        "role": "aim",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-cypher-def-b-0/aim.webp"
+      },
+      {
+        "role": "effect",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-cypher-def-b-0/effect.webp"
+      }
+    ],
+    "verifiedPatch": "12.11",
+    "status": "draft",
+    "keywords": []
+  },
+  {
+    "id": "ascent-cypher-def-b-1",
+    "map": "ascent",
+    "agent": "cypher",
+    "abilitySlot": "E",
+    "side": "defense",
+    "site": "B",
+    "tier": "must-learn",
+    "title": "B防Rush 开关门",
+    "purpose": "防止敌人rush包点",
+    "technique": "placed",
+    "origin": "门后",
+    "target": "敌人必经之路",
+    "images": [
+      {
+        "role": "stand",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-cypher-def-b-1/stand.webp"
+      },
+      {
+        "role": "aim",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-cypher-def-b-1/aim.webp"
+      },
+      {
+        "role": "effect",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-cypher-def-b-1/effect.webp"
+      }
+    ],
+    "verifiedPatch": "12.11",
+    "status": "draft",
+    "keywords": []
+  },
+  {
+    "id": "ascent-cypher-def-a-5",
+    "map": "ascent",
+    "agent": "cypher",
+    "abilitySlot": "C",
+    "side": "defense",
+    "site": "A",
+    "tier": "must-learn",
+    "title": " A防猎枭电箭线",
+    "purpose": "防猎枭用电箭打",
+    "technique": "placed",
+    "origin": "A点",
+    "target": "门后墙身投弹手线",
+    "images": [
+      {
+        "role": "stand",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-cypher-def-a-5/stand.webp"
+      },
+      {
+        "role": "aim",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-cypher-def-a-5/aim.webp"
+      },
+      {
+        "role": "effect",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-cypher-def-a-5/effect.webp"
+      }
+    ],
+    "verifiedPatch": "12.11",
+    "status": "draft",
+    "keywords": []
+  }
+]

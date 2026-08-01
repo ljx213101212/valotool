@@ -4,7 +4,7 @@ import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { applyReview, suggestDefaults, validateForApproval, type ReviewPatch } from './core';
-import { getAgentFrameRoles, AGENTS } from '@valotool/lineup-content';
+import { getAgentFrameRoles, AGENTS, MAPS } from '@valotool/lineup-content';
 import type { DraftLineup, SourceVideo } from '../types';
 import { sourceVideoSchema } from '../types';
 import { fetchSource } from '../stages/fetch';
@@ -78,9 +78,14 @@ const server = createServer(async (req, res) => {
     }
 
     if (req.method === 'GET' && p === '/api/config') {
-      const config = Object.fromEntries(
-        AGENTS.map((a) => [a.slug, { agent: a, frameRoles: getAgentFrameRoles(a.slug) }]),
-      );
+      const config = {
+        agents: Object.fromEntries(
+          AGENTS.map((a) => [a.slug, { slug: a.slug, nameZh: a.nameZh, nameEn: a.nameEn, frameRoles: getAgentFrameRoles(a.slug) }]),
+        ),
+        maps: Object.fromEntries(
+          MAPS.map((m) => [m.slug, { slug: m.slug, nameZh: m.nameZh, nameEn: m.nameEn }]),
+        ),
+      };
       res.writeHead(200, { 'content-type': MIME['.json'] });
       res.end(JSON.stringify(config));
       return;

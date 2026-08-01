@@ -56,10 +56,16 @@ const ENUMS = {
   tier: ['', 'must-learn', 'advanced', 'flashy'],
   status: ['', 'verified', 'stale', 'draft'],
   technique: ['', 'stand', 'crouch', 'jump-throw', 'run-jump-throw', 'hold-jump-throw', 'walk-throw', 'placed'],
+  side: ['', 'attack', 'defense'],
+  site: ['', 'A', 'B', 'C', 'mid'],
 };
 // [key, 中文标签, 提示, 控件类型]
 const FIELDS = [
   ['id', 'id', '唯一英文标识，已自动生成，可改', 'input'],
+  ['map', '地图', '如 summit / ascent / breeze', 'select'],
+  ['agent', '英雄', '如 sova / jett / viper', 'select'],
+  ['side', '攻防', 'attack 进攻 / defense 防守', 'select'],
+  ['site', '点位', 'A / B / C / mid', 'select'],
   ['abilitySlot', '技能键', 'Sova：C无人机 / Q电箭 / E探测箭 / X大招', 'select'],
   ['tier', '难度档', 'must-learn必学 / advanced进阶 / flashy花活', 'select'],
   ['status', '状态', 'verified已验证 / stale过期 / draft草稿', 'select'],
@@ -71,13 +77,18 @@ const FIELDS = [
   ['target', '落点', '技能落在哪 / 覆盖什么', 'input'],
   ['purpose', '用途', '这个点位干嘛用的', 'textarea'],
 ];
-let drafts = [], cur = null, work = null;
+let drafts = [], cur = null, work = null, config = null;
 
 const workUrl = (p) => p ? '/work/' + String(p).replace(/^\.work\//, '') : '';
 const esc = (s) => String(s ?? '').replace(/"/g, '&quot;');
 
 async function load() {
-  drafts = await (await fetch('/api/drafts')).json();
+  const [draftsRes, configRes] = await Promise.all([
+    fetch('/api/drafts'),
+    fetch('/api/config'),
+  ]);
+  drafts = await draftsRes.json();
+  config = await configRes.json();
   renderList();
 }
 
@@ -99,14 +110,34 @@ function select(i) {
 }
 
 function opt(name, val) {
+  if (name === 'map' && config) {
+    const maps = Object.values(config.maps);
+    return `<option value="">—</option>` + maps.map((m) => `<option value="${m.slug}" ${m.slug === (val || '') ? 'selected' : ''}>${m.nameZh}（${m.slug}）</option>`).join('');
+  }
+  if (name === 'agent' && config) {
+    const agents = Object.values(config.agents);
+    return `<option value="">—</option>` + agents.map((a) => `<option value="${a.slug}" ${a.slug === (val || '') ? 'selected' : ''}>${a.nameZh}（${a.slug}）</option>`).join('');
+  }
   return ENUMS[name].map((o) => `<option ${o === (val || '') ? 'selected' : ''}>${o}</option>`).join('');
 }
 
 function ctrl(k, type, hint) {
   const f = work.fields;
-  if (type === 'select') return `<select id="f_${k}" onchange="edit('${k}',this.value)">${opt(k, f[k])}</select>`;
+  if (type === 'select') return `<select id="f_${k}" onchange="edit('${k}',this.value)${k === 'map' || k === 'agent' || k === 'side' || k === 'site' ? ';regenId()' : ''}">${opt(k, f[k])}</select>`;
   if (type === 'textarea') return `<textarea id="f_${k}" placeholder="${esc(hint)}" oninput="edit('${k}',this.value)">${f[k] ?? ''}</textarea>`;
   return `<input id="f_${k}" placeholder="${esc(hint)}" value="${esc(f[k])}" oninput="edit('${k}',this.value)" />`;
+}
+
+const SIDE_ABBR = { attack: 'atk', defense: 'def' };
+
+function regenId() {
+  const f = work.fields;
+  const idx = (drafts[cur]?.draftId || '0').split('-').pop() || '0';
+  const side = f.side ? (SIDE_ABBR[f.side] || f.side) : undefined;
+  const parts = [f.map, f.agent, side, f.site?.toLowerCase(), idx].filter(Boolean);
+  const autoId = parts.join('-');
+  work.fields.id = autoId;
+  document.getElementById('f_id').value = autoId;
 }
 
 function renderEditor(d) {

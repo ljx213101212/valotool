@@ -25,51 +25,90 @@ sources/*.json (SourceVideo[])
 
 1. **F9** 呼出面板，展开「元信息」区，填写地图、英雄
 2. 边播边按 **F8** 在每个点位处打点 + 填标题
-3. 点「📋 复制 SourceJSON」→ 粘贴保存为 `sources/<bvid>.json`
+3. 点「📋 复制 SourceJSON」→ 粘贴保存为 `sources/<map>/<agent>/xx.json`
 
 油猴导出的 JSON 已是 `SourceVideo` 契约格式，可直接喂给管线。
 
 > 如果不想装油猴，也可用 CLI 方式手动写时间轴文本（见下方「备选：CLI 时间轴」）。
 
-### 1. 配置 VLM（可选，无 VLM 时管线仍可跑，软字段留空待人审）
+### 1. 配置环境变量
 
 仓库根目录 `.env.local`：
+
 ```bash
+# 文本+图片 VLM（智谱 glm-4v-flash，OpenAI 兼容）
 INGEST_EXTRACTOR=vlm
 VLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4
 VLM_MODEL=glm-4v-flash
 VLM_API_KEY=<your key>
+
+# 视频 VLM（硅基流动，用于解帧/预选）
+GEMINI_BASE_URL=https://api.siliconflow.cn/v1
+GEMINI_MODEL=Qwen/Qwen3-VL-8B-Instruct
+GEMINI_API_KEY=<your key>
+
+# CDN 地址（腾讯云 COS）
+CDN_BASE=https://your-bucket.cos.ap-nanjing.myqcloud.com
 ```
 
-### 2. 跑管线
+> 无 VLM 时管线仍可跑，软字段留空、帧预选跳过，待人审手动补全。
+
+### 2. 校验 sources
 
 ```bash
-# 校验 sources
+# 检查 sources/ 下所有 .json 文件（含子目录）
 pnpm --filter @valotool/lineup-ingest check:sources
-
-# 跑全链路（fetch→segment→capture→extract→stage）
-pnpm --filter @valotool/lineup-ingest ingest sources/<bvid>.json
-
-# 只跑指定 bvid
-pnpm --filter @valotool/lineup-ingest ingest sources/<bvid>.json BV1Tz4y1e7NK
 ```
 
-### 3. 人审
+### 3. 跑管线（fetch→segment→capture→extract→stage）
+
+```bash
+# 跑单个源文件
+pnpm --filter @valotool/lineup-ingest ingest sources/<path>.json
+
+# 只跑指定 bvid
+pnpm --filter @valotool/lineup-ingest ingest sources/<path>.json BV1Tz4y1e7NK
+```
+
+### 4. 人审
 
 ```bash
 pnpm --filter @valotool/lineup-ingest review
 ```
 
-浏览器打开 `http://localhost:5180`，逐条审核草稿，指派帧、补字段，点 approve。
+浏览器打开 `http://localhost:5180`，逐条审核草稿：
+- 选填地图 / 英雄（从下拉选，自动生成 id）
+- 指派 stand / aim / effect 三帧（点 S/A/E 按钮）
+- 补全站位 / 落点 / 用途等字段
+- 点「✓ 通过」
 
-### 4. 产出 meta + 上传图片
+### 5. 产出 content 数据
 
 ```bash
-# 将 approved 草稿塌缩成正式 Lineup，产出 data/lineups/<map>-<agent>.json
+# 将 approved 草稿塌缩成正式 Lineup → data/lineups/<map>-<agent>.json
+# 复制选中的帧到 raw-images/（命名为 {点位id}__{role}.png）
 pnpm --filter @valotool/lineup-ingest promote
+```
 
-# png→webp 并上传 COS（需要 CDN_BASE 环境变量）
-CDN_BASE=<你的CDN地址> pnpm --filter @valotool/lineup-content ingest
+### 6. 生成 webp 图片
+
+```bash
+# png→webp（1600px + 480px thumb），输出到 images/
+# CDN_BASE 从 .env.local 自动读取
+pnpm --filter @valotool/lineup-content ingest
+```
+
+### 7. 上传图片到 CDN
+
+```bash
+# 将 images/ 目录同步到 COS（需要先设置 COS_SECRET_ID / COS_SECRET_KEY 环境变量）
+pnpm --filter @valotool/lineup-content upload
+
+# 同步删除 COS 上已不存在的本地文件
+pnpm --filter @valotool/lineup-content upload --delete
+
+# 按文件大小跳过（不校验 MD5，更快）
+pnpm --filter @valotool/lineup-content upload --skipmd5
 ```
 
 ---
@@ -128,4 +167,8 @@ pnpm --filter @valotool/lineup-ingest eval            # 跑抽取评估
 | `VLM_BASE_URL` | VLM API 地址 | 智谱 |
 | `VLM_MODEL` | 模型名 | `glm-4v-flash` |
 | `VLM_API_KEY` | API 密钥 | —（mock 不需要） |
+| `GEMINI_BASE_URL` | 视频 VLM API 地址 | 硅基流动 |
+| `GEMINI_MODEL` | 视频模型名 | `Qwen/Qwen3-VL-8B-Instruct` |
+| `GEMINI_API_KEY` | 视频 VLM API 密钥 | — |
 | `INGEST_COOKIES_BROWSER` | yt-dlp 读 cookie 的浏览器 | `chrome` |
+| `CDN_BASE` | 图片 CDN 地址 | `https://CDN_BASE_未配置` |

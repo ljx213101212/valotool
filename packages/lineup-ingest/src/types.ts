@@ -6,7 +6,7 @@ import type { LlmExtractor } from './extractors/types';
 
 /** 手抄自视频简介的时间轴一行：起点 + 小标题（结束点由下一段推） */
 export const manualSegmentSchema = z.object({
-  startSec: z.number().int().nonnegative(),
+  startSec: z.number().nonnegative(),
   title: z.string().min(1),
 });
 export type ManualSegment = z.infer<typeof manualSegmentSchema>;

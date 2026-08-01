@@ -118,6 +118,54 @@ test('selectFrames: HTTP 错误降级', async () => {
   assert.equal(r.confidence, 0);
 });
 
+test('selectFrames: jett agentSlug 使用 Jett 专属 prompt，含特工特定角色', async () => {
+  let seenBody: any;
+  const stub = (async (_url: string, init: any) => {
+    seenBody = JSON.parse(init.body);
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { content: '{"stand":1,"aim":2,"effect":3,"smoke_landing":4,"trigger_timing":0,"dash_landing":5,"first_angle":5}' } }],
+      }),
+      { status: 200 },
+    );
+  }) as unknown as typeof fetch;
+
+  const input: FrameSelectionInput = {
+    candidates: candidates(10),
+    title: '进攻a点内第一支',
+    agentSlug: 'jett',
+  };
+  const r = await extractor(stub).selectFrames(input);
+  const text = seenBody.messages[0].content.find((p: any) => p.type === 'text');
+  assert.ok(text.text.includes('瞬云落点'), 'Jett prompt 应包含瞬云落点描述');
+  assert.ok(text.text.includes('dash落点'), 'Jett prompt 应包含 dash落点描述');
+  assert.ok(text.text.includes('第一枪位瞄哪'), 'Jett prompt 应包含第一枪位描述');
+  assert.equal(r.selections.length, 6, `Jett 应选出 6 个角色帧（stand/aim/effect/smoke_landing/dash_landing/first_angle），实际 ${r.selections.length}`);
+});
+
+test('selectFrames: 未知 agent 回退默认 stand/aim/effect prompt', async () => {
+  let seenBody: any;
+  const stub = (async (_url: string, init: any) => {
+    seenBody = JSON.parse(init.body);
+    return new Response(
+      JSON.stringify({ choices: [{ message: { content: '{"stand":1,"aim":3,"effect":5}' } }] }),
+      { status: 200 },
+    );
+  }) as unknown as typeof fetch;
+
+  const input: FrameSelectionInput = {
+    candidates: candidates(10),
+    title: 'test',
+    agentSlug: 'unknown_agent',
+  };
+  const r = await extractor(stub).selectFrames(input);
+  const text = seenBody.messages[0].content.find((p: any) => p.type === 'text');
+  assert.ok(text.text.includes('stand'), '默认 prompt 应包含 stand');
+  assert.ok(!text.text.includes('瞬云落点'), '默认 prompt 不应包含 Jett 特有角色');
+  assert.ok(!text.text.includes('dash'), '默认 prompt 不应包含 Jett 特有角色');
+  assert.equal(r.selections.length, 3, `默认 prompt 应选出 3 个角色帧，实际 ${r.selections.length}`);
+});
+
 test('selectFrames: 候选帧少（≤ 采样数）时全量发送', async () => {
   let seenBody: any;
   const stub = (async (_url: string, init: any) => {

@@ -110,5 +110,37 @@
     "verifiedPatch": "12.11",
     "status": "verified",
     "keywords": []
+  },
+  {
+    "id": "ascent-sova-def-a-14",
+    "map": "ascent",
+    "agent": "sova",
+    "abilitySlot": "E",
+    "side": "defense",
+    "site": "A",
+    "tier": "must-learn",
+    "title": "防守a包点第一支（看a大）",
+    "purpose": "防敌方从A大rushA",
+    "technique": "stand",
+    "timing": "预判对方要rush A 并且 猎枭有大时",
+    "origin": "A包点铁箱角落",
+    "target": "A大拐角/A大全覆盖",
+    "images": [
+      {
+        "role": "stand",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-sova-def-a-14/stand.webp"
+      },
+      {
+        "role": "aim",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-sova-def-a-14/aim.webp"
+      },
+      {
+        "role": "effect",
+        "url": "https://valorant-line-up-1442886149.cos.ap-nanjing.myqcloud.com/ascent-sova-def-a-14/effect.webp"
+      }
+    ],
+    "verifiedPatch": "12.11",
+    "status": "draft",
+    "keywords": []
   }
 ]

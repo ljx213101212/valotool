@@ -139,7 +139,7 @@ export class VideoLlmExtractor implements LlmExtractor {
         role: 'user',
         content: [
           { type: 'text', text: promptText },
-          { type: 'image_url', image_url: { url: `data:video/mp4;base64,${videoB64}` } },
+          { type: 'video_url', video_url: { url: `data:video/mp4;base64,${videoB64}` } },
         ],
       }],
       temperature: 0,
@@ -151,17 +151,27 @@ export class VideoLlmExtractor implements LlmExtractor {
     await writeFile(reqFile, reqBody);
 
     const proxyArg = buildCurlProxyArg();
-    const raw = execSync(
-      `curl -s ${proxyArg} --max-time 120 -X POST ` +
-      `"${this.cfg.baseUrl}/chat/completions" ` +
-      `-H "Content-Type: application/json" -H "Authorization: Bearer ${this.cfg.apiKey}" ` +
-      `-d @${reqFile}`,
-      { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 },
-    );
+    let raw: string;
+    try {
+      raw = execSync(
+        `curl -s ${proxyArg} --max-time 120 -X POST ` +
+        `"${this.cfg.baseUrl}/chat/completions" ` +
+        `-H "Content-Type: application/json" -H "Authorization: Bearer ${this.cfg.apiKey}" ` +
+        `-d @${reqFile}`,
+        { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 },
+      );
+    } catch (curlErr) {
+      throw new Error(`网关请求失败: ${(curlErr as Error).message}`);
+    }
 
     try { await (await import('node:fs/promises')).unlink(reqFile); } catch { /* 清理失败忽略 */ }
 
-    const data = JSON.parse(raw) as Record<string, unknown>;
+    let data: Record<string, unknown>;
+    try {
+      data = JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      throw new Error(`网关非 JSON 响应: ${raw.slice(0, 500)}`);
+    }
     if (data.error) throw new Error(`网关 API: ${JSON.stringify(data.error)}`);
     return (data.choices as Array<{ message?: { content?: string } }>)?.[0]?.message?.content ?? '';
   }

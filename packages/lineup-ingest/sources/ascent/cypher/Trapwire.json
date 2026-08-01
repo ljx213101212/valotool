@@ -1,0 +1,57 @@
+[
+  {
+    "id": "BV1UGa2zkEaE",
+    "platform": "bilibili",
+    "url": "https://www.bilibili.com/video/BV1UGa2zkEaE",
+    "title": "保安亚海悬城AB点绊线教学_VALORANT",
+    "creator": "保安头子尼克",
+    "hints": {
+      "map": "",
+      "agent": ""
+    },
+    "credit": "点位演示来源：B站 @保安头子尼克（uid 3546559113333208，BV1UGa2zkEaE）",
+    "segments": [
+      {
+        "startSec": 75.613844,
+        "title": "B防Rush 警家"
+      },
+      {
+        "startSec": 81.106614,
+        "title": "B防Rush 开关门"
+      },
+      {
+        "startSec": 87.592568,
+        "title": "B防Rush包点"
+      },
+      {
+        "startSec": 95.115298,
+        "title": " B防Rush 开关门2"
+      },
+      {
+        "startSec": 99.787423,
+        "title": "B防捷风飞包点"
+      },
+      {
+        "startSec": 106.388429,
+        "title": " A防猎枭电箭线"
+      },
+      {
+        "startSec": 120.832883,
+        "title": "A包点贴地线"
+      },
+      {
+        "startSec": 126.06556,
+        "title": "A包点贴地线"
+      },
+      {
+        "startSec": 132.539464,
+        "title": " A包点贴箱贴地线"
+      },
+      {
+        "startSec": 135.85976,
+        "title": "A包点贴箱贴地线2"
+      }
+    ],
+    "creatorUid": "3546559113333208"
+  }
+]

@@ -1,11 +1,13 @@
 import type { Lineup, Side } from '../schema';
 import ascentSova from '../../data/lineups/ascent-sova.json';
+import summitJett from '../../data/lineups/summit-jett.json';
+import ascentCypher from '../../data/lineups/ascent-cypher.json';
 
 /**
  * 全部点位内容的集中出口。新增内容文件时在此登记。
  * 内容正确性由 `pnpm check`（schema + 引用完整性）在提交前保证，此处直接断言类型。
  */
-export const ALL_LINEUPS: Lineup[] = [...ascentSova] as Lineup[];
+export const ALL_LINEUPS: Lineup[] = [...ascentCypher, ...ascentSova, ...summitJett] as Lineup[];
 
 const TIER_ORDER = { 'must-learn': 0, advanced: 1, flashy: 2 } as const;
 
