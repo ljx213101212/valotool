@@ -25,20 +25,39 @@ export async function extract(
     vocab: { maps: MAPS.map((m) => m.slug), agents: AGENTS.map((a) => a.slug) },
   });
 
-  // VLM 预选帧（stand/aim/effect），失败不影响主流程
+  // 帧预选：优先视频分析 → fallback 到图像采样
   let frames: DraftLineup['frames'] = {};
   try {
-    const frameResult = await ctx.extractor.selectFrames({
-      candidates: seg.candidates,
-      contactSheet: seg.contactSheet,
-      title: seg.title,
-      agentSlug: src.hints?.agent ?? '',
-    });
-    for (const sel of frameResult.selections) {
-      frames[sel.role] = sel.framePath;
-    }
-    if (frameResult.selections.length) {
-      ctx.log(`  → VLM 预选了 ${frameResult.selections.length} 帧`);
+    const videoEx = ctx.videoExtractor;
+    if (videoEx && seg.clipPath) {
+      const frameResult = await videoEx.selectFrames({
+        candidates: seg.candidates,
+        contactSheet: seg.contactSheet,
+        videoPath: seg.clipPath,
+        title: seg.title,
+        agentSlug: src.hints?.agent ?? '',
+      });
+      for (const sel of frameResult.selections) {
+        frames[sel.role] = sel.framePath;
+      }
+      if (frameResult.selections.length) {
+        ctx.log(`  → 视频 VLM 预选了 ${frameResult.selections.length} 帧`);
+      } else if (frameResult.warnings.length) {
+        ctx.log(`  → 视频 VLM 无结果，警告: ${frameResult.warnings.join('; ')}`);
+      }
+    } else {
+      const frameResult = await ctx.extractor.selectFrames({
+        candidates: seg.candidates,
+        contactSheet: seg.contactSheet,
+        title: seg.title,
+        agentSlug: src.hints?.agent ?? '',
+      });
+      for (const sel of frameResult.selections) {
+        frames[sel.role] = sel.framePath;
+      }
+      if (frameResult.selections.length) {
+        ctx.log(`  → VLM 预选了 ${frameResult.selections.length} 帧`);
+      }
     }
   } catch {
     // selectFrames 失败不阻断

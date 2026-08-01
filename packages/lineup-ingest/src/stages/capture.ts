@@ -3,7 +3,9 @@ import type { CapturedSegment, FrameCandidate, PipelineCtx, RawCapture, Segment 
 import {
   buildContactSheet,
   candidatesDir,
+  clipPath,
   contactSheetPath,
+  extractClip,
   extract1fps,
   listCandidates,
 } from '../adapters/ffmpeg';
@@ -27,23 +29,30 @@ async function exists(p: string): Promise<boolean> {
 /**
  * Segment → CapturedSegment。
  * 1fps 抽出整段候选帧，再用同一批帧拼接触表 —— 格子与候选 1:1 对齐。
- * 不预先指派 stand/aim/effect：人审从接触表点格子选。
- * 幂等：已抽过的段复用磁盘上的帧。
+ * 同时裁剪视频片段供视频分析 extractor 使用。
+ * 幂等：已抽过的段复用磁盘上的帧和 clip。
  */
 export async function captureFrames(seg: Segment, cap: RawCapture, ctx: PipelineCtx): Promise<CapturedSegment> {
   ctx.log(`capture ${seg.segmentId}`);
   const dur = Math.min(MAX_SEC, Math.max(1, seg.endSec - seg.startSec));
   const dir = candidatesDir(ctx.workDir, seg.segmentId);
 
-  // 幂等：目录已有候选帧则复用，否则抽帧
+  // 候选帧：幂等
   let paths = await listCandidates(dir).catch(() => [] as string[]);
   if (!paths.length) paths = await extract1fps(cap.videoPath, seg.startSec, dur, dir);
 
+  // 接触表：幂等
   const sheet = contactSheetPath(ctx.workDir, seg.segmentId);
   if (paths.length && !(await exists(sheet))) {
     await buildContactSheet(dir, paths.length, sheet);
   }
 
+  // 视频片段：幂等
+  const cPath = clipPath(ctx.workDir, seg.segmentId);
+  if (!(await exists(cPath))) {
+    await extractClip(cap.videoPath, seg.startSec, dur, cPath);
+  }
+
   const candidates = toCandidates(paths, seg.startSec);
-  return { ...seg, candidates, contactSheet: paths.length ? sheet : undefined };
+  return { ...seg, candidates, contactSheet: paths.length ? sheet : undefined, clipPath: cPath };
 }

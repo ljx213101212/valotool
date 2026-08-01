@@ -15,6 +15,10 @@ export function contactSheetPath(workDir: string, segmentId: string): string {
   return join(workDir, 'contact', `${segmentId}.png`);
 }
 
+export function clipPath(workDir: string, segmentId: string): string {
+  return join(workDir, 'clips', `${segmentId}.mp4`);
+}
+
 const CAND_RE = /^c\d+\.png$/;
 
 // ───────────────────────── 抽帧 ─────────────────────────
@@ -55,6 +59,26 @@ export async function extract1fps(
 export async function listCandidates(outDir: string): Promise<string[]> {
   const files = (await readdir(outDir)).filter((f) => CAND_RE.test(f)).sort();
   return files.map((f) => join(outDir, f));
+}
+
+/** 从视频指定起止裁剪 .mp4 片段，用于视频分析 extractor */
+export async function extractClip(
+  videoPath: string,
+  startSec: number,
+  durSec: number,
+  outPath: string,
+): Promise<string> {
+  await mkdir(dirname(outPath), { recursive: true });
+  await exec('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error', '-y',
+    '-ss', String(startSec),
+    '-t', String(durSec),
+    '-i', videoPath,
+    '-c', 'copy',
+    '-avoid_negative_ts', 'make_zero',
+    outPath,
+  ]);
+  return outPath;
 }
 
 /** 把已抽的 1fps 帧（outDir/c%03d.png）拼成接触表，每行 6 张。 */
